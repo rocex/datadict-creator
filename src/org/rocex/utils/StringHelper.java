@@ -1,5 +1,10 @@
 package org.rocex.utils;
 
+import java.io.BufferedReader;
+import java.io.FileReader;
+import java.io.IOException;
+import java.io.Reader;
+import java.util.Properties;
 import java.util.UUID;
 
 /***************************************************************************
@@ -193,6 +198,44 @@ public class StringHelper
     public static boolean isEmpty(String strSource)
     {
         return strSource == null || strSource.length() == 0;
+    }
+    
+    /***************************************************************************
+     * @param strFilePath
+     * @author Rocex Wang
+     * @version 2019-5-21 11:09:32
+     ***************************************************************************/
+    public static Properties load(String strFilePath)
+    {
+        Reader reader = null;
+        Properties properties = new Properties();
+        
+        try
+        {
+            reader = new BufferedReader(new FileReader(strFilePath));
+            
+            properties.load(reader);
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        finally
+        {
+            if (reader != null)
+            {
+                try
+                {
+                    reader.close();
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger().error(ex.getMessage(), ex);
+                }
+            }
+        }
+        
+        return properties;
     }
     
     /***************************************************************************

@@ -10,16 +10,16 @@ public class DataDictHtml
     public static String strHtml = "<html>\n" + 
             "<head>\n" + 
             "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" + 
-            "    <title>{0}</title>\n" + 
+            "    <title>{0} ({1})</title>\n" + 
             "    <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />\n" + 
             "</head>\n" + 
             "<body>\n" + 
             "    <div class=\"title\">\n" + 
-            "        <h3>{0}</h3>\n" + 
+            "        <h3><a href=\"../index.html\" style=\"float: left; margin-left: 20px;\">首页</a>{0} ({1})</h3>\n" + 
             "    </div>\n" + 
             "    <div class=\"footer\">\n" + 
             "        <span>\n" + 
-            "            {1}\n" +
+            "            {2}\n" +
             "        </span>\n" + 
             "    </div>\n" + 
             "    <br>\n" + 
@@ -35,12 +35,39 @@ public class DataDictHtml
             "            <th>默认值</th>\n" + 
             "            <th>取值范围/枚举</th>\n" +
             "        </tr>\n" + 
-            "{2}" + 
+            "{3}" + 
             "    </table>\n" + 
             "    <br>\n" +
             "    <div class=\"footer\">\n" + 
             "        <a href=\"http://www.yonyou.com\">&copy;用友网络科技股份有限公司</a><br>\n" +
-            "        <span>NC Cloud 产品本部 <a href='mailto:wpz@yonyou.com'>@wpz</a><br>{3}</span>\n" +
+            "        <span>NC Cloud 产品本部 {1}<br><a href='mailto:wpz@yonyou.com'>@wpz</a> {4}</span>\n" +
+            "    </div>\n" + 
+            "</body>\n" + 
+            "</html>";
+    
+    public static String strHtmlIndex = "<html>\n" + 
+            "<head>\n" + 
+            "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" + 
+            "    <title>NC Cloud 数据字典 ({0})</title>\n" + 
+            "    <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\" />\n" + 
+            "</head>\n" + 
+            "<body>\n" + 
+            "    <div class=\"title\">\n" + 
+            "        <h3>NC Cloud 数据字典 ({0})</h3>\n" + 
+            "    </div>\n<br>\n" + 
+            "    <table id=\"propTable\">\n" + 
+            "        <tr>\n" + 
+            "            <th>实体</th>\n" + 
+            "            <th>实体</th>\n" + 
+            "            <th>实体</th>\n" + 
+            "            <th>实体</th>\n" + 
+            "            <th>实体</th>\n" + 
+            "        </tr>\n" + 
+            "{1}" + 
+            "    </table>\n<br>\n" +
+            "    <div class=\"footer\">\n" + 
+            "        <a href=\"http://www.yonyou.com\">&copy;用友网络科技股份有限公司</a><br>\n" + 
+            "        <span>NC Cloud 产品本部 {0}<br><a href=mailto:wpz@yonyou.com>@wpz</a> {2}</span>\n" + 
             "    </div>\n" + 
             "</body>\n" + 
             "</html>";

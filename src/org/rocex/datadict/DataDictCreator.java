@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.rocex.datadict.vo.ClassVO;
 import org.rocex.datadict.vo.ComponentVO;
@@ -22,6 +23,7 @@ import org.rocex.db.param.SQLParameter;
 import org.rocex.db.processor.BeanListProcessor;
 import org.rocex.db.processor.SQLExecutor;
 import org.rocex.utils.Logger;
+import org.rocex.utils.StringHelper;
 
 /***************************************************************************
  * <br>
@@ -30,9 +32,12 @@ import org.rocex.utils.Logger;
  ***************************************************************************/
 public class DataDictCreator
 {
+    public static Properties settings = StringHelper.load("settings.properties");
+    
     private Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();
     private Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();
     private Map<String, String> mapEnumString = new HashMap<>();
+    
     private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();
     
     private SQLExecutor sqlExecutor = new SQLExecutor();
@@ -96,6 +101,65 @@ public class DataDictCreator
         }
     }
     
+    private void createIndex(List<ClassVO> listClassVO)
+    {
+        String strContent = "";
+        String strRow = "";
+        
+        int iIndex = 1;
+        
+        for (ClassVO classVO : listClassVO)
+        {
+            if (classVO.getClassType() != 201)
+            {
+                continue;
+            }
+            
+            strRow += MessageFormat.format("            <td><a href=\"{0}\">{1}<br>{2}</a></td>\n",
+                    buildFilePath(false, ".", getModuleId(classVO), classVO.getDefaultTableName() + "_" + classVO.getId() + ".html"), classVO.getDisplayName(),
+                    classVO.getDefaultTableName());
+            
+            if (iIndex % 5 == 0)
+            {
+                strContent += "        <tr align=\"center\">\n" + strRow + "        </tr>\n";
+                strRow = "";
+            }
+            
+            iIndex++;
+        }
+        
+        String strHtml = MessageFormat.format(DataDictHtml.strHtmlIndex, settings.get("DataDictVersion"), strContent,
+                DateFormat.getDateTimeInstance().format(new Date()));
+        
+        File file = new File(strOutputDir);
+        
+        if (!file.exists())
+        {
+            file.mkdir();
+        }
+        
+        BufferedWriter bufferedWriter = null;
+        FileWriter fileWriter = null;
+        
+        try
+        {
+            fileWriter = new FileWriter(buildFilePath(false, strOutputDir, "index.html"));
+            
+            bufferedWriter = new BufferedWriter(fileWriter);
+            
+            bufferedWriter.write(strHtml);
+            bufferedWriter.flush();
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        finally
+        {
+            closeQuietly(bufferedWriter, fileWriter);
+        }
+    }
+    
     /***************************************************************************
      * @author Rocex Wang
      * @version 2020-4-21 15:47:35
@@ -104,7 +168,7 @@ public class DataDictCreator
     {
         String strModuleSQL = "select id,name,displayname from md_module order by lower(name)";
         String strComponentSQL = "select id,name,displayname,namespace,ownmodule from md_component";
-        String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype from md_class";
+        String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype from md_class order by lower(defaulttablename)";
         String strPropertySQL = "select distinct a.id id,a.name name,a.displayname displayname,attrlength,attrminvalue,attrmaxvalue,attrsequence,datatype,datatypestyle,a.defaultvalue defaultvalue"
                 + ",a.nullable nullable,a.precise precise,refmodelname,classid,b.sqldatetype sqldatetype,b.pkey"
                 + " from md_property a left join md_column b on a.name=b.name where classid=? and b.tableid=? order by b.pkey desc,a.attrsequence";
@@ -119,13 +183,15 @@ public class DataDictCreator
             mapComponentVO = toMap(listComponentVO);
             mapClassVO = toMap(listClassVO);
             
+            createIndex(listClassVO);
+            
             int count = 0;
             
             for (ClassVO classVO : listClassVO)
             {
                 if (count++ > 10)
                 {
-                    // break;
+                    break;
                 }
                 
                 if (classVO.getClassType() != 201)
@@ -171,7 +237,7 @@ public class DataDictCreator
                 }
                 
                 String strHtml = MessageFormat.format(DataDictHtml.strHtml, classVO.getDisplayName() + " " + classVO.getDefaultTableName(),
-                        classVO.getFullClassname(), strHtmlRow, DateFormat.getDateTimeInstance().format(new Date()));
+                        settings.get("DataDictVersion"), classVO.getFullClassname(), strHtmlRow, DateFormat.getDateTimeInstance().format(new Date()));
                 
                 writeFile(classVO, strHtml);
             }
@@ -201,7 +267,7 @@ public class DataDictCreator
         return buildFilePath(false, getClassDirPath(classVO), classVO.getDefaultTableName() + "_" + classVO.getId() + ".html");
     }
     
-    protected String getEnumString(PropertyVO propertyVO)
+    private String getEnumString(PropertyVO propertyVO)
     {
         if (mapEnumString.containsKey(propertyVO.getDataType()))
         {

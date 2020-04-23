@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
 
+import org.rocex.datadict.DataDictCreator;
 import org.rocex.db.param.SQLParameter;
 import org.rocex.utils.Logger;
 import org.rocex.vo.SuperVO;
@@ -20,11 +21,6 @@ import org.rocex.vo.SuperVO;
 public class SQLExecutor
 {
     private Connection connection = null;
-    
-    private String strConnUrl = "jdbc:oracle:thin:@10.10.2.28:1521:orcl";
-    private String strDriver = "oracle.jdbc.OracleDriver";
-    private String strPassword = "sys";
-    private String strUserName = "NCC19_0905";
     
     /***************************************************************************
      * @param resultSet
@@ -267,6 +263,11 @@ public class SQLExecutor
         if (connection == null)
         {
             Logger.getLogger().trace("create connection...");
+            
+            String strDriver = DataDictCreator.settings.getProperty("Driver");
+            String strConnUrl = DataDictCreator.settings.getProperty("ConnUrl");
+            String strUserName = DataDictCreator.settings.getProperty("UserName");
+            String strPassword = DataDictCreator.settings.getProperty("Password");
             
             try
             {
