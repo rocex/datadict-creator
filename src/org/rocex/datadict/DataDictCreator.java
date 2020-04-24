@@ -37,14 +37,12 @@ public class DataDictCreator
     private Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();
     private Map<String, String> mapClassVOByComponent = new HashMap<>();
     private Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();
-    
     private Map<String, String> mapEnumString = new HashMap<>();
-    
     private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();
     
     private SQLExecutor sqlExecutor = new SQLExecutor();
     
-    private String strOutputDir = "C:\\datadict\\";
+    private String strOutputDir = settings.getProperty("OutputDir");
     
     /***************************************************************************
      * @param args
@@ -73,25 +71,20 @@ public class DataDictCreator
             
             ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
             
-            String str1 = mapClassVOByComponent.get(componentVO.getId());
+            String strClassLinks = mapClassVOByComponent.get(componentVO.getId());
             
-            if (str1 == null)
+            if (strClassLinks == null)
             {
-                str1 = "";
+                strClassLinks = "";
             }
             
-            String str = MessageFormat.format(" / <a href=\"{0}\">{1}</a>", getAbsClassFilePath(classVO), classVO.getDisplayName(), classVO.getFullClassname());
+            String strClassLink = MessageFormat.format(" / <a href=\"{0}\">{1}</a>", getAbsClassFilePath(classVO), classVO.getDisplayName(),
+                    classVO.getFullClassname());
             
-            if ("Y".equals(classVO.getIsPrimary()))
-            {
-                str1 = "<b>" + str + "</b>" + str1;
-            }
-            else
-            {
-                str1 = str1 + str;
-            }
+            // 主实体加粗
+            strClassLinks = "Y".equals(classVO.getIsPrimary()) ? "<b>" + strClassLink + "</b>" + strClassLinks : strClassLinks + strClassLink;
             
-            mapClassVOByComponent.put(componentVO.getId(), str1);
+            mapClassVOByComponent.put(componentVO.getId(), strClassLinks);
         }
     }
     
@@ -213,9 +206,10 @@ public class DataDictCreator
         
         ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
         
+        String _string = classVO.getFullClassname() + " " + mapClassVOByComponent.get(componentVO.getId());
+        
         String strHtml = MessageFormat.format(DataDictHtml.strHtml, classVO.getDisplayName() + " " + classVO.getDefaultTableName(),
-                settings.get("DataDictVersion"), classVO.getFullClassname() + " " + mapClassVOByComponent.get(componentVO.getId()), strHtmlRows,
-                DateFormat.getDateTimeInstance().format(new Date()));
+                settings.get("DataDictVersion"), _string, strHtmlRows, DateFormat.getDateTimeInstance().format(new Date()));
         
         writeFile(getClassFilePath(classVO), strHtml);
     }
@@ -281,7 +275,7 @@ public class DataDictCreator
             
             for (ClassVO classVO : listClassVO)
             {
-                if (count++ > 10)
+                if (count++ > 100)
                 {
                     break;
                 }
@@ -346,7 +340,7 @@ public class DataDictCreator
         
         for (EnumVO metaVO : listEnumValueVO)
         {
-            strEnum += metaVO.getName() + "=" + metaVO.getValue() + "; ";
+            strEnum += metaVO.getName() + "=" + metaVO.getValue() + "; <br>";
         }
         
         mapEnumString.put(propertyVO.getDataType(), strEnum);
