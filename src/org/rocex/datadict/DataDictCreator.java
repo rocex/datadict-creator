@@ -271,15 +271,8 @@ public class DataDictCreator
             
             createDataDictIndexFile(listClassVO);
             
-            int count = 0;
-            
             for (ClassVO classVO : listClassVO)
             {
-                if (count++ > 100)
-                {
-                    break;
-                }
-                
                 createDataDictFile(classVO);
             }
         }
@@ -340,7 +333,7 @@ public class DataDictCreator
         
         for (EnumVO metaVO : listEnumValueVO)
         {
-            strEnum += metaVO.getName() + "=" + metaVO.getValue() + "; <br>";
+            strEnum += metaVO.getValue() + "=" + metaVO.getName() + "; <br>";
         }
         
         mapEnumString.put(propertyVO.getDataType(), strEnum);
