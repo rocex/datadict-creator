@@ -88,26 +88,51 @@ public class DataDictCreator
         }
     }
     
-    private String buildFilePath(boolean isDir, String... strPaths)
+    private void buildEnumString()
     {
-        if (strPaths == null || strPaths.length == 0)
+        String strEnumValueSQL = "select id,name,value,enumsequence from md_enumvalue order by id,enumsequence";
+        
+        List<EnumVO> listEnumValueVO = null;
+        
+        try
         {
-            return ".";
+            listEnumValueVO = (List<EnumVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(EnumVO.class), strEnumValueSQL);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
         }
         
-        StringBuffer strbuffPath = new StringBuffer();
-        
-        for (int i = 0; i < strPaths.length; i++)
+        if (listEnumValueVO == null || listEnumValueVO.size() == 0)
         {
-            strbuffPath.append(strPaths[i]).append(File.separator);
+            return;
         }
         
-        if (!isDir && strbuffPath.charAt(strbuffPath.length() - 1) == File.separatorChar)
+        for (EnumVO enumVO : listEnumValueVO)
         {
-            strbuffPath.deleteCharAt(strbuffPath.length() - 1);
+            String strEnum = mapEnumString.get(enumVO.getId());
+            
+            if (strEnum == null)
+            {
+                strEnum = "";
+            }
+            
+            strEnum += enumVO.getValue() + "=" + enumVO.getName() + "; <br>";
+            
+            mapEnumString.put(enumVO.getId(), strEnum);
+        }
+    }
+    
+    private Map<String, ? extends MetaVO> buildMap(List<? extends MetaVO> listMetaVO)
+    {
+        Map<String, MetaVO> mapMetaVO = new HashMap<>();
+        
+        for (MetaVO metaVO : listMetaVO)
+        {
+            mapMetaVO.put(metaVO.getId(), metaVO);
         }
         
-        return strbuffPath.toString();
+        return mapMetaVO;
     }
     
     private void closeQuietly(Closeable... closeables)
@@ -193,7 +218,12 @@ public class DataDictCreator
             String strDefaultValue = propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue();
             
             // 枚举
-            String strEnumString = getEnumString(propertyVO);
+            String strEnumString = "";
+            if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300
+                    && mapEnumString.containsKey(propertyVO.getDataType()))
+            {
+                strEnumString = mapEnumString.get(propertyVO.getDataType());
+            }
             
             String strHtmlRow = classVO.getKeyAttribute().equals(propertyVO.getId()) ? DataDictHtml.strPkRow : DataDictHtml.strRow;
             
@@ -229,7 +259,7 @@ public class DataDictCreator
             }
             
             strRow += MessageFormat.format("            <td><a href=\"{0}\">{1}<br>{2}</a></td>\n",
-                    buildFilePath(false, ".", getModuleId(classVO), classVO.getDefaultTableName() + "_" + classVO.getId() + ".html"), classVO.getDisplayName(),
+                    getFilePath(false, ".", getModuleId(classVO), classVO.getDefaultTableName() + "_" + classVO.getId() + ".html"), classVO.getDisplayName(),
                     classVO.getDefaultTableName());
             
             if (iIndex % 5 == 0)
@@ -244,7 +274,7 @@ public class DataDictCreator
         String strHtml = MessageFormat.format(DataDictHtml.strHtmlIndex, settings.get("DataDictVersion"), strContent,
                 DateFormat.getDateTimeInstance().format(new Date()));
         
-        writeFile(buildFilePath(false, strOutputDir, "index.html"), strHtml);
+        writeFile(getFilePath(false, strOutputDir, "index.html"), strHtml);
     }
     
     /***************************************************************************
@@ -263,10 +293,11 @@ public class DataDictCreator
             List<ComponentVO> listComponentVO = (List<ComponentVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(ComponentVO.class), strComponentSQL);
             List<ClassVO> listClassVO = (List<ClassVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(ClassVO.class), strClassSQL);
             
-            mapModuleVO = toMap(listModuleVO);
-            mapComponentVO = toMap(listComponentVO);
-            mapClassVO = toMap(listClassVO);
+            mapModuleVO = buildMap(listModuleVO);
+            mapComponentVO = buildMap(listComponentVO);
+            mapClassVO = buildMap(listClassVO);
             
+            buildEnumString();
             buildClassVOMapByComponentId(listClassVO);
             
             createDataDictIndexFile(listClassVO);
@@ -288,57 +319,39 @@ public class DataDictCreator
     
     private String getAbsClassFilePath(ClassVO classVO)
     {
-        return buildFilePath(false, "..", getModuleId(classVO), classVO.getDefaultTableName() + "_" + classVO.getId() + ".html");
+        return getFilePath(false, "..", getModuleId(classVO), classVO.getDefaultTableName() + "_" + classVO.getId() + ".html");
     }
     
     private String getClassDirPath(ClassVO classVO)
     {
-        return buildFilePath(true, strOutputDir, getModuleId(classVO));
+        return getFilePath(true, strOutputDir, getModuleId(classVO));
     }
     
     private String getClassFilePath(ClassVO classVO)
     {
-        return buildFilePath(false, getClassDirPath(classVO), classVO.getDefaultTableName() + "_" + classVO.getId() + ".html");
+        return getFilePath(false, getClassDirPath(classVO), classVO.getDefaultTableName() + "_" + classVO.getId() + ".html");
     }
     
-    private String getEnumString(PropertyVO propertyVO)
+    private String getFilePath(boolean isDir, String... strPaths)
     {
-        if (mapEnumString.containsKey(propertyVO.getDataType()))
+        if (strPaths == null || strPaths.length == 0)
         {
-            return mapEnumString.get(propertyVO.getDataType());
+            return ".";
         }
         
-        String strEnumValueSQL = "select id,name,value,enumsequence from md_enumvalue where id=? order by enumsequence";
+        StringBuffer strbuffPath = new StringBuffer();
         
-        SQLParameter para = new SQLParameter();
-        para.addParam(propertyVO.getDataType());
-        
-        List<EnumVO> listEnumValueVO = null;
-        
-        try
+        for (int i = 0; i < strPaths.length; i++)
         {
-            listEnumValueVO = (List<EnumVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(EnumVO.class), strEnumValueSQL, para);
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
+            strbuffPath.append(strPaths[i]).append(File.separator);
         }
         
-        if (listEnumValueVO == null || listEnumValueVO.size() == 0)
+        if (!isDir && strbuffPath.charAt(strbuffPath.length() - 1) == File.separatorChar)
         {
-            return "";
+            strbuffPath.deleteCharAt(strbuffPath.length() - 1);
         }
         
-        String strEnum = "";
-        
-        for (EnumVO metaVO : listEnumValueVO)
-        {
-            strEnum += metaVO.getValue() + "=" + metaVO.getName() + "; <br>";
-        }
-        
-        mapEnumString.put(propertyVO.getDataType(), strEnum);
-        
-        return strEnum;
+        return strbuffPath.toString();
     }
     
     private String getModuleId(ClassVO classVO)
@@ -348,18 +361,6 @@ public class DataDictCreator
         ModuleVO moduleVO = (ModuleVO) mapModuleVO.get(componentVO.getOwnModule());
         
         return (moduleVO == null ? componentVO.getOwnModule() : moduleVO.getId()).toLowerCase();
-    }
-    
-    private Map<String, ? extends MetaVO> toMap(List<? extends MetaVO> listMetaVO)
-    {
-        Map<String, MetaVO> mapMetaVO = new HashMap<>();
-        
-        for (MetaVO metaVO : listMetaVO)
-        {
-            mapMetaVO.put(metaVO.getId(), metaVO);
-        }
-        
-        return mapMetaVO;
     }
     
     private void writeFile(String strFilePath, String strContent)
