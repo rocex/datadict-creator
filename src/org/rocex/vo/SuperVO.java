@@ -209,11 +209,7 @@ public class SuperVO implements Serializable
             {
                 Logger.getLogger().trace(strFieldName + ": " + objValue);
                 
-                method.invoke(this, new Object[] { objValue });
-            }
-            catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex)
-            {
-                Logger.getLogger().error(ex.getMessage(), ex);
+                boolean blSetted = false;
                 
                 if (objValue instanceof BigDecimal)
                 {
@@ -221,9 +217,19 @@ public class SuperVO implements Serializable
                     
                     if (parameterTypes != null && parameterTypes[0] == Integer.class)
                     {
+                        blSetted = true;
                         setValue(strFieldName, ((BigDecimal) objValue).intValue());
                     }
                 }
+                
+                if (!blSetted)
+                {
+                    method.invoke(this, new Object[] { objValue });
+                }
+            }
+            catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex)
+            {
+                Logger.getLogger().error(ex.getMessage(), ex);
             }
         }
     }

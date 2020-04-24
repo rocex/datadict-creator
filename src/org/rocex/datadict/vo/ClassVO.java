@@ -11,7 +11,18 @@ public class ClassVO extends MetaVO
     private String strComponentId;
     private String strDefaultTableName;
     private String strFullClassname;
+    private String strIsPrimary;
     private String strKeyAttribute;
+    
+    /***************************************************************************
+     * @return the classType
+     * @author Rocex Wang
+     * @version 2020-4-22 16:46:54
+     ***************************************************************************/
+    public Integer getClassType()
+    {
+        return iClassType;
+    }
     
     /***************************************************************************
      * @return the componentId
@@ -44,6 +55,16 @@ public class ClassVO extends MetaVO
     }
     
     /***************************************************************************
+     * @return the isPrimary
+     * @author Rocex Wang
+     * @version 2020-4-23 19:55:37
+     ***************************************************************************/
+    public String getIsPrimary()
+    {
+        return strIsPrimary;
+    }
+    
+    /***************************************************************************
      * @return the keyAttribute
      * @author Rocex Wang
      * @version 2020-4-22 14:32:45
@@ -51,6 +72,16 @@ public class ClassVO extends MetaVO
     public String getKeyAttribute()
     {
         return strKeyAttribute;
+    }
+    
+    /***************************************************************************
+     * @param classType the classType to set
+     * @author Rocex Wang
+     * @version 2020-4-22 16:46:54
+     ***************************************************************************/
+    public void setClassType(Integer classType)
+    {
+        iClassType = classType;
     }
     
     /***************************************************************************
@@ -84,6 +115,16 @@ public class ClassVO extends MetaVO
     }
     
     /***************************************************************************
+     * @param isPrimary the isPrimary to set
+     * @author Rocex Wang
+     * @version 2020-4-23 19:55:37
+     ***************************************************************************/
+    public void setIsPrimary(String isPrimary)
+    {
+        strIsPrimary = isPrimary;
+    }
+    
+    /***************************************************************************
      * @param keyAttribute the keyAttribute to set
      * @author Rocex Wang
      * @version 2020-4-22 14:32:45
@@ -91,25 +132,5 @@ public class ClassVO extends MetaVO
     public void setKeyAttribute(String keyAttribute)
     {
         strKeyAttribute = keyAttribute;
-    }
-
-    /***************************************************************************
-     * @return the classType
-     * @author Rocex Wang
-     * @version 2020-4-22 16:46:54
-     ***************************************************************************/
-    public Integer getClassType()
-    {
-        return iClassType;
-    }
-
-    /***************************************************************************
-     * @param classType the classType to set
-     * @author Rocex Wang
-     * @version 2020-4-22 16:46:54
-     ***************************************************************************/
-    public void setClassType(Integer classType)
-    {
-        iClassType = classType;
     }
 }

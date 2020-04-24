@@ -22,7 +22,6 @@ public class DataDictHtml
             "            {2}\n" +
             "        </span>\n" + 
             "    </div>\n" + 
-            "    <br>\n" + 
             "    <table id=\"propTable\">\n" + 
             "        <tr>\n" + 
             "            <th width=\"40\">序号</th>\n" + 
@@ -39,8 +38,8 @@ public class DataDictHtml
             "    </table>\n" + 
             "    <br>\n" +
             "    <div class=\"footer\">\n" + 
-            "        <a href=\"http://www.yonyou.com\">&copy;用友网络科技股份有限公司</a><br>\n" +
-            "        <span>NC Cloud 产品本部 {1}<br><a href='mailto:wpz@yonyou.com'>@wpz</a> {4}</span>\n" +
+            "        <a href=\"http://www.yonyou.com\">&copy;用友网络科技股份有限公司</a>  " +
+            "        <span>NC Cloud 产品本部 ({1})  <a href='mailto:wpz@yonyou.com'>@wpz</a>  {4}</span>\n" +
             "    </div>\n" + 
             "</body>\n" + 
             "</html>";
@@ -66,8 +65,8 @@ public class DataDictHtml
             "{1}" + 
             "    </table>\n<br>\n" +
             "    <div class=\"footer\">\n" + 
-            "        <a href=\"http://www.yonyou.com\">&copy;用友网络科技股份有限公司</a><br>\n" + 
-            "        <span>NC Cloud 产品本部 {0}<br><a href=mailto:wpz@yonyou.com>@wpz</a> {2}</span>\n" + 
+            "        <a href=\"http://www.yonyou.com\">&copy;用友网络科技股份有限公司</a>  " + 
+            "        <span>NC Cloud 产品本部 ({0})  <a href=mailto:wpz@yonyou.com>@wpz</a>  {2}</span>\n" + 
             "    </div>\n" + 
             "</body>\n" + 
             "</html>";

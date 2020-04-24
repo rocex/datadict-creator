@@ -35,7 +35,9 @@ public class DataDictCreator
     public static Properties settings = StringHelper.load("settings.properties");
     
     private Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();
+    private Map<String, String> mapClassVOByComponent = new HashMap<>();
     private Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();
+    
     private Map<String, String> mapEnumString = new HashMap<>();
     
     private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();
@@ -53,7 +55,44 @@ public class DataDictCreator
     {
         DataDictCreator creator = new DataDictCreator();
         
+        long lStart = System.currentTimeMillis();
+        
         creator.doAction();
+        
+        Logger.getLogger().debug("耗时:" + (System.currentTimeMillis() - lStart) / 1000 + "s");
+    }
+    
+    private void buildClassVOMapByComponentId(List<ClassVO> listClassVO)
+    {
+        for (ClassVO classVO : listClassVO)
+        {
+            if (classVO.getClassType() != 201)
+            {
+                continue;
+            }
+            
+            ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
+            
+            String str1 = mapClassVOByComponent.get(componentVO.getId());
+            
+            if (str1 == null)
+            {
+                str1 = "";
+            }
+            
+            String str = MessageFormat.format(" / <a href=\"{0}\">{1}</a>", getAbsClassFilePath(classVO), classVO.getDisplayName(), classVO.getFullClassname());
+            
+            if ("Y".equals(classVO.getIsPrimary()))
+            {
+                str1 = "<b>" + str + "</b>" + str1;
+            }
+            else
+            {
+                str1 = str1 + str;
+            }
+            
+            mapClassVOByComponent.put(componentVO.getId(), str1);
+        }
     }
     
     private String buildFilePath(boolean isDir, String... strPaths)
@@ -101,7 +140,87 @@ public class DataDictCreator
         }
     }
     
-    private void createIndex(List<ClassVO> listClassVO)
+    private void createDataDictFile(ClassVO classVO)
+    {
+        if (classVO.getClassType() != 201)
+        {
+            return;
+        }
+        
+        String strPropertySQL = "select distinct a.id id,a.name name,a.displayname displayname,attrlength,attrminvalue,attrmaxvalue,attrsequence"
+                + ",datatype,datatypestyle,a.defaultvalue defaultvalue,a.nullable nullable,a.precise precise,refmodelname,classid,b.sqldatetype sqldatetype,b.pkey"
+                + " from md_property a left join md_column b on a.name=b.name where classid=? and b.tableid=? order by b.pkey desc,a.attrsequence";
+        
+        // 取实体所有属性
+        SQLParameter para = new SQLParameter();
+        para.addParam(classVO.getId());
+        para.addParam(classVO.getDefaultTableName());
+        
+        List<PropertyVO> listPropertyVO = null;
+        
+        try
+        {
+            listPropertyVO = (List<PropertyVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(PropertyVO.class), strPropertySQL, para);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        
+        if (listPropertyVO == null || listPropertyVO.size() == 0)
+        {
+            return;
+        }
+        
+        String strHtmlRows = "";
+        
+        for (int i = 0; i < listPropertyVO.size(); i++)
+        {
+            PropertyVO propertyVO = listPropertyVO.get(i);
+            
+            // 引用实体模型
+            ClassVO refClassVO = (ClassVO) mapClassVO.get(propertyVO.getDataType());
+            
+            String strRefClassPathHref = refClassVO.getDisplayName();
+            
+            if (refClassVO.getClassType() == 201)
+            {
+                String strRefClassPath = getAbsClassFilePath(refClassVO);
+                
+                strRefClassPathHref = MessageFormat.format("<a href=\"{0}\">{1}</a>", strRefClassPath, refClassVO.getDisplayName());
+            }
+            
+            strRefClassPathHref = strRefClassPathHref + " (" + refClassVO.getName() + ")";
+            
+            // 数据库类型
+            String strDbType = propertyVO.getSqlDateType().contains("char") ? propertyVO.getSqlDateType() + "(" + propertyVO.getAttrLength() + ")"
+                    : propertyVO.getSqlDateType();
+            
+            // 默认值
+            String strDefaultValue = propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue();
+            
+            // 枚举
+            String strEnumString = getEnumString(propertyVO);
+            
+            String strHtmlRow = classVO.getKeyAttribute().equals(propertyVO.getId()) ? DataDictHtml.strPkRow : DataDictHtml.strRow;
+            
+            // 是否必输
+            String strMustInput = "N".equals(propertyVO.getNullable()) ? "  √" : "";
+            
+            strHtmlRows += MessageFormat.format(strHtmlRow, i + 1, propertyVO.getName(), propertyVO.getDisplayName(), propertyVO.getName(), strDbType,
+                    strMustInput, strRefClassPathHref, strDefaultValue, strEnumString);
+        }
+        
+        ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
+        
+        String strHtml = MessageFormat.format(DataDictHtml.strHtml, classVO.getDisplayName() + " " + classVO.getDefaultTableName(),
+                settings.get("DataDictVersion"), classVO.getFullClassname() + " " + mapClassVOByComponent.get(componentVO.getId()), strHtmlRows,
+                DateFormat.getDateTimeInstance().format(new Date()));
+        
+        writeFile(getClassFilePath(classVO), strHtml);
+    }
+    
+    private void createDataDictIndexFile(List<ClassVO> listClassVO)
     {
         String strContent = "";
         String strRow = "";
@@ -131,33 +250,7 @@ public class DataDictCreator
         String strHtml = MessageFormat.format(DataDictHtml.strHtmlIndex, settings.get("DataDictVersion"), strContent,
                 DateFormat.getDateTimeInstance().format(new Date()));
         
-        File file = new File(strOutputDir);
-        
-        if (!file.exists())
-        {
-            file.mkdir();
-        }
-        
-        BufferedWriter bufferedWriter = null;
-        FileWriter fileWriter = null;
-        
-        try
-        {
-            fileWriter = new FileWriter(buildFilePath(false, strOutputDir, "index.html"));
-            
-            bufferedWriter = new BufferedWriter(fileWriter);
-            
-            bufferedWriter.write(strHtml);
-            bufferedWriter.flush();
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
-        finally
-        {
-            closeQuietly(bufferedWriter, fileWriter);
-        }
+        writeFile(buildFilePath(false, strOutputDir, "index.html"), strHtml);
     }
     
     /***************************************************************************
@@ -168,10 +261,7 @@ public class DataDictCreator
     {
         String strModuleSQL = "select id,name,displayname from md_module order by lower(name)";
         String strComponentSQL = "select id,name,displayname,namespace,ownmodule from md_component";
-        String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype from md_class order by lower(defaulttablename)";
-        String strPropertySQL = "select distinct a.id id,a.name name,a.displayname displayname,attrlength,attrminvalue,attrmaxvalue,attrsequence,datatype,datatypestyle,a.defaultvalue defaultvalue"
-                + ",a.nullable nullable,a.precise precise,refmodelname,classid,b.sqldatetype sqldatetype,b.pkey"
-                + " from md_property a left join md_column b on a.name=b.name where classid=? and b.tableid=? order by b.pkey desc,a.attrsequence";
+        String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary from md_class order by lower(defaulttablename)";
         
         try
         {
@@ -183,7 +273,9 @@ public class DataDictCreator
             mapComponentVO = toMap(listComponentVO);
             mapClassVO = toMap(listClassVO);
             
-            createIndex(listClassVO);
+            buildClassVOMapByComponentId(listClassVO);
+            
+            createDataDictIndexFile(listClassVO);
             
             int count = 0;
             
@@ -194,52 +286,7 @@ public class DataDictCreator
                     break;
                 }
                 
-                if (classVO.getClassType() != 201)
-                {
-                    continue;
-                }
-                
-                // 取实体所有属性
-                SQLParameter para = new SQLParameter();
-                para.addParam(classVO.getId());
-                para.addParam(classVO.getDefaultTableName());
-                
-                List<PropertyVO> listPropertyVO = (List<PropertyVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(PropertyVO.class), strPropertySQL, para);
-                
-                String strHtmlRow = "";
-                
-                for (int i = 0; i < listPropertyVO.size(); i++)
-                {
-                    PropertyVO propertyVO = listPropertyVO.get(i);
-                    
-                    ClassVO refClassVO = (ClassVO) mapClassVO.get(propertyVO.getDataType());
-                    
-                    // 引用实体模型
-                    String strRefClassPathHref = refClassVO.getDisplayName();
-                    
-                    if (refClassVO.getClassType() == 201)
-                    {
-                        String strRefClassPath = getAbsClassFilePath(refClassVO);
-                        
-                        strRefClassPathHref = MessageFormat.format("<a href=\"{0}\">{1}</a>", strRefClassPath, refClassVO.getDisplayName());
-                    }
-                    
-                    // 数据库类型
-                    String strDbType = propertyVO.getSqlDateType().contains("char") ? propertyVO.getSqlDateType() + "(" + propertyVO.getAttrLength() + ")"
-                            : propertyVO.getSqlDateType();
-                    
-                    // 枚举
-                    
-                    strHtmlRow += MessageFormat.format(classVO.getKeyAttribute().equals(propertyVO.getId()) ? DataDictHtml.strPkRow : DataDictHtml.strRow,
-                            i + 1, propertyVO.getName(), propertyVO.getDisplayName(), propertyVO.getName(), strDbType,
-                            "N".equals(propertyVO.getNullable()) ? "  √" : "", strRefClassPathHref + " (" + refClassVO.getName() + ")",
-                            propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue(), getEnumString(propertyVO));
-                }
-                
-                String strHtml = MessageFormat.format(DataDictHtml.strHtml, classVO.getDisplayName() + " " + classVO.getDefaultTableName(),
-                        settings.get("DataDictVersion"), classVO.getFullClassname(), strHtmlRow, DateFormat.getDateTimeInstance().format(new Date()));
-                
-                writeFile(classVO, strHtml);
+                createDataDictFile(classVO);
             }
         }
         catch (Exception ex)
@@ -328,21 +375,21 @@ public class DataDictCreator
         return mapMetaVO;
     }
     
-    private void writeFile(ClassVO classVO, String strContent)
+    private void writeFile(String strFilePath, String strContent)
     {
-        File file = new File(getClassDirPath(classVO));
-        
-        if (!file.exists())
-        {
-            file.mkdir();
-        }
-        
         BufferedWriter bufferedWriter = null;
         FileWriter fileWriter = null;
         
         try
         {
-            fileWriter = new FileWriter(getClassFilePath(classVO));
+            File file = new File(strFilePath);
+            
+            if (!file.getParentFile().exists())
+            {
+                file.getParentFile().mkdir();
+            }
+            
+            fileWriter = new FileWriter(file);
             
             bufferedWriter = new BufferedWriter(fileWriter);
             
