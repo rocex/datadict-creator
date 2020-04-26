@@ -1,3 +1,3 @@
 # data-dict-creator
 
-style.css 文件需要拷贝到最终生成的html文件根目录。
+根据数据库中元数据生成nc数据字典

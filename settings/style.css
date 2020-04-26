@@ -52,6 +52,10 @@ body {
 	background-color: #f4f8e9;
 }
 
+.pk-row {
+	color: red;
+}
+
 a:link {
 	color: #09c;
 	text-decoration: none;
