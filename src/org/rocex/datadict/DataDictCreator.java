@@ -32,7 +32,7 @@ import org.rocex.utils.StringHelper;
  ***************************************************************************/
 public class DataDictCreator
 {
-    public static Properties settings = StringHelper.load("settings.properties");
+    public static Properties settings = StringHelper.load("settings" + File.separator + "settings.properties");
     
     private Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();
     private Map<String, String> mapClassVOByComponent = new HashMap<>();
@@ -60,6 +60,11 @@ public class DataDictCreator
         Logger.getLogger().debug("耗时:" + (System.currentTimeMillis() - lStart) / 1000 + "s");
     }
     
+    /***************************************************************************
+     * @param listClassVO
+     * @author Rocex Wang
+     * @version 2020-4-24 15:41:49
+     ***************************************************************************/
     private void buildClassVOMapByComponentId(List<ClassVO> listClassVO)
     {
         for (ClassVO classVO : listClassVO)
@@ -238,7 +243,7 @@ public class DataDictCreator
         
         String _string = classVO.getFullClassname() + " " + mapClassVOByComponent.get(componentVO.getId());
         
-        String strHtml = MessageFormat.format(DataDictHtml.strHtml, classVO.getDisplayName() + " " + classVO.getDefaultTableName(),
+        String strHtml = MessageFormat.format(settings.getProperty("HtmlDataDictFile"), classVO.getDisplayName() + " " + classVO.getDefaultTableName(),
                 settings.get("DataDictVersion"), _string, strHtmlRows, DateFormat.getDateTimeInstance().format(new Date()));
         
         writeFile(getClassFilePath(classVO), strHtml);
@@ -271,7 +276,7 @@ public class DataDictCreator
             iIndex++;
         }
         
-        String strHtml = MessageFormat.format(DataDictHtml.strHtmlIndex, settings.get("DataDictVersion"), strContent,
+        String strHtml = MessageFormat.format(settings.getProperty("HtmlIndexFile"), settings.get("DataDictVersion"), strContent,
                 DateFormat.getDateTimeInstance().format(new Date()));
         
         writeFile(getFilePath(false, strOutputDir, "index.html"), strHtml);

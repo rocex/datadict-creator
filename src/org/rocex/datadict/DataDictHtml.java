@@ -10,7 +10,8 @@ public class DataDictHtml
     public static String strHtml = "<html>\n" + 
             "<head>\n" + 
             "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" + 
-            "    <title>{0} ({1})</title>\n" + 
+            "    <title>{0} ({1})</title>\n" +
+            "    <link rel=\"shortcut icon\" href=\"../favicon.ico\" />\n" +
             "    <link rel=\"stylesheet\" type=\"text/css\" href=\"../style.css\" />\n" + 
             "</head>\n" + 
             "<body>\n" + 
@@ -48,6 +49,7 @@ public class DataDictHtml
             "<head>\n" + 
             "    <meta http-equiv=\"Content-Type\" content=\"text/html; charset=UTF-8\" />\n" + 
             "    <title>NC Cloud 数据字典 ({0})</title>\n" + 
+            "    <link rel=\"shortcut icon\" href=\"favicon.ico\" />\n" +
             "    <link rel=\"stylesheet\" type=\"text/css\" href=\"style.css\" />\n" + 
             "</head>\n" + 
             "<body>\n" + 
