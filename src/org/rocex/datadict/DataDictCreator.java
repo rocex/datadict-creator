@@ -16,7 +16,6 @@ import org.rocex.utils.StringHelper;
 public class DataDictCreator
 {
     public static Properties settings = StringHelper.load("settings" + File.separator + "settings.properties");
-    public static Properties settingsHtml = StringHelper.load("settings" + File.separator + "settings-html.properties");
     
     /***************************************************************************
      * @param args
@@ -25,20 +24,13 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        if (args == null || args.length == 0)
-        {
-            Logger.getLogger().debug("缺少版本参数！");
-            return;
-        }
-        
         long lStart = System.currentTimeMillis();
         
         try
         {
-            settingsHtml.setProperty("HtmlIndexFile",
-                    new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictIndexFile.html").toPath())));
-            settingsHtml.setProperty("HtmlDataDictFile", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictFile.html").toPath())));
-            settingsHtml.setProperty("HtmlDataDictRow", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictRow.html").toPath())));
+            settings.setProperty("HtmlIndexFile", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictIndexFile.html").toPath())));
+            settings.setProperty("HtmlDataDictFile", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictFile.html").toPath())));
+            settings.setProperty("HtmlDataDictRow", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictRow.html").toPath())));
         }
         catch (IOException ex)
         {
@@ -51,8 +43,6 @@ public class DataDictCreator
         
         for (String strVersion : args)
         {
-            // settings = StringHelper.load("settings" + File.separator + "settings-" + strVersion + ".properties");
-            
             CreateDataDictAction action = new CreateDataDictAction(strVersion);
             
             action.doAction();

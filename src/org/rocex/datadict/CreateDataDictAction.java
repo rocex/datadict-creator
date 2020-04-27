@@ -221,7 +221,7 @@ public class CreateDataDictAction
         }
         
         String strHtmlRows = "";
-        String strHtmlDataDictRow = DataDictCreator.settingsHtml.getProperty("HtmlDataDictRow");
+        String strHtmlDataDictRow = DataDictCreator.settings.getProperty("HtmlDataDictRow");
         
         for (int i = 0; i < listPropertyVO.size(); i++)
         {
@@ -271,7 +271,7 @@ public class CreateDataDictAction
         // 组件内实体列表链接
         String strClassList = classVO.getFullClassname() + " " + mapClassVOByComponent.get(componentVO.getId());
         
-        String strHtml = MessageFormat.format(DataDictCreator.settingsHtml.getProperty("HtmlDataDictFile"),
+        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictFile"),
                 classVO.getDisplayName() + " " + classVO.getDefaultTableName(), DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList,
                 strHtmlRows, strCreateTime);
         
@@ -311,7 +311,7 @@ public class CreateDataDictAction
             iIndex++;
         }
         
-        String strHtml = MessageFormat.format(DataDictCreator.settingsHtml.getProperty("HtmlIndexFile"),
+        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlIndexFile"),
                 DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strContent, strCreateTime);
         
         writeFile(getFilePath(false, strOutputDir, "index.html"), strHtml);
