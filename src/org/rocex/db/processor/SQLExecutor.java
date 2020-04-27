@@ -7,8 +7,8 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.sql.Statement;
 import java.util.List;
+import java.util.Properties;
 
-import org.rocex.datadict.DataDictCreator;
 import org.rocex.db.param.SQLParameter;
 import org.rocex.utils.Logger;
 import org.rocex.vo.SuperVO;
@@ -21,6 +21,18 @@ import org.rocex.vo.SuperVO;
 public class SQLExecutor
 {
     private Connection connection = null;
+    private Properties dbProp = null;
+    
+    /***************************************************************************
+     * @author Rocex Wang
+     * @version 2020-4-27 10:05:45
+     ***************************************************************************/
+    public SQLExecutor(Properties dbProp)
+    {
+        super();
+        
+        this.dbProp = dbProp;
+    }
     
     /***************************************************************************
      * @param resultSet
@@ -264,10 +276,10 @@ public class SQLExecutor
         {
             Logger.getLogger().trace("create connection...");
             
-            String strDriver = DataDictCreator.settings.getProperty("Driver");
-            String strConnUrl = DataDictCreator.settings.getProperty("ConnUrl");
-            String strUserName = DataDictCreator.settings.getProperty("UserName");
-            String strPassword = DataDictCreator.settings.getProperty("Password");
+            String strDriver = dbProp.getProperty("jdbc.driver");
+            String strConnUrl = dbProp.getProperty("jdbc.url");
+            String strUserName = dbProp.getProperty("jdbc.user");
+            String strPassword = dbProp.getProperty("jdbc.password");
             
             try
             {

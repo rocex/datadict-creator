@@ -1,6 +1,8 @@
 package org.rocex.datadict;
 
 import java.io.File;
+import java.io.IOException;
+import java.nio.file.Files;
 import java.util.Properties;
 
 import org.rocex.utils.Logger;
@@ -29,13 +31,32 @@ public class DataDictCreator
             return;
         }
         
-        settings = StringHelper.load("settings" + File.separator + "settings-" + args[0] + ".properties");
-        
-        CreateDataDictAction action = new CreateDataDictAction();
-        
         long lStart = System.currentTimeMillis();
         
-        action.doAction();
+        try
+        {
+            settingsHtml.setProperty("HtmlIndexFile",
+                    new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictIndexFile.html").toPath())));
+            settingsHtml.setProperty("HtmlDataDictFile", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictFile.html").toPath())));
+            settingsHtml.setProperty("HtmlDataDictRow", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictRow.html").toPath())));
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        
+        String strDataDictVersionList = settings.getProperty("DataDictVersionList");
+        
+        args = strDataDictVersionList.split(",");
+        
+        for (String strVersion : args)
+        {
+            // settings = StringHelper.load("settings" + File.separator + "settings-" + strVersion + ".properties");
+            
+            CreateDataDictAction action = new CreateDataDictAction(strVersion);
+            
+            action.doAction();
+        }
         
         Logger.getLogger().debug("耗时:" + (System.currentTimeMillis() - lStart) / 1000 + "s");
     }

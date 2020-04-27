@@ -11,6 +11,7 @@ import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Properties;
 
 import org.rocex.datadict.vo.ClassVO;
 import org.rocex.datadict.vo.ComponentVO;
@@ -36,21 +37,34 @@ public class CreateDataDictAction
     private Map<String, String> mapEnumString = new HashMap<>(); // enum id 和 enum name and value 的对应关系
     private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>(); // module id 和 module 的对应关系
     
-    private SQLExecutor sqlExecutor = new SQLExecutor();
+    private SQLExecutor sqlExecutor = null;
     
     private String strCreateTime = DateFormat.getDateTimeInstance().format(new Date());
     
     private String strOutputDir = DataDictCreator.settings.getProperty("OutputDir");
     
+    private String strVersion;
+    
     /***************************************************************************
      * @author Rocex Wang
      * @version 2020-4-26 14:52:18
      ***************************************************************************/
-    public CreateDataDictAction()
+    public CreateDataDictAction(String strVersion)
     {
         super();
         
-        strOutputDir = DataDictCreator.settings.getProperty("OutputDir");
+        this.strVersion = strVersion;
+        
+        strOutputDir = DataDictCreator.settings.getProperty(strVersion + ".OutputDir");
+        
+        Properties dbProp = new Properties();
+        
+        dbProp.setProperty("jdbc.driver", DataDictCreator.settings.getProperty(strVersion + ".jdbc.driver"));
+        dbProp.setProperty("jdbc.url", DataDictCreator.settings.getProperty(strVersion + ".jdbc.url"));
+        dbProp.setProperty("jdbc.user", DataDictCreator.settings.getProperty(strVersion + ".jdbc.user"));
+        dbProp.setProperty("jdbc.password", DataDictCreator.settings.getProperty(strVersion + ".jdbc.password"));
+        
+        sqlExecutor = new SQLExecutor(dbProp);
     }
     
     /***************************************************************************
@@ -258,8 +272,8 @@ public class CreateDataDictAction
         String strClassList = classVO.getFullClassname() + " " + mapClassVOByComponent.get(componentVO.getId());
         
         String strHtml = MessageFormat.format(DataDictCreator.settingsHtml.getProperty("HtmlDataDictFile"),
-                classVO.getDisplayName() + " " + classVO.getDefaultTableName(), DataDictCreator.settings.get("DataDictVersion"), strClassList, strHtmlRows,
-                strCreateTime);
+                classVO.getDisplayName() + " " + classVO.getDefaultTableName(), DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList,
+                strHtmlRows, strCreateTime);
         
         writeFile(getClassFilePath(classVO), strHtml);
     }
@@ -297,8 +311,8 @@ public class CreateDataDictAction
             iIndex++;
         }
         
-        String strHtml = MessageFormat.format(DataDictCreator.settingsHtml.getProperty("HtmlIndexFile"), DataDictCreator.settings.get("DataDictVersion"),
-                strContent, strCreateTime);
+        String strHtml = MessageFormat.format(DataDictCreator.settingsHtml.getProperty("HtmlIndexFile"),
+                DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strContent, strCreateTime);
         
         writeFile(getFilePath(false, strOutputDir, "index.html"), strHtml);
     }
