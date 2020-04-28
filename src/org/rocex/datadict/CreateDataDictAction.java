@@ -242,8 +242,7 @@ public class CreateDataDictAction
             strRefClassPathHref = strRefClassPathHref + " (" + refClassVO.getName() + ")";
             
             // 数据库类型
-            String strDbType = propertyVO.getSqlDateType().contains("char") ? propertyVO.getSqlDateType() + "(" + propertyVO.getAttrLength() + ")"
-                    : propertyVO.getSqlDateType();
+            String strDbType = getDbType(propertyVO);
             
             // 默认值
             String strDefaultValue = propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue();
@@ -393,6 +392,29 @@ public class CreateDataDictAction
     private String getClassFilePath(ClassVO classVO)
     {
         return getFilePath(false, getClassDirPath(classVO), classVO.getDefaultTableName() + "_" + classVO.getId() + ".html");
+    }
+    
+    /***************************************************************************
+     * 返回数据库类型定义
+     * @param propertyVO
+     * @return String
+     * @author Rocex Wang
+     * @version 2020-4-28 10:14:34
+     ***************************************************************************/
+    private String getDbType(PropertyVO propertyVO)
+    {
+        String strDbType = propertyVO.getSqlDateType().toLowerCase();
+        
+        if (strDbType.contains("char") || strDbType.contains("text"))
+        {
+            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ")";
+        }
+        else if (strDbType.contains("decimal") || strDbType.contains("number"))
+        {
+            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ", " + propertyVO.getPrecise() + ")";
+        }
+        
+        return strDbType;
     }
     
     /***************************************************************************
