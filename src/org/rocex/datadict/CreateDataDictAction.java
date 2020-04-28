@@ -4,6 +4,7 @@ import java.io.File;
 import java.io.IOException;
 import java.nio.file.CopyOption;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.MessageFormat;
@@ -22,6 +23,7 @@ import org.rocex.datadict.vo.PropertyVO;
 import org.rocex.db.param.SQLParameter;
 import org.rocex.db.processor.BeanListProcessor;
 import org.rocex.db.processor.SQLExecutor;
+import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
 
 /***************************************************************************
@@ -174,6 +176,9 @@ public class CreateDataDictAction
             Files.copy(new File("settings" + File.separator + "style.css").toPath(), new File(strOutputDir + File.separator + "style.css").toPath(),
                     new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
             Files.copy(new File("settings" + File.separator + "favicon.ico").toPath(), new File(strOutputDir + File.separator + "favicon.ico").toPath(),
+                    new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
+            
+            FileHelper.copyFolder(Paths.get("settings" + File.separator + "navigator"), Paths.get(strOutputDir),
                     new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
         }
         catch (IOException ex)

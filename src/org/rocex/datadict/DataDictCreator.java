@@ -5,8 +5,8 @@ import java.io.IOException;
 import java.nio.file.Files;
 import java.util.Properties;
 
+import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
-import org.rocex.utils.StringHelper;
 
 /***************************************************************************
  * 根据数据库中元数据生成nc数据字典<br>
@@ -15,7 +15,7 @@ import org.rocex.utils.StringHelper;
  ***************************************************************************/
 public class DataDictCreator
 {
-    public static Properties settings = StringHelper.load("settings" + File.separator + "settings.properties");
+    public static Properties settings = FileHelper.load("settings" + File.separator + "settings.properties");
     
     /***************************************************************************
      * @param args
