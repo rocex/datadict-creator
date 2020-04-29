@@ -7,6 +7,7 @@ import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.util.ArrayList;
 import java.util.Date;
 import java.util.HashMap;
 import java.util.List;
@@ -92,7 +93,7 @@ public class CreateDataDictAction
                 strClassLinks = "";
             }
             
-            String strClassLink = MessageFormat.format(" / <a href=\"{0}\">{1}</a>", getAbsClassFilePath(classVO), classVO.getDisplayName(),
+            String strClassLink = MessageFormat.format(" / <a href=\"{0}\">{1}</a>", getAbsClassFilePath(classVO).replace("\\", "/"), classVO.getDisplayName(),
                     classVO.getFullClassname());
             
             // 主实体加粗
@@ -230,7 +231,7 @@ public class CreateDataDictAction
             
             if (refClassVO.getClassType() == 201)
             {
-                String strRefClassPath = getAbsClassFilePath(refClassVO);
+                String strRefClassPath = getAbsClassFilePath(refClassVO).replace("\\", "/");
                 
                 strRefClassPathHref = MessageFormat.format("<a href=\"{0}\">{1}</a>", strRefClassPath, refClassVO.getDisplayName());
             }
@@ -309,7 +310,53 @@ public class CreateDataDictAction
         String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlIndexFile"),
                 DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strContent, strCreateTime);
         
-        FileHelper.writeFile(getFilePath(false, strOutputDir, "index.html"), strHtml);
+        FileHelper.writeFile(getFilePath(false, strOutputDir, "data-dict-table.html"), strHtml);
+    }
+    
+    /***************************************************************************
+     * 生成构造实体树的json数据
+     * @param listClassVO
+     * @author Rocex Wang
+     * @version 2020-4-29 11:21:07
+     ***************************************************************************/
+    private void createDataDictTreeData(List<ClassVO> listClassVO)
+    {
+        String strModuleRow = "";
+        String strClassRow = "";
+        
+        String strTemplate = "'{'id: \"{0}\", pId: \"{1}\", name: \"{2} {3}\", open: {4}, url: \"{5}\", target: \"{6}\"'}',";
+        
+        List<String> listAlreadyModule = new ArrayList<>();// 已经生成过的Module不用再次生成
+        
+        for (ClassVO classVO : listClassVO)
+        {
+            if (classVO.getClassType() != 201)
+            {
+                continue;
+            }
+            
+            ModuleVO moduleVO = getModuleVO(classVO);
+            
+            String strAbsClassFilePath = getAbsClassFilePath(classVO).replace("..", ".").replace("\\", "/");
+            
+            strClassRow += MessageFormat.format(strTemplate, classVO.getId(), moduleVO.getId(), classVO.getDisplayName(), classVO.getName(), "false",
+                    strAbsClassFilePath, "DataDictFrame");
+            
+            String strModuleId = getModuleId(classVO);
+            
+            if (listAlreadyModule.contains(strModuleId))
+            {
+                continue;
+            }
+            
+            listAlreadyModule.add(strModuleId);
+            
+            strModuleRow += MessageFormat.format(strTemplate, moduleVO.getId(), "", moduleVO.getDisplayName(), moduleVO.getName(), "false", "",
+                    "DataDictFrame");
+        }
+        
+        FileHelper.writeFile(Paths.get(strOutputDir, "scripts", "data-dict-tree.js").toString(),
+                "var dataDictIndexData = [" + strModuleRow + strClassRow + "];");
     }
     
     /***************************************************************************
@@ -337,7 +384,13 @@ public class CreateDataDictAction
             buildEnumString();
             buildClassVOMapByComponentId(listClassVO);
             
+            createDataDictTreeData(listClassVO);
             createDataDictIndexFile(listClassVO);
+            
+            if (true)
+            {
+                // return;
+            }
             
             for (ClassVO classVO : listClassVO)
             {
@@ -457,5 +510,20 @@ public class CreateDataDictAction
         ModuleVO moduleVO = (ModuleVO) mapModuleVO.get(componentVO.getOwnModule());
         
         return (moduleVO == null ? componentVO.getOwnModule() : moduleVO.getId()).toLowerCase();
+    }
+    
+    /***************************************************************************
+     * @param classVO
+     * @return ModuleVO
+     * @author Rocex Wang
+     * @version 2020-4-29 11:46:50
+     ***************************************************************************/
+    private ModuleVO getModuleVO(ClassVO classVO)
+    {
+        ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
+        
+        ModuleVO moduleVO = (ModuleVO) mapModuleVO.get(componentVO.getOwnModule());
+        
+        return moduleVO;
     }
 }
