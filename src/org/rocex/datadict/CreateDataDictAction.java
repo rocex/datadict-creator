@@ -3,7 +3,6 @@ package org.rocex.datadict;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.CopyOption;
-import java.nio.file.Files;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
@@ -43,7 +42,7 @@ public class CreateDataDictAction
     
     private String strCreateTime = DateFormat.getDateTimeInstance().format(new Date());
     
-    private String strOutputDir = DataDictCreator.settings.getProperty("OutputDir");
+    private String strOutputDir;
     
     private String strVersion;
     
@@ -162,24 +161,16 @@ public class CreateDataDictAction
         return mapMetaVO;
     }
     
-    private void copyStyleFiles()
+    /***************************************************************************
+     * 拷贝静态文件、css、js 等
+     * @author Rocex Wang
+     * @version 2020-4-29 10:33:18
+     ***************************************************************************/
+    private void copyHtmlFiles()
     {
         try
         {
-            File fileOutput = new File(strOutputDir);
-            
-            if (!fileOutput.exists())
-            {
-                Files.createDirectories(fileOutput.toPath());
-            }
-            
-            Files.copy(new File("settings" + File.separator + "style.css").toPath(), new File(strOutputDir + File.separator + "style.css").toPath(),
-                    new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
-            Files.copy(new File("settings" + File.separator + "favicon.ico").toPath(), new File(strOutputDir + File.separator + "favicon.ico").toPath(),
-                    new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
-            
-            FileHelper.copyFolder(Paths.get("settings" + File.separator + "navigator"), Paths.get(strOutputDir),
-                    new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
+            FileHelper.copyFolder(Paths.get("settings", "html"), Paths.get(strOutputDir), new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
         }
         catch (IOException ex)
         {
@@ -279,7 +270,7 @@ public class CreateDataDictAction
                 classVO.getDisplayName() + " " + classVO.getDefaultTableName(), DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList,
                 strHtmlRows, strCreateTime);
         
-        writeFile(getClassFilePath(classVO), strHtml);
+        FileHelper.writeFile(getClassFilePath(classVO), strHtml);
     }
     
     /***************************************************************************
@@ -318,16 +309,16 @@ public class CreateDataDictAction
         String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlIndexFile"),
                 DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strContent, strCreateTime);
         
-        writeFile(getFilePath(false, strOutputDir, "index.html"), strHtml);
+        FileHelper.writeFile(getFilePath(false, strOutputDir, "index.html"), strHtml);
     }
     
     /***************************************************************************
      * @author Rocex Wang
      * @version 2020-4-21 15:47:35
      ***************************************************************************/
-    protected void doAction()
+    public void doAction()
     {
-        copyStyleFiles();
+        copyHtmlFiles();
         
         String strModuleSQL = "select id,name,displayname from md_module order by lower(name)";
         String strComponentSQL = "select id,name,displayname,namespace,ownmodule from md_component";
@@ -466,30 +457,5 @@ public class CreateDataDictAction
         ModuleVO moduleVO = (ModuleVO) mapModuleVO.get(componentVO.getOwnModule());
         
         return (moduleVO == null ? componentVO.getOwnModule() : moduleVO.getId()).toLowerCase();
-    }
-    
-    /***************************************************************************
-     * @param strFilePath
-     * @param strContent
-     * @author Rocex Wang
-     * @version 2020-4-26 10:24:35
-     ***************************************************************************/
-    private void writeFile(String strFilePath, String strContent)
-    {
-        try
-        {
-            File file = new File(strFilePath);
-            
-            if (!file.getParentFile().exists())
-            {
-                Files.createDirectories(file.getParentFile().toPath());
-            }
-            
-            Files.write(file.toPath(), strContent.getBytes());
-        }
-        catch (IOException ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
     }
 }

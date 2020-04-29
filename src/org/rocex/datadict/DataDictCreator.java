@@ -3,6 +3,7 @@ package org.rocex.datadict;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
+import java.nio.file.Paths;
 import java.util.Properties;
 
 import org.rocex.utils.FileHelper;
@@ -28,9 +29,9 @@ public class DataDictCreator
         
         try
         {
-            settings.setProperty("HtmlIndexFile", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictIndexFile.html").toPath())));
-            settings.setProperty("HtmlDataDictFile", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictFile.html").toPath())));
-            settings.setProperty("HtmlDataDictRow", new String(Files.readAllBytes(new File("settings" + File.separator + "DataDictRow.html").toPath())));
+            settings.setProperty("HtmlIndexFile", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictIndexFile.html"))));
+            settings.setProperty("HtmlDataDictFile", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictFile.html"))));
+            settings.setProperty("HtmlDataDictRow", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictRow.html"))));
         }
         catch (IOException ex)
         {

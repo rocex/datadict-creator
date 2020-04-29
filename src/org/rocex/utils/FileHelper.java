@@ -22,6 +22,7 @@ import java.util.Properties;
 public class FileHelper
 {
     /***************************************************************************
+     * 拷贝文件夹下所有的文件夹和文件
      * @param pathFrom
      * @param pathTo
      * @param options
@@ -61,6 +62,7 @@ public class FileHelper
     }
     
     /***************************************************************************
+     * 加载 properties 文件
      * @param strFilePath
      * @author Rocex Wang
      * @version 2019-5-21 11:09:32
@@ -98,13 +100,30 @@ public class FileHelper
         return properties;
     }
     
-    public static void main(String[] args) throws IOException
+    /***************************************************************************
+     * 写文件
+     * @param strFilePath
+     * @param strContent
+     * @author Rocex Wang
+     * @version 2020-4-26 10:24:35
+     ***************************************************************************/
+    public static void writeFile(String strFilePath, String strContent)
     {
-        
-        Path FromPath = Paths.get("C:\\Users\\10505\\Desktop" + File.separator + "bbq");
-        
-        Path toPath = Paths.get("C:\\Users\\10505\\Desktop" + File.separator + "bbq1");
-        
-        copyFolder(FromPath, toPath);
+        try
+        {
+            File file = new File(strFilePath);
+            Paths.get(strFilePath).getParent().toFile().exists();
+            
+            if (!file.getParentFile().exists())
+            {
+                Files.createDirectories(file.getParentFile().toPath());
+            }
+            
+            Files.write(file.toPath(), strContent.getBytes());
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
     }
 }
