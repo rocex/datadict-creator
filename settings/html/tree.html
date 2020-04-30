@@ -8,6 +8,9 @@
 	<script type="text/javascript" src="./scripts/data-dict-tree.js"></script>
 	<script type="text/javascript" src="./scripts/jquery.min.js"></script>
 	<script type="text/javascript" src="./scripts/jquery.ztree.core.min.js"></script>
+	<script type="text/javascript" src="./scripts/jquery.ztree.exhide.min.js"></script>
+	<script type="text/javascript" src="./scripts/fuzzysearch.js"></script>
+
 	<script language="javascript">
 		var setting = {
 			view: {
@@ -31,6 +34,7 @@
 
 		$(document).ready(function () {
 			$.fn.zTree.init($("#DataDict"), setting, dataDictIndexData);
+			fuzzySearch('DataDict', '#searchkey', null, true); //初始化模糊搜索方法
 		});
 	</script>
 	<style>
@@ -56,13 +60,8 @@
 <body style="font-size: 14px; margin: 3px;">
 	<div style="align-self: center; width: 100%; height: 100%; display: flex; flex-direction: column;">
 		<div style="width:100%; align-self: center; margin-left: 5px; margin-top: 5px; margin-right: 5px;">
-			<input style="width:100%;" placeholder="请输入搜索内容" />
+			<input id="searchkey" style="width:100%;" placeholder="请输入搜索内容" />
 		</div>
-		<!--div style="position: absolute; right: 8%; top: 40px;">
-			<button class="btn" title="全部展开">+</button>
-			<button class="btn" title="全部关闭">-</button>
-			<button class="btn" title="重新加载">O</button>
-		</div-->
 		<ul id="DataDict" class="ztree"></ul>
 	</div>
 </body>

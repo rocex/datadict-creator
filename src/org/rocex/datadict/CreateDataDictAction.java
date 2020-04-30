@@ -373,7 +373,7 @@ public class CreateDataDictAction
         }
         
         FileHelper.writeFile(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js").toString(),
-                "var dataDictIndexData = [\n" + strModuleRow + strClassRow + "];");
+                "var dataDictIndexData=[" + strModuleRow + strClassRow + "];");
     }
     
     /***************************************************************************
