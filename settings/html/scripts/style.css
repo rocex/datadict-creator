@@ -1,7 +1,7 @@
 body {
-	margin-top: 10px;
-	margin-left: 10px;
-	margin-right: 10px;
+	margin-top: 8px;
+	margin-left: 8px;
+	margin-right: 8px;
 	font-size: 14px;
 }
 
@@ -50,6 +50,10 @@ body {
 #propTable tr:nth-child(2n + 1) {
 	color: #000000;
 	background-color: #f4f8e9;
+}
+
+.mustInput {
+	text-align: center;
 }
 
 .pk-row {
