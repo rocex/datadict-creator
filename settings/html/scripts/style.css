@@ -57,6 +57,12 @@ body {
 	font-weight: bold;
 }
 
+.home {
+	float: left;
+	margin-left: 12px;
+	margin-top: 12px;
+}
+
 a:link {
 	color: #09c;
 	text-decoration: none;

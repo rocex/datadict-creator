@@ -1,7 +1,6 @@
 package org.rocex.utils;
 
 import java.io.BufferedReader;
-import java.io.File;
 import java.io.FileReader;
 import java.io.IOException;
 import java.io.Reader;
@@ -9,7 +8,6 @@ import java.nio.file.CopyOption;
 import java.nio.file.FileVisitResult;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.SimpleFileVisitor;
 import java.nio.file.attribute.BasicFileAttributes;
 import java.util.Properties;
@@ -102,24 +100,21 @@ public class FileHelper
     
     /***************************************************************************
      * 写文件
-     * @param strFilePath
+     * @param pathFile
      * @param strContent
      * @author Rocex Wang
      * @version 2020-4-26 10:24:35
      ***************************************************************************/
-    public static void writeFile(String strFilePath, String strContent)
+    public static void writeFile(Path pathFile, String strContent)
     {
         try
         {
-            File file = new File(strFilePath);
-            Paths.get(strFilePath).getParent().toFile().exists();
-            
-            if (!file.getParentFile().exists())
+            if (!pathFile.getParent().toFile().exists())
             {
-                Files.createDirectories(file.getParentFile().toPath());
+                Files.createDirectories(pathFile.getParent());
             }
             
-            Files.write(file.toPath(), strContent.getBytes());
+            Files.write(pathFile, strContent.getBytes());
         }
         catch (IOException ex)
         {

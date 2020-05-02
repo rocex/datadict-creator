@@ -3,6 +3,7 @@ package org.rocex.datadict;
 import java.io.File;
 import java.io.IOException;
 import java.nio.file.CopyOption;
+import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.text.DateFormat;
@@ -97,7 +98,7 @@ public class CreateDataDictAction
                 strClassLinks = "";
             }
             
-            String strClassLink = MessageFormat.format(" / <a href=\"{0}\" class={1}>{2}</a>", getAbsClassFilePath(classVO).replace("\\", "/"),
+            String strClassLink = MessageFormat.format(" / <a href=\"{0}\" class={1}>{2}</a>", getClassUrl2(classVO),
                     "Y".equals(classVO.getIsPrimary()) ? "pk-row" : "", classVO.getDisplayName());
             
             // 主实体放在首位
@@ -235,7 +236,7 @@ public class CreateDataDictAction
             
             if (refClassVO.getClassType() == 201)
             {
-                String strRefClassPath = getAbsClassFilePath(refClassVO).replace("\\", "/");
+                String strRefClassPath = getClassUrl2(refClassVO);
                 
                 strRefClassPathHref = MessageFormat.format("<a href=\"{0}\">{1}</a>", strRefClassPath, refClassVO.getDisplayName());
             }
@@ -273,7 +274,7 @@ public class CreateDataDictAction
         
         String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictFile"),
                 classVO.getDisplayName() + " " + classVO.getDefaultTableName(), DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList,
-                strHtmlRows, strCreateTime);
+                strHtmlRows, getFooter());
         
         FileHelper.writeFile(getClassFilePath(classVO), strHtml);
     }
@@ -298,7 +299,7 @@ public class CreateDataDictAction
                 continue;
             }
             
-            String strAbsClassFilePath = getAbsClassFilePath(classVO).replace("..", ".").replace("\\", "/");
+            String strAbsClassFilePath = getClassUrl(classVO);
             
             strRow += MessageFormat.format("            <td><a href=\"{0}\">{1}<br>{2}</a></td>\n", strAbsClassFilePath, classVO.getDisplayName(),
                     classVO.getDefaultTableName());
@@ -313,9 +314,9 @@ public class CreateDataDictAction
         }
         
         String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlIndexFile"),
-                DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strContent, strCreateTime);
+                DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strContent, getFooter());
         
-        FileHelper.writeFile(getFilePath(false, strOutputRootDir, "data-dict-table.html"), strHtml);
+        FileHelper.writeFile(Paths.get(strOutputRootDir, "data-dict-table.html"), strHtml);
     }
     
     /***************************************************************************
@@ -331,7 +332,7 @@ public class CreateDataDictAction
         
         String strLeafTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",url:\"{4}\",target:\"{5}\"'}',";
         
-        List<String> listExistClassModule = new ArrayList<>();// 只生成含有实体的Module
+        List<String> listUsedClassModule = new ArrayList<>();// 只生成含有实体的Module
         
         for (ClassVO classVO : listClassVO)
         {
@@ -342,16 +343,16 @@ public class CreateDataDictAction
             
             ModuleVO moduleVO = getModuleVO(classVO);
             
-            String strAbsClassFilePath = getAbsClassFilePath(classVO).replace("..", ".").replace("\\", "/");
+            String strUrl = getClassUrl(classVO);
             
             strClassRow += MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
-                    classVO.getDisplayName(), strAbsClassFilePath, "ddc");
+                    classVO.getDisplayName(), strUrl, "ddc");
             
             String strModuleId = getModuleId(classVO);
             
-            if (!listExistClassModule.contains(strModuleId))
+            if (!listUsedClassModule.contains(strModuleId))
             {
-                listExistClassModule.add(strModuleId);
+                listUsedClassModule.add(strModuleId);
             }
         }
         
@@ -359,7 +360,7 @@ public class CreateDataDictAction
         
         for (ModuleVO moduleVO : listModuleVO)
         {
-            if (!listExistClassModule.contains(moduleVO.getId()))
+            if (!listUsedClassModule.contains(moduleVO.getId()))
             {
                 continue;
             }
@@ -368,13 +369,12 @@ public class CreateDataDictAction
             
             strModuleRow += _format;
             
-            listExistClassModule.remove(moduleVO.getId());
+            listUsedClassModule.remove(moduleVO.getId());
         }
         
         strModuleRow += MessageFormat.format(strModuleTemplate, "no-meta-table", "no-meta-table", "没有元数据的表");
         
-        FileHelper.writeFile(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js").toString(),
-                "var dataDictIndexData=[" + strModuleRow + strClassRow + "];");
+        FileHelper.writeFile(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRow + strClassRow + "];");
     }
     
     /***************************************************************************
@@ -385,9 +385,8 @@ public class CreateDataDictAction
     {
         copyHtmlFiles();
         
-        // String strModuleSQL = "select id,name,displayname from md_module order by lower(name)";
         String strModuleSQL = "select id,name,displayname from md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
-        String strComponentSQL = "select id,name,displayname,namespace,ownmodule from md_component";
+        String strComponentSQL = "select id,name,displayname,ownmodule from md_component";
         String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary from md_class order by lower(defaulttablename)";
         
         try
@@ -399,11 +398,6 @@ public class CreateDataDictAction
             mapModuleVO = buildMap(listModuleVO);
             mapComponentVO = buildMap(listComponentVO);
             mapClassVO = buildMap(listClassVO);
-            
-            for (ModuleVO moduleVO : listModuleVO)
-            {
-                getMappedModuleId(moduleVO);
-            }
             
             buildEnumString();
             buildClassVOMapByComponentId(listClassVO);
@@ -427,27 +421,39 @@ public class CreateDataDictAction
     }
     
     /***************************************************************************
-     * 实体文件全路径的相对路径
-     * @param classVO
-     * @return String
-     * @author Rocex Wang
-     * @version 2020-4-26 10:20:51
-     ***************************************************************************/
-    private String getAbsClassFilePath(ClassVO classVO)
-    {
-        return getFilePath(false, "..", "ddc", getMappedClassId(classVO) + ".html");
-    }
-    
-    /***************************************************************************
      * 实体文件全路径的绝对路径
      * @param classVO
-     * @return String
+     * @return Path
      * @author Rocex Wang
      * @version 2020-4-26 10:21:59
      ***************************************************************************/
-    private String getClassFilePath(ClassVO classVO)
+    private Path getClassFilePath(ClassVO classVO)
     {
-        return getFilePath(false, strOutputDdcDir, getMappedClassId(classVO) + ".html");
+        return Paths.get(strOutputDdcDir, getMappedClassId(classVO) + ".html");
+    }
+    
+    /***************************************************************************
+     * 实体的访问url，相对于根目录
+     * @param classVO
+     * @return String
+     * @author Rocex Wang
+     * @version 2020-5-2 14:26:12
+     ***************************************************************************/
+    private String getClassUrl(ClassVO classVO)
+    {
+        return "./ddc/" + getMappedClassId(classVO) + ".html";
+    }
+    
+    /***************************************************************************
+     * 实体的访问url，相对于当前目录
+     * @param classVO
+     * @return String
+     * @author Rocex Wang
+     * @version 2020-5-2 14:30:53
+     ***************************************************************************/
+    private String getClassUrl2(ClassVO classVO)
+    {
+        return "./" + getMappedClassId(classVO) + ".html";
     }
     
     /***************************************************************************
@@ -474,33 +480,18 @@ public class CreateDataDictAction
     }
     
     /***************************************************************************
-     * 连接 strPaths 中指定的路径名为字符串路径
-     * @param isDir
-     * @param strPaths
+     * 页脚版权信息
      * @return String
      * @author Rocex Wang
-     * @version 2020-4-26 10:22:44
+     * @version 2020-5-2 15:24:39
      ***************************************************************************/
-    private String getFilePath(boolean isDir, String... strPaths)
+    private String getFooter()
     {
-        if (strPaths == null || strPaths.length == 0)
-        {
-            return ".";
-        }
+        String strFooter = DataDictCreator.settings.getProperty("HtmlDataDictFooterFile");
         
-        StringBuffer strbuffPath = new StringBuffer();
+        strFooter = MessageFormat.format(strFooter, strCreateTime);
         
-        for (int i = 0; i < strPaths.length; i++)
-        {
-            strbuffPath.append(strPaths[i]).append(File.separator);
-        }
-        
-        if (!isDir && strbuffPath.charAt(strbuffPath.length() - 1) == File.separatorChar)
-        {
-            strbuffPath.deleteCharAt(strbuffPath.length() - 1);
-        }
-        
-        return strbuffPath.toString();
+        return strFooter;
     }
     
     /***************************************************************************
