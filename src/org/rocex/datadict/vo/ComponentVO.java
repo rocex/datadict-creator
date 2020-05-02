@@ -8,7 +8,7 @@ package org.rocex.datadict.vo;
 public class ComponentVO extends MetaVO
 {
     private String strOwnModule;
-
+    
     /***************************************************************************
      * @return the ownModule
      * @author Rocex Wang
@@ -18,7 +18,7 @@ public class ComponentVO extends MetaVO
     {
         return strOwnModule;
     }
-
+    
     /***************************************************************************
      * @param ownModule the ownModule to set
      * @author Rocex Wang

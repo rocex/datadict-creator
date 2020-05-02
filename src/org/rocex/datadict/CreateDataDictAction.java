@@ -98,7 +98,7 @@ public class CreateDataDictAction
                 strClassLinks = "";
             }
             
-            String strClassLink = MessageFormat.format(" / <a href=\"{0}\" class={1}>{2}</a>", getClassUrl2(classVO),
+            String strClassLink = MessageFormat.format(" / <a href=\"{0}\" class=\"{1}\">{2}</a>", getClassUrl2(classVO),
                     "Y".equals(classVO.getIsPrimary()) ? "pk-row" : "", classVO.getDisplayName());
             
             // 主实体放在首位
@@ -270,7 +270,7 @@ public class CreateDataDictAction
         ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
         
         // 组件内实体列表链接
-        String strClassList = classVO.getFullClassname() + " " + mapClassVOByComponent.get(componentVO.getId());
+        String strClassList = classVO.getDisplayName() + "(" + classVO.getFullClassname() + ") " + mapClassVOByComponent.get(componentVO.getId());
         
         String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictFile"),
                 classVO.getDisplayName() + " " + classVO.getDefaultTableName(), DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList,
@@ -313,7 +313,7 @@ public class CreateDataDictAction
             iIndex++;
         }
         
-        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlIndexFile"),
+        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictIndexFile"),
                 DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strContent, getFooter());
         
         FileHelper.writeFile(Paths.get(strOutputRootDir, "data-dict-table.html"), strHtml);
@@ -552,7 +552,6 @@ public class CreateDataDictAction
         
         ModuleVO moduleVO = (ModuleVO) mapModuleVO.get(componentVO.getOwnModule());
         
-        // return (moduleVO == null ? componentVO.getOwnModule() : moduleVO.getId()).toLowerCase();
         return moduleVO == null ? componentVO.getOwnModule() : moduleVO.getId();
     }
     
