@@ -52,12 +52,9 @@ body {
 	background-color: #f4f8e9;
 }
 
-.mustInput {
-	text-align: center;
-}
-
 .pk-row {
-	color: red;
+	color: red !important;
+	font-weight: bold;
 }
 
 a:link {

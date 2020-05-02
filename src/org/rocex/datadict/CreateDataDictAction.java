@@ -40,7 +40,6 @@ public class CreateDataDictAction
     private Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>(); // component id 和 component 的对应关系
     private Map<String, String> mapEnumString = new HashMap<>();             // enum id 和 enum name and value 的对应关系
     private Map<String, String> mapId = new HashMap<>();                     // 为了减小生成的文件体积，把元数据id和序号做个对照关系
-    
     private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();    // module id 和 module 的对应关系
     
     private SQLExecutor sqlExecutor = null;
@@ -98,11 +97,11 @@ public class CreateDataDictAction
                 strClassLinks = "";
             }
             
-            String strClassLink = MessageFormat.format(" / <a href=\"{0}\">{1}</a>", getAbsClassFilePath(classVO).replace("\\", "/"), classVO.getDisplayName(),
-                    classVO.getFullClassname());
+            String strClassLink = MessageFormat.format(" / <a href=\"{0}\" class={1}>{2}</a>", getAbsClassFilePath(classVO).replace("\\", "/"),
+                    "Y".equals(classVO.getIsPrimary()) ? "pk-row" : "", classVO.getDisplayName());
             
-            // 主实体加粗
-            strClassLinks = "Y".equals(classVO.getIsPrimary()) ? "<b>" + strClassLink + "</b>" + strClassLinks : strClassLinks + strClassLink;
+            // 主实体放在首位
+            strClassLinks = "Y".equals(classVO.getIsPrimary()) ? strClassLink + strClassLinks : strClassLinks + strClassLink;
             
             mapClassVOByComponent.put(componentVO.getId(), strClassLinks);
         }
@@ -115,7 +114,7 @@ public class CreateDataDictAction
      ***************************************************************************/
     private void buildEnumString()
     {
-        String strEnumValueSQL = "select id,name,value,enumsequence from md_enumvalue order by id,enumsequence";
+        String strEnumValueSQL = "select id,name,value from md_enumvalue order by id,enumsequence";
         
         List<EnumVO> listEnumValueVO = null;
         
@@ -261,7 +260,7 @@ public class CreateDataDictAction
             String strRowStyle = classVO.getKeyAttribute().equals(propertyVO.getId()) ? "pk-row" : "";
             
             // 是否必输
-            String strMustInput = "N".equals(propertyVO.getNullable()) ? "  √" : "";
+            String strMustInput = "N".equals(propertyVO.getNullable()) ? "√" : "";
             
             strHtmlRows += MessageFormat.format(strHtmlDataDictRow, strRowStyle, i + 1, propertyVO.getName(), propertyVO.getDisplayName(), propertyVO.getName(),
                     strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strEnumString);
@@ -330,7 +329,7 @@ public class CreateDataDictAction
         String strModuleRow = "";
         String strClassRow = "";
         
-        String strLeafTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",open:{4},url:\"{5}\",target:\"{6}\"'}',";
+        String strLeafTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",url:\"{4}\",target:\"{5}\"'}',";
         
         List<String> listExistClassModule = new ArrayList<>();// 只生成含有实体的Module
         
@@ -345,8 +344,8 @@ public class CreateDataDictAction
             
             String strAbsClassFilePath = getAbsClassFilePath(classVO).replace("..", ".").replace("\\", "/");
             
-            strClassRow += MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDisplayName(),
-                    classVO.getName(), "false", strAbsClassFilePath, "ddc");
+            strClassRow += MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
+                    classVO.getDisplayName(), strAbsClassFilePath, "ddc");
             
             String strModuleId = getModuleId(classVO);
             
@@ -365,12 +364,14 @@ public class CreateDataDictAction
                 continue;
             }
             
-            String _format = MessageFormat.format(strModuleTemplate, getMappedModuleId(moduleVO), moduleVO.getDisplayName(), moduleVO.getName());
+            String _format = MessageFormat.format(strModuleTemplate, getMappedModuleId(moduleVO), moduleVO.getName(), moduleVO.getDisplayName());
             
             strModuleRow += _format;
             
             listExistClassModule.remove(moduleVO.getId());
         }
+        
+        strModuleRow += MessageFormat.format(strModuleTemplate, "no-meta-table", "no-meta-table", "没有元数据的表");
         
         FileHelper.writeFile(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js").toString(),
                 "var dataDictIndexData=[" + strModuleRow + strClassRow + "];");
@@ -398,6 +399,11 @@ public class CreateDataDictAction
             mapModuleVO = buildMap(listModuleVO);
             mapComponentVO = buildMap(listComponentVO);
             mapClassVO = buildMap(listClassVO);
+            
+            for (ModuleVO moduleVO : listModuleVO)
+            {
+                getMappedModuleId(moduleVO);
+            }
             
             buildEnumString();
             buildClassVOMapByComponentId(listClassVO);
