@@ -27,6 +27,8 @@ public class DataDictCreator
     {
         long lStart = System.currentTimeMillis();
         
+        Logger.getLogger().debug("生成数据字典......");
+        
         try
         {
             settings.setProperty("HtmlDataDictIndexFile", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictIndexFile.html"))));
@@ -41,15 +43,23 @@ public class DataDictCreator
         
         String strDataDictVersionList = settings.getProperty("DataDictVersionList");
         
-        args = strDataDictVersionList.split(",");
+        String[] strDataDictVersions = strDataDictVersionList.split(",");
         
-        for (String strVersion : args)
+        for (String strVersion : strDataDictVersions)
         {
+            long lStart2 = System.currentTimeMillis();
+            
+            String strDataDictVersion = settings.getProperty(strVersion + ".DataDictVersion");
+            
+            Logger.getLogger().debug("生成[" + strDataDictVersion + "]数据字典......");
+            
             CreateDataDictAction action = new CreateDataDictAction(strVersion);
             
             action.doAction();
+            
+            Logger.getLogger().debug("完成[" + strDataDictVersion + "]数据字典，耗时:" + (System.currentTimeMillis() - lStart2) / 1000 + "s");
         }
         
-        Logger.getLogger().debug("耗时:" + (System.currentTimeMillis() - lStart) / 1000 + "s");
+        Logger.getLogger().debug("完成数据字典，总耗时:" + (System.currentTimeMillis() - lStart) / 1000 + "s");
     }
 }

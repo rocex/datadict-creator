@@ -196,7 +196,7 @@ public class SQLExecutor
         {
             statement = createStatement();
             
-            Logger.getLogger().debug(strSQL);
+            Logger.getLogger().trace(strSQL);
             
             resultSet = statement.executeQuery(strSQL);
             
@@ -237,7 +237,7 @@ public class SQLExecutor
         {
             statement = createPreparedStatement(strSQL);
             
-            Logger.getLogger().debug(strSQL);
+            Logger.getLogger().trace(strSQL);
             
             if (param != null)
             {

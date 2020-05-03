@@ -389,8 +389,8 @@ public class CreateDataDictAction
     {
         copyHtmlFiles();
         
-        String strModuleSQL = "select id,name,displayname from md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
-        String strComponentSQL = "select id,name,displayname,ownmodule from md_component";
+        String strModuleSQL = "select lower(id) id,lower(name) name,displayname from md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
+        String strComponentSQL = "select id,name,displayname,lower(ownmodule) ownmodule from md_component";
         String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary from md_class order by lower(defaulttablename)";
         
         try
