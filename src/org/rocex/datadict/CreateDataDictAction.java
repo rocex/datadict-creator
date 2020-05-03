@@ -270,11 +270,15 @@ public class CreateDataDictAction
         ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
         
         // 组件内实体列表链接
-        String strClassList = classVO.getDisplayName() + "(" + classVO.getFullClassname() + ") " + mapClassVOByComponent.get(componentVO.getId());
+        String strClassList = mapClassVOByComponent.get(componentVO.getId()).trim();
         
-        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictFile"),
-                classVO.getDisplayName() + " " + classVO.getDefaultTableName(), DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList,
-                strHtmlRows, getFooter());
+        if (strClassList.startsWith("/")) // 截掉最前面的斜杠
+        {
+            strClassList = strClassList.substring(1);
+        }
+        
+        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictFile"), classVO.getDisplayName(), classVO.getDefaultTableName(),
+                classVO.getFullClassname(), DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList, strHtmlRows, getFooter());
         
         FileHelper.writeFile(getClassFilePath(classVO), strHtml);
     }
