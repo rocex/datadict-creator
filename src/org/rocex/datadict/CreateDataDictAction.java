@@ -36,12 +36,12 @@ public class CreateDataDictAction
 {
     private int iIndex = 1;
     
-    private Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();     // class id 和 class 的对应关系
-    private Map<String, String> mapClassVOByComponent = new HashMap<>();     // component id 和 component 内所有 class 链接的对应关系
-    private Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>(); // component id 和 component 的对应关系
-    private Map<String, String> mapEnumString = new HashMap<>();             // enum id 和 enum name and value 的对应关系
-    private Map<String, String> mapId = new HashMap<>();                     // 为了减小生成的文件体积，把元数据id和序号做个对照关系
-    private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();    // module id 和 module 的对应关系
+    private Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();         // class id 和 class 的对应关系
+    private Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();  // component id 和 component 内所有 class 链接的对应关系
+    private Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();     // component id 和 component 的对应关系
+    private Map<String, String> mapEnumString = new HashMap<>();                 // enum id 和 enum name and value 的对应关系
+    private Map<String, String> mapId = new HashMap<>();                         // 为了减小生成的文件体积，把元数据id和序号做个对照关系
+    private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();        // module id 和 module 的对应关系
     
     private SQLExecutor sqlExecutor = null;
     
@@ -89,22 +89,16 @@ public class CreateDataDictAction
                 continue;
             }
             
-            ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
+            List<ClassVO> listClassVO2 = mapClassVOByComponent.get(classVO.getComponentId());
             
-            String strClassLinks = mapClassVOByComponent.get(componentVO.getId());
-            
-            if (strClassLinks == null)
+            if (listClassVO2 == null)
             {
-                strClassLinks = "";
+                listClassVO2 = new ArrayList<>();
             }
             
-            String strClassLink = MessageFormat.format(" / <a href=\"{0}\" class=\"{1}\">{2}</a>", getClassUrl2(classVO),
-                    "Y".equals(classVO.getIsPrimary()) ? "pk-row" : "", classVO.getDisplayName());
+            listClassVO2.add(classVO);
             
-            // 主实体放在首位
-            strClassLinks = "Y".equals(classVO.getIsPrimary()) ? strClassLink + strClassLinks : strClassLinks + strClassLink;
-            
-            mapClassVOByComponent.put(componentVO.getId(), strClassLinks);
+            mapClassVOByComponent.put(classVO.getComponentId(), listClassVO2);
         }
     }
     
@@ -267,10 +261,8 @@ public class CreateDataDictAction
                     strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strEnumString);
         }
         
-        ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
-        
         // 组件内实体列表链接
-        String strClassList = mapClassVOByComponent.get(componentVO.getId()).trim();
+        String strClassList = getClassListUrl(classVO);
         
         if (strClassList.startsWith("/")) // 截掉最前面的斜杠
         {
@@ -434,6 +426,40 @@ public class CreateDataDictAction
     private Path getClassFilePath(ClassVO classVO)
     {
         return Paths.get(strOutputDdcDir, getMappedClassId(classVO) + ".html");
+    }
+    
+    /***************************************************************************
+     * @param classVO
+     * @return String
+     * @author Rocex Wang
+     * @version 2020-5-6 14:42:20
+     ***************************************************************************/
+    private String getClassListUrl(ClassVO currentClassVO)
+    {
+        List<ClassVO> listClassVO = mapClassVOByComponent.get(currentClassVO.getComponentId());
+        
+        String strClassLinks = "";
+        
+        for (ClassVO classVO : listClassVO)
+        {
+            if (classVO.getClassType() != 201)
+            {
+                continue;
+            }
+            
+            String strClassLink = MessageFormat.format("<a href=\"{0}\" class=\"{1}\">{2}</a>", getClassUrl2(classVO),
+                    "Y".equals(classVO.getIsPrimary()) ? "pk-row" : "", classVO.getDisplayName());
+            
+            if (currentClassVO.getId().equals(classVO.getId()))
+            {
+                strClassLink = "<b>" + strClassLink + "</b>";
+            }
+            
+            // 主实体放在首位
+            strClassLinks = "Y".equals(classVO.getIsPrimary()) ? strClassLink + " / " + strClassLinks : strClassLinks + " / " + strClassLink;
+        }
+        
+        return strClassLinks;
     }
     
     /***************************************************************************
