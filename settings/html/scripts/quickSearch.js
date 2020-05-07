@@ -91,5 +91,7 @@ $(document).ready(function() {
 
 	setTreeData(dataDictIndexData);
 
+	keyword.focus();
+
 	keyword.addEventListener('keyup', debounce(searchUse, 500));
 });

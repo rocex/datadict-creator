@@ -447,16 +447,32 @@ public class CreateDataDictAction
                 continue;
             }
             
-            String strClassLink = MessageFormat.format("<a href=\"{0}\" class=\"{1}\">{2}</a>", getClassUrl2(classVO),
-                    "Y".equals(classVO.getIsPrimary()) ? "pk-row" : "", classVO.getDisplayName());
+            String strClassStyle = "";
             
-            if (currentClassVO.getId().equals(classVO.getId()))
+            if (currentClassVO.getId().equals(classVO.getId()) && "Y".equals(classVO.getIsPrimary()))
             {
-                strClassLink = "<b>" + strClassLink + "</b>";
+                strClassStyle = "classList-master-current";
             }
+            else if (currentClassVO.getId().equals(classVO.getId()))
+            {
+                strClassStyle = "classList-current";
+            }
+            else if ("Y".equals(classVO.getIsPrimary()))
+            {
+                strClassStyle = "classList-master";
+            }
+            
+            String strClassLink = MessageFormat.format("<a href=\"{0}\" class=\"{1}\">{2}</a>", getClassUrl2(classVO), strClassStyle, classVO.getDisplayName());
             
             // 主实体放在首位
             strClassLinks = "Y".equals(classVO.getIsPrimary()) ? strClassLink + " / " + strClassLinks : strClassLinks + " / " + strClassLink;
+        }
+        
+        strClassLinks = strClassLinks.trim().replace("/  /", "/");
+        
+        if (strClassLinks.endsWith("/"))
+        {
+            strClassLinks = strClassLinks.substring(0, strClassLinks.length() - 1);
         }
         
         return strClassLinks;
