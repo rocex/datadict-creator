@@ -8,6 +8,7 @@ import java.util.Properties;
 
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
+import org.rocex.utils.TimerLogger;
 
 /***************************************************************************
  * 根据数据库中元数据生成nc数据字典<br>
@@ -25,9 +26,7 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        long lStart = System.currentTimeMillis();
-        
-        Logger.getLogger().debug("生成数据字典......");
+        TimerLogger.getLogger().begin("生成数据字典");
         
         try
         {
@@ -47,19 +46,17 @@ public class DataDictCreator
         
         for (String strVersion : strDataDictVersions)
         {
-            long lStart2 = System.currentTimeMillis();
-            
             String strDataDictVersion = settings.getProperty(strVersion + ".DataDictVersion");
             
-            Logger.getLogger().debug("生成[" + strDataDictVersion + "]数据字典......");
+            TimerLogger.getLogger().begin("生成数据字典(" + strDataDictVersion + ")");
             
             CreateDataDictAction action = new CreateDataDictAction(strVersion);
             
             action.doAction();
             
-            Logger.getLogger().debug("完成[" + strDataDictVersion + "]数据字典，耗时:" + (System.currentTimeMillis() - lStart2) / 1000 + "s");
+            TimerLogger.getLogger().end("生成数据字典(" + strDataDictVersion + ")");
         }
         
-        Logger.getLogger().debug("完成数据字典，总耗时:" + (System.currentTimeMillis() - lStart) / 1000 + "s");
+        TimerLogger.getLogger().end("生成数据字典");
     }
 }

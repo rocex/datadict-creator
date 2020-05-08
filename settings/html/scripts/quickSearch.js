@@ -72,9 +72,9 @@ function filterData(searchVal, dictIndexData) {
 }
 
 function searchUse() {
-	let keyword = document.getElementById('keyword');
+	let searchKey = document.getElementById('searchKey');
 
-	var searchDomVal = keyword.value;
+	var searchDomVal = searchKey.value;
 
 	if (!searchDomVal) {
 		setTreeData(oldTreeData);
@@ -87,11 +87,11 @@ function searchUse() {
 }
 
 $(document).ready(function() {
-	let keyword = document.getElementById('keyword');
+	let searchKey = document.getElementById('searchKey');
 
 	setTreeData(dataDictIndexData);
 
-	keyword.focus();
+	searchKey.focus();
 
-	keyword.addEventListener('keyup', debounce(searchUse, 500));
+	searchKey.addEventListener('keyup', debounce(searchUse, 500));
 });

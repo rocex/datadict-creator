@@ -26,6 +26,7 @@ import org.rocex.db.processor.BeanListProcessor;
 import org.rocex.db.processor.SQLExecutor;
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
+import org.rocex.utils.TimerLogger;
 
 /***************************************************************************
  * <br>
@@ -82,6 +83,8 @@ public class CreateDataDictAction
      ***************************************************************************/
     private void buildClassVOMapByComponentId(List<ClassVO> listClassVO)
     {
+        TimerLogger.getLogger().begin("buildClassVOMapByComponentId");
+        
         for (ClassVO classVO : listClassVO)
         {
             if (classVO.getClassType() != 201)
@@ -96,10 +99,19 @@ public class CreateDataDictAction
                 listClassVO2 = new ArrayList<>();
             }
             
-            listClassVO2.add(classVO);
+            if ("Y".equals(classVO.getIsPrimary()))
+            {
+                listClassVO2.add(0, classVO);
+            }
+            else
+            {
+                listClassVO2.add(classVO);
+            }
             
             mapClassVOByComponent.put(classVO.getComponentId(), listClassVO2);
         }
+        
+        TimerLogger.getLogger().end("buildClassVOMapByComponentId");
     }
     
     /***************************************************************************
@@ -109,6 +121,8 @@ public class CreateDataDictAction
      ***************************************************************************/
     private void buildEnumString()
     {
+        TimerLogger.getLogger().begin("buildEnumString");
+        
         String strEnumValueSQL = "select id,name,value from md_enumvalue order by id,enumsequence";
         
         List<EnumVO> listEnumValueVO = null;
@@ -140,6 +154,8 @@ public class CreateDataDictAction
             
             mapEnumString.put(enumVO.getId(), strEnum);
         }
+        
+        TimerLogger.getLogger().end("buildEnumString");
     }
     
     /***************************************************************************
@@ -151,12 +167,16 @@ public class CreateDataDictAction
      ***************************************************************************/
     private Map<String, ? extends MetaVO> buildMap(List<? extends MetaVO> listMetaVO)
     {
+        TimerLogger.getLogger().begin("buildMap:" + listMetaVO.get(0).getClass().getSimpleName());
+        
         Map<String, MetaVO> mapMetaVO = new HashMap<>();
         
         for (MetaVO metaVO : listMetaVO)
         {
             mapMetaVO.put(metaVO.getId(), metaVO);
         }
+        
+        TimerLogger.getLogger().end("buildMap:" + listMetaVO.get(0).getClass().getSimpleName());
         
         return mapMetaVO;
     }
@@ -168,6 +188,8 @@ public class CreateDataDictAction
      ***************************************************************************/
     private void copyHtmlFiles()
     {
+        TimerLogger.getLogger().begin("copyHtmlFiles");
+        
         try
         {
             FileHelper.copyFolder(Paths.get("settings", "html"), Paths.get(strOutputRootDir), new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
@@ -176,6 +198,8 @@ public class CreateDataDictAction
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }
+        
+        TimerLogger.getLogger().end("copyHtmlFiles");
     }
     
     /***************************************************************************
@@ -283,6 +307,8 @@ public class CreateDataDictAction
      ***************************************************************************/
     private void createDataDictIndexFile(List<ClassVO> listClassVO)
     {
+        TimerLogger.getLogger().begin("createDataDictIndexFile");
+        
         String strContent = "";
         String strRow = "";
         
@@ -313,6 +339,8 @@ public class CreateDataDictAction
                 DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strContent, getFooter());
         
         FileHelper.writeFile(Paths.get(strOutputRootDir, "data-dict-table.html"), strHtml);
+        
+        TimerLogger.getLogger().end("createDataDictIndexFile");
     }
     
     /***************************************************************************
@@ -323,8 +351,10 @@ public class CreateDataDictAction
      ***************************************************************************/
     private void createDataDictTreeData(List<ModuleVO> listModuleVO, List<ClassVO> listClassVO)
     {
-        String strModuleRow = "";
-        String strClassRow = "";
+        TimerLogger.getLogger().begin("createDataDictTreeData");
+        
+        String strModuleRows = ""; // 所有模块
+        String strClassRows = "";  // 所有实体
         
         String strLeafTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",url:\"{4}\",target:\"{5}\"'}',";
         
@@ -341,7 +371,7 @@ public class CreateDataDictAction
             
             String strUrl = getClassUrl(classVO);
             
-            strClassRow += MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
+            strClassRows += MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
                     classVO.getDisplayName(), strUrl, "ddc");
             
             String strModuleId = getModuleId(classVO);
@@ -361,16 +391,16 @@ public class CreateDataDictAction
                 continue;
             }
             
-            String _format = MessageFormat.format(strModuleTemplate, getMappedModuleId(moduleVO), moduleVO.getName(), moduleVO.getDisplayName());
-            
-            strModuleRow += _format;
+            strModuleRows += MessageFormat.format(strModuleTemplate, getMappedModuleId(moduleVO), moduleVO.getName(), moduleVO.getDisplayName());
             
             listUsedClassModule.remove(moduleVO.getId());
         }
         
-        strModuleRow += MessageFormat.format(strModuleTemplate, "no-meta-table", "no-meta-table", "没有元数据的表");
+        strModuleRows += MessageFormat.format(strModuleTemplate, "no-meta-table", "no-meta-table", "没有元数据的表");
         
-        FileHelper.writeFile(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRow + strClassRow + "];");
+        FileHelper.writeFile(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
+        
+        TimerLogger.getLogger().end("createDataDictTreeData");
     }
     
     /***************************************************************************
@@ -387,24 +417,43 @@ public class CreateDataDictAction
         
         try
         {
+            TimerLogger.getLogger().begin("execute query moduleVO");
+            
             List<ModuleVO> listModuleVO = (List<ModuleVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(ModuleVO.class), strModuleSQL);
+            
+            TimerLogger.getLogger().end("execute query moduleVO");
+            
+            TimerLogger.getLogger().begin("execute query componentVO");
+            
             List<ComponentVO> listComponentVO = (List<ComponentVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(ComponentVO.class), strComponentSQL);
+            
+            TimerLogger.getLogger().end("execute query componentVO");
+            
+            TimerLogger.getLogger().begin("execute query classVO");
+            
             List<ClassVO> listClassVO = (List<ClassVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(ClassVO.class), strClassSQL);
+            
+            TimerLogger.getLogger().end("execute query classVO");
             
             mapModuleVO = buildMap(listModuleVO);
             mapComponentVO = buildMap(listComponentVO);
             mapClassVO = buildMap(listClassVO);
             
             buildEnumString();
+            
             buildClassVOMapByComponentId(listClassVO);
             
             createDataDictTreeData(listModuleVO, listClassVO);
             createDataDictIndexFile(listClassVO);
             
+            TimerLogger.getLogger().begin("createDataDictFile: " + listClassVO.size());
+            
             for (ClassVO classVO : listClassVO)
             {
                 createDataDictFile(classVO);
             }
+            
+            TimerLogger.getLogger().end("createDataDictFile: " + listClassVO.size());
         }
         catch (Exception ex)
         {
