@@ -27,6 +27,8 @@ body {
 .classList {
 	text-align: right;
 	padding-right: 5px;
+	padding-top: 5px;
+	height: 26px;
 	opacity: 0.8;
 	font-size: 15px;
 }
