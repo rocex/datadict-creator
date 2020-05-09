@@ -263,6 +263,32 @@ public class SQLExecutor
         }
     }
     
+    public int executeUpdate(String strSQL) throws Exception
+    {
+        Statement statement = null;
+        
+        try
+        {
+            statement = createStatement();
+            
+            Logger.getLogger().trace(strSQL);
+            
+            int iSuccessCount = statement.executeUpdate(strSQL);
+            
+            return iSuccessCount;
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        finally
+        {
+            close(statement);
+        }
+        
+        return -1;
+    }
+    
     /***************************************************************************
      * <br>
      * Created on 2017-2-10 16:10:05<br>

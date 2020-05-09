@@ -76,6 +76,29 @@ public class CreateDataDictAction
     }
     
     /***************************************************************************
+     * 修复一些数据库数据问题
+     * @author Rocex Wang
+     * @version 2020-5-9 14:05:43
+     ***************************************************************************/
+    private void adjustData()
+    {
+        TimerLogger.getLogger().begin("adjust data");
+        
+        String strSQL = "update md_class set name='MultiLangText' where id='BS000010000100001058' and name='MULTILANGTEXT'";
+        
+        try
+        {
+            sqlExecutor.executeUpdate(strSQL);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        
+        TimerLogger.getLogger().end("adjust data");
+    }
+    
+    /***************************************************************************
      * component id 和 component 内所有 class 链接的对应关系，用于数据字典右上角实体列表
      * @param listClassVO
      * @author Rocex Wang
@@ -411,6 +434,8 @@ public class CreateDataDictAction
     public void doAction()
     {
         copyHtmlFiles();
+        
+        adjustData();
         
         String strModuleSQL = "select lower(id) id,lower(name) name,displayname from md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
         String strComponentSQL = "select id,name,displayname,lower(ownmodule) ownmodule from md_component";

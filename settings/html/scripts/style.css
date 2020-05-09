@@ -91,6 +91,11 @@ body {
 	margin-top: 12px;
 }
 
+.separator {
+	color: aqua;
+	opacity: 0.2;
+}
+
 a:link {
 	color: #09c;
 	text-decoration: none;
