@@ -150,7 +150,7 @@ public class CreateDataDictAction
                 strEnum = "";
             }
             
-            strEnum += enumVO.getValue() + "=" + enumVO.getName() + "; <br>";
+            strEnum = new StringBuilder(strEnum).append(enumVO.getValue()).append("=").append(enumVO.getName()).append("; <br>").toString();
             
             mapEnumString.put(enumVO.getId(), strEnum);
         }
@@ -240,7 +240,7 @@ public class CreateDataDictAction
             return;
         }
         
-        String strHtmlRows = "";
+        StringBuilder strHtmlRows = new StringBuilder();
         String strHtmlDataDictRow = DataDictCreator.settings.getProperty("HtmlDataDictRow");
         
         for (int i = 0; i < listPropertyVO.size(); i++)
@@ -281,8 +281,8 @@ public class CreateDataDictAction
             // 是否必输
             String strMustInput = "N".equals(propertyVO.getNullable()) ? "√" : "";
             
-            strHtmlRows += MessageFormat.format(strHtmlDataDictRow, strRowStyle, i + 1, propertyVO.getName(), propertyVO.getDisplayName(), propertyVO.getName(),
-                    strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strEnumString);
+            strHtmlRows.append(MessageFormat.format(strHtmlDataDictRow, strRowStyle, i + 1, propertyVO.getName(), propertyVO.getDisplayName(),
+                    propertyVO.getName(), strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strEnumString));
         }
         
         // 组件内实体列表链接
@@ -309,8 +309,8 @@ public class CreateDataDictAction
     {
         TimerLogger.getLogger().begin("createDataDictIndexFile");
         
-        String strContent = "";
-        String strRow = "";
+        StringBuilder strContent = new StringBuilder();
+        StringBuilder strRow = new StringBuilder();
         
         int iIndex = 1;
         
@@ -323,13 +323,13 @@ public class CreateDataDictAction
             
             String strAbsClassFilePath = getClassUrl(classVO);
             
-            strRow += MessageFormat.format("            <td><a href=\"{0}\">{1}<br>{2}</a></td>\n", strAbsClassFilePath, classVO.getDisplayName(),
-                    classVO.getDefaultTableName());
+            strRow.append(MessageFormat.format("            <td><a href=\"{0}\">{1}<br>{2}</a></td>\n", strAbsClassFilePath, classVO.getDisplayName(),
+                    classVO.getDefaultTableName()));
             
             if (iIndex % 5 == 0)
             {
-                strContent += "        <tr align=\"center\">\n" + strRow + "        </tr>\n";
-                strRow = "";
+                strContent.append("        <tr align=\"center\">\n" + strRow + "        </tr>\n");
+                strRow.delete(0, strRow.length());
             }
             
             iIndex++;
@@ -353,8 +353,8 @@ public class CreateDataDictAction
     {
         TimerLogger.getLogger().begin("createDataDictTreeData");
         
-        String strModuleRows = ""; // 所有模块
-        String strClassRows = "";  // 所有实体
+        StringBuilder strModuleRows = new StringBuilder(); // 所有模块
+        StringBuilder strClassRows = new StringBuilder();  // 所有实体
         
         String strLeafTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",url:\"{4}\",target:\"{5}\"'}',";
         
@@ -371,8 +371,8 @@ public class CreateDataDictAction
             
             String strUrl = getClassUrl(classVO);
             
-            strClassRows += MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
-                    classVO.getDisplayName(), strUrl, "ddc");
+            strClassRows.append(MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
+                    classVO.getDisplayName(), strUrl, "ddc"));
             
             String strModuleId = getModuleId(classVO);
             
@@ -382,6 +382,7 @@ public class CreateDataDictAction
             }
         }
         
+        // 单独拿出来是为了按照模块号排序
         String strModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\"'}',";
         
         for (ModuleVO moduleVO : listModuleVO)
@@ -391,12 +392,12 @@ public class CreateDataDictAction
                 continue;
             }
             
-            strModuleRows += MessageFormat.format(strModuleTemplate, getMappedModuleId(moduleVO), moduleVO.getName(), moduleVO.getDisplayName());
+            strModuleRows.append(MessageFormat.format(strModuleTemplate, getMappedModuleId(moduleVO), moduleVO.getName(), moduleVO.getDisplayName()));
             
             listUsedClassModule.remove(moduleVO.getId());
         }
         
-        strModuleRows += MessageFormat.format(strModuleTemplate, "no-meta-table", "no-meta-table", "没有元数据的表");
+        strModuleRows.append(MessageFormat.format(strModuleTemplate, "no-meta-table", "no-meta-table", "没有元数据的表"));
         
         FileHelper.writeFile(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
         
@@ -417,23 +418,10 @@ public class CreateDataDictAction
         
         try
         {
-            TimerLogger.getLogger().begin("execute query moduleVO");
             
-            List<ModuleVO> listModuleVO = (List<ModuleVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(ModuleVO.class), strModuleSQL);
-            
-            TimerLogger.getLogger().end("execute query moduleVO");
-            
-            TimerLogger.getLogger().begin("execute query componentVO");
-            
-            List<ComponentVO> listComponentVO = (List<ComponentVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(ComponentVO.class), strComponentSQL);
-            
-            TimerLogger.getLogger().end("execute query componentVO");
-            
-            TimerLogger.getLogger().begin("execute query classVO");
-            
-            List<ClassVO> listClassVO = (List<ClassVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(ClassVO.class), strClassSQL);
-            
-            TimerLogger.getLogger().end("execute query classVO");
+            List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL);
+            List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL);
+            List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL);
             
             mapModuleVO = buildMap(listModuleVO);
             mapComponentVO = buildMap(listComponentVO);
@@ -663,5 +651,32 @@ public class CreateDataDictAction
         ModuleVO moduleVO = (ModuleVO) mapModuleVO.get(componentVO.getOwnModule());
         
         return moduleVO;
+    }
+    
+    /***************************************************************************
+     * @param metaVOClass
+     * @param strSQL
+     * @return List<? extends MetaVO>
+     * @author Rocex Wang
+     * @version 2020-5-9 11:20:25
+     ***************************************************************************/
+    private List<? extends MetaVO> queryMetaVO(Class<? extends MetaVO> metaVOClass, String strSQL)
+    {
+        TimerLogger.getLogger().begin("execute query " + metaVOClass.getSimpleName());
+        
+        List<? extends MetaVO> listMetaVO = null;
+        
+        try
+        {
+            listMetaVO = (List<? extends MetaVO>) sqlExecutor.executeQuery(new BeanListProcessor<>(metaVOClass), strSQL);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        
+        TimerLogger.getLogger().end("execute query " + metaVOClass.getSimpleName());
+        
+        return listMetaVO;
     }
 }

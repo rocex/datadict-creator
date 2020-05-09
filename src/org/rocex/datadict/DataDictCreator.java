@@ -26,7 +26,7 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        TimerLogger.getLogger().begin("生成数据字典");
+        TimerLogger.getLogger().begin("create data dictionary");
         
         try
         {
@@ -48,15 +48,15 @@ public class DataDictCreator
         {
             String strDataDictVersion = settings.getProperty(strVersion + ".DataDictVersion");
             
-            TimerLogger.getLogger().begin("生成数据字典(" + strDataDictVersion + ")");
+            TimerLogger.getLogger().begin("create data dictionary(" + strDataDictVersion + ")");
             
             CreateDataDictAction action = new CreateDataDictAction(strVersion);
             
             action.doAction();
             
-            TimerLogger.getLogger().end("生成数据字典(" + strDataDictVersion + ")");
+            TimerLogger.getLogger().end("create data dictionary(" + strDataDictVersion + ")");
         }
         
-        TimerLogger.getLogger().end("生成数据字典");
+        TimerLogger.getLogger().end("create data dictionary");
     }
 }
