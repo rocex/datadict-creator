@@ -226,6 +226,36 @@ public class CreateDataDictAction
     }
     
     /***************************************************************************
+     * @param listModuleVO
+     * @param listComponentVO
+     * @param listClassVO
+     * @author Rocex Wang
+     * @version 2020-5-11 11:17:57
+     ***************************************************************************/
+    private void createDataDict(List<ModuleVO> listModuleVO, List<ComponentVO> listComponentVO, List<ClassVO> listClassVO)
+    {
+        mapModuleVO = buildMap(listModuleVO);
+        mapComponentVO = buildMap(listComponentVO);
+        mapClassVO = buildMap(listClassVO);
+        
+        buildEnumString();
+        
+        buildClassVOMapByComponentId(listClassVO);
+        
+        createDataDictTreeData(listModuleVO, listClassVO);
+        // createDataDictIndexFile(listClassVO);
+        
+        TimerLogger.getLogger().begin("createDataDictFile: " + listClassVO.size());
+        
+        for (ClassVO classVO : listClassVO)
+        {
+            createDataDictFile(classVO);
+        }
+        
+        TimerLogger.getLogger().end("createDataDictFile: " + listClassVO.size());
+    }
+    
+    /***************************************************************************
      * 生成数据字典文件
      * @param classVO
      * @author Rocex Wang
@@ -328,7 +358,7 @@ public class CreateDataDictAction
      * @author Rocex Wang
      * @version 2020-4-26 10:11:27
      ***************************************************************************/
-    private void createDataDictIndexFile(List<ClassVO> listClassVO)
+    protected void createDataDictIndexFile(List<ClassVO> listClassVO)
     {
         TimerLogger.getLogger().begin("createDataDictIndexFile");
         
@@ -428,6 +458,15 @@ public class CreateDataDictAction
     }
     
     /***************************************************************************
+     * 生成没有元数据的表的数据字典
+     * @author Rocex Wang
+     * @version 2020-5-11 11:19:19
+     ***************************************************************************/
+    private void createNoMetaDataDict()
+    {
+    }
+    
+    /***************************************************************************
      * @author Rocex Wang
      * @version 2020-4-21 15:47:35
      ***************************************************************************/
@@ -448,25 +487,9 @@ public class CreateDataDictAction
             List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL);
             List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL);
             
-            mapModuleVO = buildMap(listModuleVO);
-            mapComponentVO = buildMap(listComponentVO);
-            mapClassVO = buildMap(listClassVO);
+            createDataDict(listModuleVO, listComponentVO, listClassVO);
             
-            buildEnumString();
-            
-            buildClassVOMapByComponentId(listClassVO);
-            
-            createDataDictTreeData(listModuleVO, listClassVO);
-            createDataDictIndexFile(listClassVO);
-            
-            TimerLogger.getLogger().begin("createDataDictFile: " + listClassVO.size());
-            
-            for (ClassVO classVO : listClassVO)
-            {
-                createDataDictFile(classVO);
-            }
-            
-            TimerLogger.getLogger().end("createDataDictFile: " + listClassVO.size());
+            createNoMetaDataDict();
         }
         catch (Exception ex)
         {
