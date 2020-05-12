@@ -60,6 +60,34 @@ public class FileHelper
     }
     
     /***************************************************************************
+     * 在新线程下拷贝文件夹下所有的文件夹和文件
+     * @param pathFrom
+     * @param pathTo
+     * @param options
+     * @throws IOException
+     * @author Rocex Wang
+     * @version 2020-5-11 14:36:23
+     ***************************************************************************/
+    public static void copyFolderThread(Path pathFrom, Path pathTo, CopyOption... options) throws IOException
+    {
+        new Thread()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    copyFolder(pathFrom, pathTo, options);
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger().error(ex.getMessage(), ex);
+                }
+            }
+        }.start();
+    }
+    
+    /***************************************************************************
      * 加载 properties 文件
      * @param strFilePath
      * @author Rocex Wang
@@ -120,5 +148,24 @@ public class FileHelper
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }
+    }
+    
+    /***************************************************************************
+     * 在新线程下写文件
+     * @param pathFile
+     * @param strContent
+     * @author Rocex Wang
+     * @version 2020-5-11 14:36:58
+     ***************************************************************************/
+    public static void writeFileThread(Path pathFile, String strContent)
+    {
+        new Thread()
+        {
+            @Override
+            public void run()
+            {
+                writeFile(pathFile, strContent);
+            }
+        }.start();
     }
 }
