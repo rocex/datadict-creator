@@ -330,8 +330,17 @@ public class CreateDataDictAction
             // 是否必输
             String strMustInput = "N".equals(propertyVO.getNullable()) ? "√" : "";
             
-            strHtmlRows.append(MessageFormat.format(strHtmlDataDictRow, strRowStyle, i + 1, propertyVO.getName(), propertyVO.getDisplayName(),
-                    propertyVO.getName(), strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strEnumString));
+            String strHtmlRow = MessageFormat.format(strHtmlDataDictRow, strRowStyle, i + 1, propertyVO.getName(), propertyVO.getDisplayName(),
+                    propertyVO.getName(), strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strEnumString);
+            
+            if (listPk.contains(propertyVO.getId()))
+            {
+                strHtmlRows.insert(0, strHtmlRow);
+            }
+            else
+            {
+                strHtmlRows.append(strHtmlRow);
+            }
         }
         
         // 组件内实体列表链接
@@ -478,6 +487,8 @@ public class CreateDataDictAction
      ***************************************************************************/
     protected void createNoMetaDataDictFile(List<ClassVO> listNoMetaTable) throws SQLException, Exception
     {
+        TimerLogger.getLogger().begin("createNoMetaDataDictFile");
+        
         Map<String, String> mapColumn = new HashMap<String, String>()
         {
             {
@@ -497,20 +508,6 @@ public class CreateDataDictAction
             
             List<PropertyVO> listPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn).doAction(resultSet);
             
-            resultSet = sqlExecutor.getConnection().getMetaData().getPrimaryKeys(null, strSchema, classVO.getDefaultTableName());
-            
-            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(resultSet);
-            
-            String strPks = "";
-            
-            for (PropertyVO propertyVO : listPkPropertyVO)
-            {
-                strPks += propertyVO.getId() + ";";
-            }
-            
-            classVO.setKeyAttribute(strPks);
-            classVO.setDefaultTableName(classVO.getDefaultTableName().toLowerCase());
-            
             for (PropertyVO propertyVO : listPropertyVO)
             {
                 propertyVO.setClassId(classVO.getId());
@@ -521,8 +518,25 @@ public class CreateDataDictAction
                 propertyVO.setNullable("1".equals(propertyVO.getNullable()) ? "Y" : "N");
             }
             
+            //
+            resultSet = sqlExecutor.getConnection().getMetaData().getPrimaryKeys(null, strSchema, classVO.getDefaultTableName());
+            
+            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(resultSet);
+            
+            String strPks = "";
+            
+            for (PropertyVO propertyVO : listPkPropertyVO)
+            {
+                strPks += propertyVO.getId().toLowerCase() + ";";
+            }
+            
+            classVO.setKeyAttribute(strPks);
+            classVO.setDefaultTableName(classVO.getDefaultTableName().toLowerCase());
+            
             createDataDictFile(classVO, listPropertyVO);
         }
+        
+        TimerLogger.getLogger().end("createNoMetaDataDictFile");
     }
     
     /***************************************************************************
@@ -565,10 +579,10 @@ public class CreateDataDictAction
                 createDataDictFile(classVO);
             }
             
+            TimerLogger.getLogger().end("createDataDictFile: " + listClassVO.size());
+            
             //
             createNoMetaDataDictFile(listNoMetaTable);
-            
-            TimerLogger.getLogger().end("createDataDictFile: " + listClassVO.size());
         }
         catch (Exception ex)
         {
