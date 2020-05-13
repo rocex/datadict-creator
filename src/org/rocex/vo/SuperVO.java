@@ -215,10 +215,18 @@ public class SuperVO implements Serializable
                 {
                     Class<?>[] parameterTypes = method.getParameterTypes();
                     
-                    if (parameterTypes != null && parameterTypes[0] == Integer.class)
+                    if (parameterTypes != null)
                     {
-                        blSetted = true;
-                        setValue(strFieldName, ((BigDecimal) objValue).intValue());
+                        if (parameterTypes[0] == Integer.class)
+                        {
+                            blSetted = true;
+                            setValue(strFieldName, ((BigDecimal) objValue).intValue());
+                        }
+                        else if (parameterTypes[0] == String.class)
+                        {
+                            blSetted = true;
+                            setValue(strFieldName, String.valueOf(objValue));
+                        }
                     }
                 }
                 
