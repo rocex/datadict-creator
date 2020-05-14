@@ -17,31 +17,3 @@ ${version}.jdbc.url = jdbc:oracle:thin:@ip:port:orcl
 ${version}.jdbc.user = 
 ${version}.jdbc.password = 
 ```
-
-```mermaid
-graph LR
-
-A[Import] -->B[Tidy]
-	B --> C{Understand}
-	C --> D[Transform]
-	C --> E[Vishualise]
-	C --> F[Model]
-	Understand --> G[Communicate]
-```
-
-```mermaid
-graph LR
-subgraph Understand
-    D[Transform]
-    E[Vishualise]
-    F[Model]
-end
-
-A[Import] -->B[Tidy]
-B -->D
-D -->E
-F-->D
-E-->F
-F-->G[Communicate]
-
-```

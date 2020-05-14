@@ -500,38 +500,11 @@ public class CreateDataDictAction
         
         DatabaseMetaData dbMetaData = sqlExecutor.getConnection().getMetaData();
         
-        // ResultSet resultSet = dbMetaData.getColumns(null, strSchema, null, null);
-        //
-        // List<PropertyVO> listPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class,
-        // mapColumn).doAction(resultSet);
-        //
-        // Map<String, List<PropertyVO>> mapClassProperty = new HashMap<>();
-        //
-        // for (PropertyVO propertyVO : listPropertyVO)
-        // {
-        // String strClassId = propertyVO.getClassId().toLowerCase();
-        //
-        // List<PropertyVO> list = mapClassProperty.get(strClassId);
-        //
-        // if (list == null)
-        // {
-        // list = new ArrayList<>();
-        //
-        // mapClassProperty.put(strClassId, list);
-        // }
-        //
-        // list.add(propertyVO);
-        // }
-        //
-        // listPropertyVO.clear();
-        
         for (ClassVO classVO : listNoMetaTable)
         {
             ResultSet rsColumns = dbMetaData.getColumns(null, strSchema, classVO.getDefaultTableName(), null);
             
             List<PropertyVO> listPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, true).doAction(rsColumns);
-            
-            rsColumns.close();
             
             // 找到表的主键
             ResultSet rsPkColumns = dbMetaData.getPrimaryKeys(null, strSchema, classVO.getDefaultTableName());
@@ -552,8 +525,6 @@ public class CreateDataDictAction
             List<PropertyVO> listPropertyOrderVO = new ArrayList<>();
             
             List<String> listPk = Arrays.asList(strPks.split(";"));
-            
-            // listPropertyVO = mapClassProperty.get(classVO.getId());
             
             for (PropertyVO propertyVO : listPropertyVO)
             {
@@ -615,7 +586,6 @@ public class CreateDataDictAction
             
             TimerLogger.getLogger().end("createDataDictFile: " + listClassVO.size());
             
-            //
             createNoMetaDataDictFile(listNoMetaTable);
         }
         catch (Exception ex)
@@ -871,7 +841,7 @@ public class CreateDataDictAction
     {
         TimerLogger.getLogger().begin("queryNoMetaData");
         
-        Set<String> setTableName = new HashSet<>(); // 把所有有元数据的表名保存起来，给查找没有元数据的表做准备
+        Set<String> setExistMetaTableName = new HashSet<>(); // 把所有有元数据的表名保存起来，给查找没有元数据的表做准备
         
         for (Iterator<ClassVO> iterator = listClassVO.iterator(); iterator.hasNext();)
         {
@@ -879,12 +849,12 @@ public class CreateDataDictAction
             
             String strDefaultTableName = classVO.getDefaultTableName();
             
-            if (strDefaultTableName == null || setTableName.contains(strDefaultTableName.toUpperCase()))
+            if (strDefaultTableName == null || setExistMetaTableName.contains(strDefaultTableName.toLowerCase()))
             {
                 continue;
             }
             
-            setTableName.add(strDefaultTableName.toUpperCase());
+            setExistMetaTableName.add(strDefaultTableName.toLowerCase());
         }
         
         ResultSet resultSet = sqlExecutor.getConnection().getMetaData().getTables(null, strSchema, "%", new String[] { "TABLE" });
@@ -898,24 +868,34 @@ public class CreateDataDictAction
         
         List<ClassVO> listAllClassVO = (List<ClassVO>) new BeanListProcessor<>(ClassVO.class, mapTable, "DefaultTableName").doAction(resultSet);
         
-        List<ClassVO> listNoMetaTable = new ArrayList<>();
+        String strFilters[] = new String[] { "hr_temptable", "temp_", "tmp_" };
         
-        for (ClassVO classVO : listAllClassVO)
+        listAllClassVO.removeIf(classVO ->
         {
-            if (setTableName.contains(classVO.getDefaultTableName().toUpperCase()))
+            String strDefaultTableName = classVO.getDefaultTableName().toLowerCase();
+            
+            if (setExistMetaTableName.contains(strDefaultTableName))
             {
-                continue;
+                return true;
             }
             
-            classVO.setId(classVO.getDefaultTableName().toLowerCase());
-            classVO.setName(classVO.getId());
-            classVO.setDisplayName(classVO.getId());
+            for (String strFilter : strFilters)
+            {
+                if (strDefaultTableName.startsWith(strFilter))
+                {
+                    return true;
+                }
+            }
             
-            listNoMetaTable.add(classVO);
-        }
+            classVO.setId(strDefaultTableName);
+            classVO.setName(strDefaultTableName);
+            classVO.setDisplayName(strDefaultTableName);
+            
+            return false;
+        });
         
         TimerLogger.getLogger().end("queryNoMetaData");
         
-        return listNoMetaTable;
+        return listAllClassVO;
     }
 }
