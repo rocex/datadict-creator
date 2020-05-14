@@ -34,6 +34,28 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
         this(clazz, null);
     }
     
+    public BeanListProcessor(Class<T> clazz, boolean blCloseResultSet)
+    {
+        this(clazz, null);
+        
+        setCloseResultSet(blCloseResultSet);
+    }
+    
+    /***************************************************************************
+     * @param clazz
+     * @param mapRelationship
+     * @param blCloseResultSet
+     * @param strFields
+     * @author Rocex Wang
+     * @version 2020-5-14 16:54:58
+     ***************************************************************************/
+    public BeanListProcessor(Class<T> clazz, Map<String, String> mapRelationship, boolean blCloseResultSet, String... strFields)
+    {
+        this(clazz, mapRelationship, strFields);
+        
+        setCloseResultSet(blCloseResultSet);
+    }
+    
     /***************************************************************************
      * @param clazz
      * @param mapRelationship

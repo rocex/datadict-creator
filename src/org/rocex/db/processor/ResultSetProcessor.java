@@ -10,6 +10,8 @@ import java.sql.SQLException;
  ***************************************************************************/
 public abstract class ResultSetProcessor
 {
+    private boolean blCloseResultSet = false;
+    
     /***************************************************************************
      * @param resultSet
      * @return Object
@@ -32,6 +34,13 @@ public abstract class ResultSetProcessor
         {
             throw new SQLException("the resultsetProcessor error!" + ex.getMessage(), ex.getSQLState());
         }
+        finally
+        {
+            if (blCloseResultSet)
+            {
+                resultSet.close();
+            }
+        }
     }
     
     /***************************************************************************
@@ -42,4 +51,14 @@ public abstract class ResultSetProcessor
      * @throws Exception
      ***************************************************************************/
     protected abstract Object processResultSet(ResultSet resultSet) throws Exception;
+    
+    /***************************************************************************
+     * @param closeResultSet the closeResultSet to set
+     * @author Rocex Wang
+     * @version 2020-5-14 16:48:22
+     ***************************************************************************/
+    public void setCloseResultSet(boolean closeResultSet)
+    {
+        blCloseResultSet = closeResultSet;
+    }
 }

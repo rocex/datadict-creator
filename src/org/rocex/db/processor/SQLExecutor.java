@@ -21,7 +21,7 @@ import org.rocex.vo.SuperVO;
 public class SQLExecutor
 {
     private Connection connection = null;
-    private Properties dbProp = null;
+    protected Properties dbProp = null;
     
     /***************************************************************************
      * @author Rocex Wang
@@ -263,6 +263,13 @@ public class SQLExecutor
         }
     }
     
+    /***************************************************************************
+     * @param strSQL
+     * @return int
+     * @throws Exception
+     * @author Rocex Wang
+     * @version 2020-5-14 11:38:12
+     ***************************************************************************/
     public int executeUpdate(String strSQL) throws Exception
     {
         Statement statement = null;
@@ -298,7 +305,7 @@ public class SQLExecutor
      ***************************************************************************/
     public Connection getConnection() throws Exception
     {
-        if (connection == null)
+        if (connection == null || connection.isClosed())
         {
             Logger.getLogger().trace("create connection...");
             
