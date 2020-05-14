@@ -868,13 +868,15 @@ public class CreateDataDictAction
         
         List<ClassVO> listAllClassVO = (List<ClassVO>) new BeanListProcessor<>(ClassVO.class, mapTable, "DefaultTableName").doAction(resultSet);
         
-        String strFilters[] = new String[] { "hr_temptable", "temp_", "tmp_" };
+        String strFilters[] = new String[] { "aqua_explain_", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_", "sm_securitylog_", "tb_fd_sht",
+                "tb_tmp_tcheck", "tb_tt_", "temp000", "temppkts", "temptable_oa", "temp_", "temq_", "tmpbd_", "tmpub_calog_temp", "tmp_", "tm_mqsend_success_",
+                "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_", };
         
         listAllClassVO.removeIf(classVO ->
         {
             String strDefaultTableName = classVO.getDefaultTableName().toLowerCase();
             
-            if (setExistMetaTableName.contains(strDefaultTableName))
+            if (strDefaultTableName.length() < 6 || setExistMetaTableName.contains(strDefaultTableName))
             {
                 return true;
             }
