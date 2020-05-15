@@ -10,7 +10,7 @@ import java.sql.SQLException;
  ***************************************************************************/
 public abstract class ResultSetProcessor
 {
-    private boolean blCloseResultSet = false;
+    private boolean blAutoCloseResultSet = true;
     
     /***************************************************************************
      * @param resultSet
@@ -36,7 +36,7 @@ public abstract class ResultSetProcessor
         }
         finally
         {
-            if (blCloseResultSet)
+            if (blAutoCloseResultSet)
             {
                 resultSet.close();
             }
@@ -57,8 +57,8 @@ public abstract class ResultSetProcessor
      * @author Rocex Wang
      * @version 2020-5-14 16:48:22
      ***************************************************************************/
-    public void setCloseResultSet(boolean closeResultSet)
+    public void setAutoCloseResultSet(boolean closeResultSet)
     {
-        blCloseResultSet = closeResultSet;
+        blAutoCloseResultSet = closeResultSet;
     }
 }

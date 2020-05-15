@@ -354,50 +354,6 @@ public class CreateDataDictAction
     }
     
     /***************************************************************************
-     * 生成数据字典索引文件
-     * @param listClassVO
-     * @author Rocex Wang
-     * @version 2020-4-26 10:11:27
-     ***************************************************************************/
-    protected void createDataDictIndexFile(List<ClassVO> listClassVO)
-    {
-        TimerLogger.getLogger().begin("createDataDictIndexFile");
-        
-        StringBuilder strContent = new StringBuilder();
-        StringBuilder strRow = new StringBuilder();
-        
-        int iIndex = 1;
-        
-        for (ClassVO classVO : listClassVO)
-        {
-            if (classVO.getClassType() != 201)
-            {
-                continue;
-            }
-            
-            String strAbsClassFilePath = getClassUrl(classVO);
-            
-            strRow.append(MessageFormat.format("            <td><a href=\"{0}\">{1}<br>{2}</a></td>\n", strAbsClassFilePath, classVO.getDisplayName(),
-                    classVO.getDefaultTableName()));
-            
-            if (iIndex % 5 == 0)
-            {
-                strContent.append("        <tr align=\"center\">\n" + strRow + "        </tr>\n");
-                strRow.delete(0, strRow.length());
-            }
-            
-            iIndex++;
-        }
-        
-        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictIndexFile"),
-                DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strContent, getFooter());
-        
-        FileHelper.writeFileThread(Paths.get(strOutputRootDir, "data-dict-table.html"), strHtml);
-        
-        TimerLogger.getLogger().end("createDataDictIndexFile");
-    }
-    
-    /***************************************************************************
      * 生成构造实体树的json数据
      * @param listModuleVO
      * @param listClassVO
@@ -504,12 +460,12 @@ public class CreateDataDictAction
         {
             ResultSet rsColumns = dbMetaData.getColumns(null, strSchema, classVO.getDefaultTableName(), null);
             
-            List<PropertyVO> listPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, true).doAction(rsColumns);
+            List<PropertyVO> listPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn).doAction(rsColumns);
             
             // 找到表的主键
             ResultSet rsPkColumns = dbMetaData.getPrimaryKeys(null, strSchema, classVO.getDefaultTableName());
             
-            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, true, "id").doAction(rsPkColumns);
+            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
             
             String strPks = "";
             
@@ -575,7 +531,6 @@ public class CreateDataDictAction
             List<ClassVO> listNoMetaTable = queryNoMetaData(listClassVO);
             
             createDataDictTreeData(listModuleVO, listClassVO, listNoMetaTable);
-            // createDataDictIndexFile(listClassVO);
             
             TimerLogger.getLogger().begin("createDataDictFile: " + listClassVO.size());
             
@@ -866,26 +821,24 @@ public class CreateDataDictAction
             }
         };
         
-        List<ClassVO> listAllClassVO = (List<ClassVO>) new BeanListProcessor<>(ClassVO.class, mapTable, "DefaultTableName").doAction(resultSet);
-        
         String strFilters[] = new String[] { "aqua_explain_", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_", "sm_securitylog_", "tb_fd_sht",
                 "tb_tmp_tcheck", "tb_tt_", "temp000", "temppkts", "temptable_oa", "temp_", "temq_", "tmpbd_", "tmpub_calog_temp", "tmp_", "tm_mqsend_success_",
-                "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_", };
+                "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_" };
         
-        listAllClassVO.removeIf(classVO ->
+        List<ClassVO> listAllClassVO = (List<ClassVO>) new BeanListProcessor<>(ClassVO.class, mapTable, classVO ->
         {
             String strDefaultTableName = classVO.getDefaultTableName().toLowerCase();
             
             if (strDefaultTableName.length() < 6 || setExistMetaTableName.contains(strDefaultTableName))
             {
-                return true;
+                return false;
             }
             
             for (String strFilter : strFilters)
             {
                 if (strDefaultTableName.startsWith(strFilter))
                 {
-                    return true;
+                    return false;
                 }
             }
             
@@ -893,8 +846,8 @@ public class CreateDataDictAction
             classVO.setName(strDefaultTableName);
             classVO.setDisplayName(strDefaultTableName);
             
-            return false;
-        });
+            return true;
+        }, "DefaultTableName").doAction(resultSet);
         
         TimerLogger.getLogger().end("queryNoMetaData");
         

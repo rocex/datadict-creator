@@ -5,6 +5,7 @@ import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
+import java.util.function.Predicate;
 
 import org.rocex.utils.Logger;
 import org.rocex.vo.SuperVO;
@@ -20,7 +21,9 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
     
     protected Class<T> clazz = null;
     
-    private Map<String, String> mapFieldRelationship;// 查询字段和VO中字段在不相同的情况下的对照关系，相同的可忽略
+    private Predicate<? super T> filter;
+    
+    private Map<String, String> mapFieldRelationship;// 查询的数据库字段和VO中字段在不相同的情况下的对照关系，相同的可忽略
     
     private String strFields[]; // 只处理指定的字段，每个值对应到VO中的属性(不区分大小写)，null为都处理
     
@@ -34,11 +37,34 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
         this(clazz, null);
     }
     
+    /***************************************************************************
+     * @param clazz
+     * @param blCloseResultSet
+     * @author Rocex Wang
+     * @version 2020-5-15 9:45:45
+     ***************************************************************************/
     public BeanListProcessor(Class<T> clazz, boolean blCloseResultSet)
     {
         this(clazz, null);
         
-        setCloseResultSet(blCloseResultSet);
+        setAutoCloseResultSet(blCloseResultSet);
+    }
+    
+    /***************************************************************************
+     * @param clazz
+     * @param mapFieldRelationship 查询的数据库字段和VO中字段在不相同的情况下的对照关系，相同的可忽略
+     * @param strFields 只处理指定的字段，每个值对应到VO中的属性(不区分大小写)，null为都处理
+     * @author Rocex Wang
+     * @version 2020-1-17 10:25:29
+     ***************************************************************************/
+    public BeanListProcessor(Class<T> clazz, Map<String, String> mapFieldRelationship, Predicate<? super T> filter, String... strFields)
+    {
+        super();
+        
+        this.clazz = clazz;
+        this.filter = filter;
+        this.strFields = strFields;
+        this.mapFieldRelationship = mapFieldRelationship;
     }
     
     /***************************************************************************
@@ -49,28 +75,9 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
      * @author Rocex Wang
      * @version 2020-5-14 16:54:58
      ***************************************************************************/
-    public BeanListProcessor(Class<T> clazz, Map<String, String> mapRelationship, boolean blCloseResultSet, String... strFields)
-    {
-        this(clazz, mapRelationship, strFields);
-        
-        setCloseResultSet(blCloseResultSet);
-    }
-    
-    /***************************************************************************
-     * @param clazz
-     * @param mapRelationship
-     * @param pageInfo
-     * @param strFields 只处理指定的字段，每个值对应到VO中的属性(不区分大小写)，null为都处理
-     * @author Rocex Wang
-     * @version 2020-1-17 10:25:29
-     ***************************************************************************/
     public BeanListProcessor(Class<T> clazz, Map<String, String> mapRelationship, String... strFields)
     {
-        super();
-        
-        this.clazz = clazz;
-        this.strFields = strFields;
-        this.mapFieldRelationship = mapRelationship;
+        this(clazz, mapRelationship, null, strFields);
     }
     
     /****************************************************************************
@@ -88,9 +95,26 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
         {
             BeanProcessor<T> beanProcessor = new BeanProcessor<>(clazz, mapFieldRelationship, strFields);
             
-            while (resultSet.next())
+            if (filter != null)
             {
-                listVO.add(beanProcessor.processRow(resultSet));
+                while (resultSet.next())
+                {
+                    T processRow = beanProcessor.processRow(resultSet);
+                    
+                    if (filter.test(processRow))
+                    {
+                        listVO.add(processRow);
+                    }
+                }
+            }
+            else
+            {
+                while (resultSet.next())
+                {
+                    T processRow = beanProcessor.processRow(resultSet);
+                    
+                    listVO.add(processRow);
+                }
             }
         }
         catch (Exception ex)
@@ -101,5 +125,15 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
         }
         
         return listVO;
+    }
+    
+    /***************************************************************************
+     * @param filter the filter to set
+     * @author Rocex Wang
+     * @version 2020-5-15 10:15:36
+     ***************************************************************************/
+    public void setFilter(Predicate<? super T> filter)
+    {
+        this.filter = filter;
     }
 }
