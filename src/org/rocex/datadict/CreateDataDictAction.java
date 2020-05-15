@@ -411,9 +411,9 @@ public class CreateDataDictAction
         
         if (!listNoMetaTable.isEmpty())
         {
-            String strNoMetaTableId = "no-meta-table";
+            String strNoMetaTableId = "no-meta";
             
-            strModuleRows.append(MessageFormat.format(strModuleTemplate, strNoMetaTableId, strNoMetaTableId, "没有元数据的表"));
+            strModuleRows.append(MessageFormat.format(strModuleTemplate, strNoMetaTableId, "其它", "没有元数据的表"));
             
             for (ClassVO classVO : listNoMetaTable)
             {
@@ -461,6 +461,8 @@ public class CreateDataDictAction
             ResultSet rsColumns = dbMetaData.getColumns(null, strSchema, classVO.getDefaultTableName(), null);
             
             List<PropertyVO> listPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn).doAction(rsColumns);
+            
+            listPropertyVO.sort((prop1, prop2) -> prop1.getId().compareToIgnoreCase(prop2.getId()));
             
             // 找到表的主键
             ResultSet rsPkColumns = dbMetaData.getPrimaryKeys(null, strSchema, classVO.getDefaultTableName());
