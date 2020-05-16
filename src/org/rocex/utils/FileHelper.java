@@ -47,7 +47,7 @@ public class FileHelper
             {
                 Path pathCurrentTo = pathTo.resolve(pathFrom.relativize(file));
                 
-                if (Files.notExists(pathCurrentTo.getParent()))  // 如果说父路径不存在，则创建
+                if (Files.notExists(pathCurrentTo.getParent()))  // 如果父路径不存在，则创建
                 {
                     Files.createDirectories(pathCurrentTo.getParent());
                 }
@@ -85,6 +85,47 @@ public class FileHelper
                 }
             }
         }.start();
+    }
+    
+    /***************************************************************************
+     * 删除文件夹下所有的文件夹和文件
+     * @param path
+     * @param pathTo
+     * @param options
+     * @throws IOException
+     * @author Rocex Wang
+     * @version 2020-4-28 20:36:51
+     ***************************************************************************/
+    public static void deleteFolder(Path path) throws IOException
+    {
+        if (Files.notExists(path))
+        {
+            return;
+        }
+        
+        Files.walkFileTree(path, new SimpleFileVisitor<Path>()
+        {
+            @Override
+            public FileVisitResult postVisitDirectory(Path dir, IOException ex) throws IOException
+            {
+                if (ex != null)
+                {
+                    throw ex;
+                }
+                
+                Files.delete(dir);
+                
+                return FileVisitResult.CONTINUE;
+            }
+            
+            @Override
+            public FileVisitResult visitFile(Path file, BasicFileAttributes attrs) throws IOException
+            {
+                Files.deleteIfExists(file);
+                
+                return FileVisitResult.CONTINUE;  // 递归遍历文件，空文件无法复制
+            }
+        });
     }
     
     /***************************************************************************

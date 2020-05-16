@@ -224,7 +224,7 @@ public class CreateDataDictAction
         
         try
         {
-            FileHelper.copyFolderThread(Paths.get("settings", "html"), Paths.get(strOutputRootDir), new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
+            FileHelper.copyFolder(Paths.get("settings", "html"), Paths.get(strOutputRootDir), new CopyOption[] { StandardCopyOption.REPLACE_EXISTING });
         }
         catch (IOException ex)
         {
@@ -508,6 +508,8 @@ public class CreateDataDictAction
      ***************************************************************************/
     public void doAction()
     {
+        emptyTargetFolder();
+        
         copyHtmlFiles();
         
         String strModuleSQL = "select lower(id) id,lower(name) name,displayname from md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
@@ -553,6 +555,27 @@ public class CreateDataDictAction
         {
             sqlExecutor.closeConnection();
         }
+    }
+    
+    /***************************************************************************
+     * @throws IOException
+     * @author Rocex Wang
+     * @version 2020-5-16 9:44:24
+     ***************************************************************************/
+    protected void emptyTargetFolder()
+    {
+        TimerLogger.getLogger().begin("emptyTargetFolder");
+        
+        try
+        {
+            FileHelper.deleteFolder(Paths.get(strOutputRootDir));
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        
+        TimerLogger.getLogger().end("emptyTargetFolder");
     }
     
     /***************************************************************************
