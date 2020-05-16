@@ -53,6 +53,8 @@ public class TimerLogger
         
         double lTime = System.currentTimeMillis() - mapTimer.get(strMessage);
         
-        System.out.printf("[%-50s] 耗时: %10.0fms, %10.3fs, %10.3fm\n", strMessage, lTime, lTime / 1000, lTime / 60000);
+        String strMsg = String.format("[%-50s] 耗时: %10.0fms, %10.3fs, %10.3fm", strMessage, lTime, lTime / 1000, lTime / 60000);
+        
+        Logger.getLogger().debug(strMsg);
     }
 }

@@ -10,7 +10,15 @@ import java.util.Date;
  ***************************************************************************/
 public class Logger
 {
+    public static int iLoggerLevelDebug = 1;
+    public static int iLoggerLevelError = 2;
+    public static int iLoggerLevelTrace = 0;
+    
     private static Logger logger;
+    
+    private DateFormat dateFormat = DateFormat.getDateTimeInstance();
+    
+    private int iEnableLevel = iLoggerLevelDebug;
     
     /***************************************************************************
      * @return Logger
@@ -34,7 +42,7 @@ public class Logger
      ***************************************************************************/
     public void debug(String strMsg)
     {
-        System.out.println(DateFormat.getDateTimeInstance().format(new Date()) + " " + strMsg);
+        log(iLoggerLevelDebug, strMsg);
     }
     
     /***************************************************************************
@@ -44,7 +52,7 @@ public class Logger
      ***************************************************************************/
     public void error(String strMsg)
     {
-        System.err.println(DateFormat.getDateTimeInstance().format(new Date()) + " " + strMsg);
+        log(iLoggerLevelError, strMsg);
     }
     
     /***************************************************************************
@@ -55,8 +63,22 @@ public class Logger
      ***************************************************************************/
     public void error(String strMsg, Throwable ex)
     {
-        System.err.println(DateFormat.getDateTimeInstance().format(new Date()) + " " + strMsg);
-        ex.printStackTrace();
+        log(iLoggerLevelError, strMsg);
+        
+        if (iLoggerLevelError < iEnableLevel)
+        {
+            ex.printStackTrace();
+        }
+    }
+    
+    public void log(int iLevel, String strMsg)
+    {
+        if (iLevel < iEnableLevel)
+        {
+            return;
+        }
+        
+        System.out.println(dateFormat.format(new Date()) + " " + strMsg);
     }
     
     /***************************************************************************
@@ -66,18 +88,6 @@ public class Logger
      ***************************************************************************/
     public void trace(String strMsg)
     {
-        // System.out.println(DateFormat.getDateTimeInstance().format(new Date()) + " " + strMsg);
-    }
-    
-    /***************************************************************************
-     * @param strMsg
-     * @param ex
-     * @author Rocex Wang
-     * @version 2019-6-13 10:49:16
-     ***************************************************************************/
-    public void trace(String strMsg, Throwable ex)
-    {
-        System.out.println(DateFormat.getDateTimeInstance().format(new Date()) + " " + strMsg);
-        ex.printStackTrace();
+        log(iLoggerLevelTrace, strMsg);
     }
 }
