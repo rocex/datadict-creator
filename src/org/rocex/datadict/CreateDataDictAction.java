@@ -93,11 +93,12 @@ public class CreateDataDictAction
     {
         TimerLogger.getLogger().begin("adjust data");
         
-        String strSQL = "update md_class set name='MultiLangText' where id='BS000010000100001058' and name='MULTILANGTEXT'";
+        String strSQLs[] = { "update md_class set name='MultiLangText' where id='BS000010000100001058' and name='MULTILANGTEXT'",
+                "update md_class set name='Custom' where id in('BS000010000100001056','BS000010000100001059') and name='CUSTOM'" };
         
         try
         {
-            sqlExecutor.executeUpdate(strSQL);
+            sqlExecutor.executeUpdate(strSQLs);
         }
         catch (Exception ex)
         {
@@ -431,6 +432,22 @@ public class CreateDataDictAction
     }
     
     /***************************************************************************
+     * @author Rocex Wang
+     * @version 2020-5-18 9:42:59
+     ***************************************************************************/
+    protected void createIndexFile()
+    {
+        TimerLogger.getLogger().begin("createIndexFile");
+        
+        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlIndexFile"),
+                DataDictCreator.settings.get(strVersion + ".DataDictVersion"));
+        
+        FileHelper.writeFileThread(Paths.get(strOutputRootDir, "index.html"), strHtml);
+        
+        TimerLogger.getLogger().end("createIndexFile");
+    }
+    
+    /***************************************************************************
      * @param listNoMetaTable
      * @throws SQLException
      * @throws Exception
@@ -510,6 +527,8 @@ public class CreateDataDictAction
     {
         emptyTargetFolder();
         
+        createIndexFile();
+        
         copyHtmlFiles();
         
         String strModuleSQL = "select lower(id) id,lower(name) name,displayname from md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
@@ -564,7 +583,7 @@ public class CreateDataDictAction
      ***************************************************************************/
     protected void emptyTargetFolder()
     {
-        TimerLogger.getLogger().begin("emptyTargetFolder");
+        TimerLogger.getLogger().begin("emptyTargetFolder " + strOutputRootDir);
         
         try
         {
@@ -575,7 +594,7 @@ public class CreateDataDictAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
         
-        TimerLogger.getLogger().end("emptyTargetFolder");
+        TimerLogger.getLogger().end("emptyTargetFolder " + strOutputRootDir);
     }
     
     /***************************************************************************
@@ -792,7 +811,7 @@ public class CreateDataDictAction
      ***************************************************************************/
     protected List<? extends MetaVO> queryMetaVO(Class<? extends MetaVO> metaVOClass, String strSQL)
     {
-        TimerLogger.getLogger().begin("execute query " + metaVOClass.getSimpleName());
+        TimerLogger.getLogger().begin("queryMetaVO " + metaVOClass.getSimpleName());
         
         List<? extends MetaVO> listMetaVO = null;
         
@@ -805,7 +824,7 @@ public class CreateDataDictAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
         
-        TimerLogger.getLogger().end("execute query " + metaVOClass.getSimpleName());
+        TimerLogger.getLogger().end("queryMetaVO " + metaVOClass.getSimpleName());
         
         return listMetaVO;
     }

@@ -297,6 +297,43 @@ public class SQLExecutor
     }
     
     /***************************************************************************
+     * @param strSQLs
+     * @return int
+     * @throws Exception
+     * @author Rocex Wang
+     * @version 2020-5-14 11:38:12
+     ***************************************************************************/
+    public int[] executeUpdate(String... strSQLs) throws Exception
+    {
+        Statement statement = null;
+        
+        try
+        {
+            statement = createStatement();
+            
+            for (String strSQL : strSQLs)
+            {
+                statement.addBatch(strSQL);
+                Logger.getLogger().trace(strSQL);
+            }
+            
+            int[] iSuccessCount = statement.executeBatch();
+            
+            return iSuccessCount;
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        finally
+        {
+            close(statement);
+        }
+        
+        return new int[] {};
+    }
+    
+    /***************************************************************************
      * <br>
      * Created on 2017-2-10 16:10:05<br>
      * @return Connection

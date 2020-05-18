@@ -30,6 +30,7 @@ public class DataDictCreator
         
         try
         {
+            settings.setProperty("HtmlIndexFile", new String(Files.readAllBytes(Paths.get("settings", "template", "index.html"))));
             settings.setProperty("HtmlDataDictFile", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictFile.html"))));
             settings.setProperty("HtmlDataDictRow", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictRow.html"))));
             settings.setProperty("HtmlDataDictFooterFile", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictFooterFile.html"))));
