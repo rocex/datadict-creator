@@ -10,9 +10,9 @@ import java.util.Date;
  ***************************************************************************/
 public class Logger
 {
-    public static int iLoggerLevelDebug = 1;
-    public static int iLoggerLevelError = 2;
-    public static int iLoggerLevelTrace = 0;
+    public static int iLoggerLevelDebug = 20;
+    public static int iLoggerLevelError = 30;
+    public static int iLoggerLevelTrace = 10;
     
     private static Logger logger;
     
