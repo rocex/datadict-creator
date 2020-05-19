@@ -1,6 +1,6 @@
 # Data Dict Creator
 
-根据数据库中元数据生成nc数据字典
+根据数据库中元数据生成 NC Cloud 数据字典
 
 可修改 settings/settings.properties 配置文件，其中 ${version} 替换成相应的版本
 
