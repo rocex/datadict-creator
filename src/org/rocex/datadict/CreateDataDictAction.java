@@ -326,10 +326,10 @@ public class CreateDataDictAction
             }
             else
             {
-                strDataScope = "[" + (propertyVO.getAttrMinValue() == null ? "" : propertyVO.getAttrMinValue()) + ", "
+                strDataScope = "[" + (propertyVO.getAttrMinValue() == null ? "" : propertyVO.getAttrMinValue()) + " , "
                         + (propertyVO.getAttrMaxValue() == null ? "" : propertyVO.getAttrMaxValue()) + "]";
                 
-                if ("[, ]".equals(strDataScope))
+                if ("[ , ]".equals(strDataScope))
                 {
                     strDataScope = "";
                 }
