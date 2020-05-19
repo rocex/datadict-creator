@@ -317,23 +317,32 @@ public class CreateDataDictAction
             // 默认值
             String strDefaultValue = propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue();
             
-            // 枚举
-            String strEnumString = "";
+            // 枚举/取值范围
+            String strDataScope = "";
             if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300
                     && mapEnumString.containsKey(propertyVO.getDataType()))
             {
-                strEnumString = mapEnumString.get(propertyVO.getDataType());
+                strDataScope = mapEnumString.get(propertyVO.getDataType());
+            }
+            else
+            {
+                strDataScope = "[" + (propertyVO.getAttrMinValue() == null ? "" : propertyVO.getAttrMinValue()) + ", "
+                        + (propertyVO.getAttrMaxValue() == null ? "" : propertyVO.getAttrMaxValue()) + "]";
+                
+                if ("[, ]".equals(strDataScope))
+                {
+                    strDataScope = "";
+                }
             }
             
             // 每行的css，主键行字体红色，其它行正常黑色
-            // String strRowStyle = propertyVO.getId().equals(classVO.getKeyAttribute()) ? "pk-row" : "";
             String strRowStyle = listPk.contains(propertyVO.getId()) ? "pk-row" : "";
             
             // 是否必输
             String strMustInput = "N".equals(propertyVO.getNullable()) ? "√" : "";
             
             String strHtmlRow = MessageFormat.format(strHtmlDataDictRow, strRowStyle, i + 1, propertyVO.getName(), propertyVO.getDisplayName(),
-                    propertyVO.getName(), strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strEnumString);
+                    propertyVO.getName(), strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strDataScope);
             
             strHtmlRows.append(strHtmlRow);
         }
