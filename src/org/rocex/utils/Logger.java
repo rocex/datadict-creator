@@ -65,7 +65,7 @@ public class Logger
     {
         log(iLoggerLevelError, strMsg);
         
-        if (iLoggerLevelError < iEnableLevel)
+        if (iLoggerLevelError > iEnableLevel)
         {
             ex.printStackTrace();
         }
