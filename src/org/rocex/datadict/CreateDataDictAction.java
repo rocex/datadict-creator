@@ -21,6 +21,8 @@ import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Set;
+import java.util.function.Function;
+import java.util.stream.Collectors;
 
 import org.rocex.datadict.vo.ClassVO;
 import org.rocex.datadict.vo.ComponentVO;
@@ -183,7 +185,7 @@ public class CreateDataDictAction
                 strEnum = "";
             }
             
-            strEnum = new StringBuilder(strEnum).append(enumVO.getValue()).append("=").append(enumVO.getName()).append("; <br>").toString();
+            strEnum = new StringBuilder(strEnum).append(enumVO.getValue()).append("=").append(enumVO.getName()).append(";<br>").toString();
             
             mapEnumString.put(enumVO.getId(), strEnum);
         }
@@ -204,10 +206,7 @@ public class CreateDataDictAction
         
         Map<String, MetaVO> mapMetaVO = new HashMap<>();
         
-        for (MetaVO metaVO : listMetaVO)
-        {
-            mapMetaVO.put(metaVO.getId(), metaVO);
-        }
+        mapMetaVO = listMetaVO.stream().collect(Collectors.toMap(MetaVO::getId, Function.identity(), (key1, key2) -> key2));
         
         TimerLogger.getLogger().end("buildMap:" + listMetaVO.get(0).getClass().getSimpleName());
         
@@ -405,7 +404,7 @@ public class CreateDataDictAction
         }
         
         // 单独拿出来是为了按照模块号排序
-        String strModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\"'}',";
+        String strModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2} {3}\"'}',";
         
         for (ModuleVO moduleVO : listModuleVO)
         {
@@ -414,7 +413,8 @@ public class CreateDataDictAction
                 continue;
             }
             
-            strModuleRows.append(MessageFormat.format(strModuleTemplate, getMappedModuleId(moduleVO), moduleVO.getName(), moduleVO.getDisplayName()));
+            strModuleRows.append(MessageFormat.format(strModuleTemplate, getMappedModuleId(moduleVO),
+                    moduleVO.getModuleId() == null ? "" : moduleVO.getModuleId(), moduleVO.getName(), moduleVO.getDisplayName()));
             
             listUsedClassModule.remove(moduleVO.getId());
         }
@@ -423,7 +423,7 @@ public class CreateDataDictAction
         {
             String strNoMetaTableId = "no-meta";
             
-            strModuleRows.append(MessageFormat.format(strModuleTemplate, strNoMetaTableId, "其它", "没有元数据的表"));
+            strModuleRows.append(MessageFormat.format(strModuleTemplate, strNoMetaTableId, "no-meta", "其它", "没有元数据的表"));
             
             for (ClassVO classVO : listNoMetaTable)
             {
@@ -540,7 +540,7 @@ public class CreateDataDictAction
         
         copyHtmlFiles();
         
-        String strModuleSQL = "select lower(id) id,lower(name) name,displayname from md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
+        String strModuleSQL = "select lower(id) id,lower(name) name,displayname,b.moduleid moduleid from md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
         String strComponentSQL = "select id,name,displayname,lower(ownmodule) ownmodule from md_component";
         String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary from md_class order by lower(defaulttablename)";
         
@@ -865,7 +865,7 @@ public class CreateDataDictAction
             setExistMetaTableName.add(strDefaultTableName.toLowerCase());
         }
         
-        ResultSet resultSet = sqlExecutor.getConnection().getMetaData().getTables(null, strSchema, "%", new String[] { "TABLE" });
+        ResultSet rsTable = sqlExecutor.getConnection().getMetaData().getTables(null, strSchema, "%", new String[] { "TABLE" });
         
         Map<String, String> mapTable = new HashMap<String, String>()
         {
@@ -874,6 +874,7 @@ public class CreateDataDictAction
             }
         };
         
+        // 排除一些表
         String strFilters[] = new String[] { "aqua_explain_", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_", "sm_securitylog_", "tb_fd_sht",
                 "tb_tmp_tcheck", "tb_tt_", "temp000", "temppkts", "temptable_oa", "temp_", "temq_", "tmpbd_", "tmpub_calog_temp", "tmp_", "tm_mqsend_success_",
                 "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_" };
@@ -882,7 +883,8 @@ public class CreateDataDictAction
         {
             String strDefaultTableName = classVO.getDefaultTableName().toLowerCase();
             
-            if (strDefaultTableName.length() < 6 || setExistMetaTableName.contains(strDefaultTableName))
+            // 表名长度小于6、不包含下划线、已经有元数据 的都认为不是合法要生成数据字典的表
+            if (strDefaultTableName.length() < 6 || !strDefaultTableName.contains("_") || setExistMetaTableName.contains(strDefaultTableName))
             {
                 return false;
             }
@@ -900,7 +902,7 @@ public class CreateDataDictAction
             classVO.setDisplayName(strDefaultTableName);
             
             return true;
-        }, "DefaultTableName").doAction(resultSet);
+        }, "DefaultTableName").doAction(rsTable);
         
         TimerLogger.getLogger().end("queryNoMetaData");
         
