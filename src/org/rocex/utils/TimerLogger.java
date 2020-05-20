@@ -37,6 +37,8 @@ public class TimerLogger
     public void begin(String strMessage)
     {
         mapTimer.put(strMessage, System.currentTimeMillis());
+        
+        Logger.getLogger().debug("begin " + strMessage);
     }
     
     /***************************************************************************
@@ -53,7 +55,7 @@ public class TimerLogger
         
         double lTime = System.currentTimeMillis() - mapTimer.get(strMessage);
         
-        String strMsg = String.format("[%-50s] 耗时: %10.0fms, %10.3fs, %10.3fm", strMessage, lTime, lTime / 1000, lTime / 60000);
+        String strMsg = String.format("end   %-50s 耗时: %10.0fms, %10.3fs, %10.3fm", strMessage, lTime, lTime / 1000, lTime / 60000);
         
         Logger.getLogger().debug(strMsg);
     }
