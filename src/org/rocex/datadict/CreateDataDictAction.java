@@ -243,18 +243,14 @@ public class CreateDataDictAction
     {
         TimerLogger.getLogger().begin("query all fields");
         
-        Map<String, String> mapColumn = new HashMap<String, String>()
-        {
-            {
-                put("COLUMN_NAME", "Id");
-                put("COLUMN_SIZE", "AttrLength");
-                put("COLUMN_DEF", "DefaultValue");
-                put("TABLE_NAME", "ClassId");
-                put("TYPE_NAME", "SqlDateType");
-                put("DECIMAL_DIGITS", "Precise");
-                put("NULLABLE", "Nullable");
-            }
-        };
+        Map<String, String> mapColumn = new HashMap<>();
+        mapColumn.put("COLUMN_NAME", "Id");
+        mapColumn.put("COLUMN_SIZE", "AttrLength");
+        mapColumn.put("COLUMN_DEF", "DefaultValue");
+        mapColumn.put("TABLE_NAME", "ClassId");
+        mapColumn.put("TYPE_NAME", "SqlDateType");
+        mapColumn.put("DECIMAL_DIGITS", "Precise");
+        mapColumn.put("NULLABLE", "Nullable");
         
         DatabaseMetaData dbMetaData = sqlExecutor.getConnection().getMetaData();
         
@@ -842,12 +838,8 @@ public class CreateDataDictAction
         
         ResultSet rsTable = sqlExecutor.getConnection().getMetaData().getTables(null, strSchema, "%", new String[] { "TABLE" });
         
-        Map<String, String> mapTable = new HashMap<String, String>()
-        {
-            {
-                put("TABLE_NAME", "DefaultTableName");
-            }
-        };
+        Map<String, String> mapTable = new HashMap<>();
+        mapTable.put("TABLE_NAME", "DefaultTableName");
         
         // 排除一些表
         String strFilters[] = new String[] { "aqua_explain_", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_", "sm_securitylog_", "tb_fd_sht",
