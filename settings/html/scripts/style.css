@@ -7,7 +7,7 @@ body {
 
 .title {
 	text-align: center;
-	background: #60C876;
+	background: #60c876;
 	border: solid 1px #ccc;
 	min-height: 46px;
 }
@@ -62,7 +62,7 @@ body {
 #propTable th {
 	text-align: left;
 	padding-left: 10px;
-	border: 1px dashed #F3A539;
+	border: 1px dashed #f3a539;
 	padding: 3px 7px 3px 7px;
 }
 
@@ -72,12 +72,12 @@ body {
 	padding-bottom: 5px;
 	text-align: center;
 	white-space: nowrap;
-	background-color: #60C876;
+	background-color: #60c876;
 }
 
 #propTable tr:nth-child(2n + 1) {
 	/*color: #000000;#f4f8e9*/
-	background-color: RGB(94,202,117,0.1);
+	background-color: RGB(94, 202, 117, 0.1);
 }
 
 .pk-row {
@@ -92,7 +92,7 @@ body {
 }
 
 .separator {
-	color: aqua;
+	color: #60c876;
 	opacity: 0.2;
 }
 
