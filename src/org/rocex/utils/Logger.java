@@ -1,7 +1,7 @@
 package org.rocex.utils;
 
-import java.text.DateFormat;
-import java.util.Date;
+import java.time.LocalDateTime;
+import java.time.format.DateTimeFormatter;
 
 /***************************************************************************
  * <br>
@@ -12,13 +12,14 @@ public class Logger
 {
     public static int iLoggerLevelDebug = 20;
     public static int iLoggerLevelError = 30;
+    public static int iLoggerLevelOff = 9999;
     public static int iLoggerLevelTrace = 10;
     
     private static Logger logger;
     
-    private DateFormat dateFormat = DateFormat.getDateTimeInstance();
+    private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
     
-    private int iEnableLevel = iLoggerLevelDebug;
+    private int iEnableLevel = Logger.iLoggerLevelDebug;
     
     /***************************************************************************
      * @return Logger
@@ -42,7 +43,7 @@ public class Logger
      ***************************************************************************/
     public void debug(String strMsg)
     {
-        log(iLoggerLevelDebug, strMsg);
+        log(iLoggerLevelDebug, "debug", strMsg);
     }
     
     /***************************************************************************
@@ -52,7 +53,7 @@ public class Logger
      ***************************************************************************/
     public void error(String strMsg)
     {
-        log(iLoggerLevelError, strMsg);
+        log(iLoggerLevelError, "error", strMsg);
     }
     
     /***************************************************************************
@@ -63,22 +64,63 @@ public class Logger
      ***************************************************************************/
     public void error(String strMsg, Throwable ex)
     {
-        log(iLoggerLevelError, strMsg);
+        log(iLoggerLevelError, "error", strMsg);
         
-        if (iLoggerLevelError > iEnableLevel)
+        if (iLoggerLevelError >= iEnableLevel)
         {
             ex.printStackTrace();
         }
     }
     
-    public void log(int iLevel, String strMsg)
+    /***************************************************************************
+     * @param iLevel
+     * @param strMsg
+     * @author Rocex Wang
+     * @version 2020-5-28 10:36:48
+     ***************************************************************************/
+    protected void log(int iLevel, String strLevel, String strMsg)
     {
         if (iLevel < iEnableLevel)
         {
             return;
         }
         
-        System.out.println(dateFormat.format(new Date()) + " " + strMsg);
+        System.out.println(LocalDateTime.now().format(formatter) + " [" + strLevel + "] " + strMsg);
+    }
+    
+    /***************************************************************************
+     * @param enableLevel the enableLevel to set
+     * @author Rocex Wang
+     * @version 2020-5-26 19:50:34
+     ***************************************************************************/
+    public void setEnableLevel(int enableLevel)
+    {
+        iEnableLevel = enableLevel;
+    }
+    
+    /***************************************************************************
+     * @param enableLevel trace < debug < error
+     * @author Rocex Wang
+     * @version 2020-5-28 10:03:04
+     ***************************************************************************/
+    public void setEnableLevel(String enableLevel)
+    {
+        if ("trace".equalsIgnoreCase(enableLevel))
+        {
+            setEnableLevel(iLoggerLevelTrace);
+        }
+        else if ("debug".equalsIgnoreCase(enableLevel))
+        {
+            setEnableLevel(iLoggerLevelDebug);
+        }
+        else if ("error".equalsIgnoreCase(enableLevel))
+        {
+            setEnableLevel(iLoggerLevelError);
+        }
+        else
+        {
+            setEnableLevel(iLoggerLevelOff);
+        }
     }
     
     /***************************************************************************
@@ -88,6 +130,6 @@ public class Logger
      ***************************************************************************/
     public void trace(String strMsg)
     {
-        log(iLoggerLevelTrace, strMsg);
+        log(iLoggerLevelTrace, "trace", strMsg);
     }
 }

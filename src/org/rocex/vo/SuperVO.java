@@ -21,8 +21,8 @@ import org.rocex.utils.Logger;
  ***************************************************************************/
 public class SuperVO implements Serializable
 {
-    private static transient Map<String, Method> mapGetter = new HashMap<>();
-    private static transient Map<String, Method> mapSetter = new HashMap<>();
+    private static transient Map<String, Map<String, Method>> mapAllGetter = new HashMap<>();
+    private static transient Map<String, Map<String, Method>> mapAllSetter = new HashMap<>();
     
     /****************************************************************************
      * {@inheritDoc}<br>
@@ -39,7 +39,7 @@ public class SuperVO implements Serializable
         {
             newVO = getClass().newInstance();
             
-            newVO.fromMap(toMap());
+            newVO.cloneFrom(toMap());
         }
         catch (InstantiationException | IllegalAccessException ex)
         {
@@ -50,23 +50,11 @@ public class SuperVO implements Serializable
     }
     
     /***************************************************************************
-     * 从sourceVO复制属性数据
-     * @param sourceVO
-     * @return targetVO
-     * @author Rocex Wang
-     * @version 2020-1-17 19:38:47
-     ***************************************************************************/
-    public void cloneFrom(SuperVO sourceVO)
-    {
-        fromMap(sourceVO.toMap());
-    }
-    
-    /***************************************************************************
      * @param mapKeyValue
      * @author Rocex Wang
      * @version 2019-5-29 0:30:24
      ***************************************************************************/
-    public void fromMap(Map<String, Object> mapKeyValue)
+    public void cloneFrom(Map<String, Object> mapKeyValue)
     {
         Set<Entry<String, Object>> entrySet = mapKeyValue.entrySet();
         
@@ -81,7 +69,7 @@ public class SuperVO implements Serializable
      * @author Rocex Wang
      * @version 2020-1-18 13:04:27
      ***************************************************************************/
-    public void fromMap(Properties prop)
+    public void cloneFrom(Properties prop)
     {
         Set<Entry<Object, Object>> entrySet = prop.entrySet();
         
@@ -89,6 +77,62 @@ public class SuperVO implements Serializable
         {
             setValue((String) entry.getKey(), entry.getValue());
         }
+    }
+    
+    /***************************************************************************
+     * 从sourceVO复制属性数据
+     * @param sourceVO
+     * @return targetVO
+     * @author Rocex Wang
+     * @version 2020-1-17 19:38:47
+     ***************************************************************************/
+    public void cloneFrom(SuperVO sourceVO)
+    {
+        cloneFrom(sourceVO.toMap());
+    }
+    
+    /***************************************************************************
+     * @param strFieldName
+     * @return
+     * @author Rocex Wang
+     * @version 2020-5-26 14:30:56
+     ***************************************************************************/
+    protected Method getGetter(String strFieldName)
+    {
+        String strKey = getClass().getName();
+        
+        Map<String, Method> mapGetter = mapAllGetter.get(strKey);
+        
+        if (mapGetter == null || mapGetter.isEmpty())
+        {
+            initGetter();
+        }
+        
+        Method method = mapAllGetter.get(strKey).get(strFieldName);
+        
+        return method;
+    }
+    
+    /***************************************************************************
+     * @param strFieldName
+     * @return Method
+     * @author Rocex Wang
+     * @version 2020-5-18 14:15:26
+     ***************************************************************************/
+    protected Method getSetter(String strFieldName)
+    {
+        String strKey = getClass().getName();
+        
+        Map<String, Method> mapSetter = mapAllSetter.get(strKey);
+        
+        if (mapSetter == null || mapSetter.isEmpty())
+        {
+            initSetter();
+        }
+        
+        Method method = mapAllSetter.get(strKey).get(strFieldName.toLowerCase());
+        
+        return method;
     }
     
     /***************************************************************************
@@ -101,35 +145,11 @@ public class SuperVO implements Serializable
     {
         if (strFieldName == null || strFieldName.trim().length() == 0)
         {
+            Logger.getLogger().trace("field is null or empty for getValue(): " + strFieldName);
             return null;
         }
         
-        String strKey = getClass().getName() + "." + strFieldName.toLowerCase();
-        
-        Method method = mapGetter.get(strKey);
-        
-        if (method == null)
-        {
-            Method[] methods = getClass().getMethods();
-            
-            for (Method method2 : methods)
-            {
-                if (method2.getParameterCount() != 0)
-                {
-                    continue;
-                }
-                
-                String strName = method2.getName();
-                
-                if (strName.equalsIgnoreCase("get" + strFieldName) || strName.equalsIgnoreCase("is" + strFieldName) && method2.getReturnType() == Boolean.class)
-                {
-                    method = method2;
-                    mapGetter.put(strKey, method2);
-                    
-                    break;
-                }
-            }
-        }
+        Method method = getGetter(strFieldName);
         
         if (method != null)
         {
@@ -147,6 +167,67 @@ public class SuperVO implements Serializable
     }
     
     /***************************************************************************
+     * @author Rocex Wang
+     * @version 2020-5-26 13:51:22
+     ***************************************************************************/
+    protected void initGetter()
+    {
+        Map<String, Method> mapGetter = new LinkedHashMap<>();
+        
+        mapAllGetter.put(getClass().getName(), mapGetter);
+        
+        Method[] methods = getClass().getMethods();
+        
+        for (Method method : methods)
+        {
+            if (method.getParameterCount() != 0)
+            {
+                continue;
+            }
+            
+            String strName = method.getName();
+            
+            if (strName.startsWith("get") && !"getClass".equals(strName))
+            {
+                String strKey = strName.substring(3).toLowerCase();
+                
+                mapGetter.put(strKey, method);
+            }
+            else if (strName.startsWith("is") && method.getReturnType() == Boolean.class)
+            {
+                String strKey = strName.substring(2).toLowerCase();
+                
+                mapGetter.put(strKey, method);
+            }
+        }
+    }
+    
+    /***************************************************************************
+     * @author Rocex Wang
+     * @version 2020-5-26 14:21:40
+     ***************************************************************************/
+    protected void initSetter()
+    {
+        Map<String, Method> mapSetter = new LinkedHashMap<>();
+        
+        mapAllSetter.put(getClass().getName(), mapSetter);
+        
+        Method[] methods = getClass().getMethods();
+        
+        for (Method method : methods)
+        {
+            String strName = method.getName();
+            
+            if (strName.startsWith("set") && method.getParameterCount() == 1)
+            {
+                String strKey = strName.substring(3).toLowerCase();
+                
+                mapSetter.put(strKey, method);
+            }
+        }
+    }
+    
+    /***************************************************************************
      * 直接给属性赋值
      * @param strFieldName
      * @param objValue
@@ -155,16 +236,32 @@ public class SuperVO implements Serializable
      ***************************************************************************/
     protected void setFieldValue(String strFieldName, Object objValue)
     {
+        Field field = null;
+        boolean blAccessible = false;
+        
         try
         {
-            Field field = getClass().getDeclaredField(strFieldName);
+            field = getClass().getDeclaredField(strFieldName);
             
-            field.setAccessible(true);
+            blAccessible = field.isAccessible();
+            
+            if (!blAccessible)
+            {
+                field.setAccessible(true);
+            }
+            
             field.set(this, objValue);
         }
         catch (IllegalArgumentException | IllegalAccessException | NoSuchFieldException | SecurityException ex)
         {
             Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        finally
+        {
+            if (!blAccessible && field != null)
+            {
+                field.setAccessible(false);
+            }
         }
     }
     
@@ -178,79 +275,95 @@ public class SuperVO implements Serializable
     {
         if (strFieldName == null || strFieldName.trim().length() == 0)
         {
+            Logger.getLogger().trace("field is null or empty for setValue(): " + strFieldName);
             return;
         }
         
-        String strKey = getClass().getName() + "." + strFieldName.toLowerCase();
-        
-        Method method = mapSetter.get(strKey);
+        Method method = getSetter(strFieldName);
         
         if (method == null)
         {
-            Method[] methods = getClass().getMethods();
-            
-            for (Method method2 : methods)
-            {
-                String strName = method2.getName();
-                
-                if (strName.equalsIgnoreCase("set" + strFieldName) && method2.getParameterCount() == 1)
-                {
-                    method = method2;
-                    mapSetter.put(strKey, method2);
-                    
-                    break;
-                }
-            }
+            Logger.getLogger().trace("do not find field method for setValue(): " + strFieldName);
+            return;
         }
         
-        if (method != null)
+        Logger.getLogger().trace(strFieldName + ": " + objValue);
+        
+        Class<?>[] parameterTypes = method.getParameterTypes();
+        
+        try
         {
-            try
+            if (parameterTypes != null && parameterTypes.length > 0)
             {
-                Logger.getLogger().trace(strFieldName + ": " + objValue);
+                Class<?> classParamType = parameterTypes[0];
                 
-                boolean blSetted = false;
-                
-                if (objValue instanceof BigDecimal)
+                if (classParamType == BigDecimal.class)
                 {
-                    Class<?>[] parameterTypes = method.getParameterTypes();
-                    
-                    if (parameterTypes != null)
-                    {
-                        if (parameterTypes[0] == Integer.class)
-                        {
-                            blSetted = true;
-                            setValue(strFieldName, ((BigDecimal) objValue).intValue());
-                        }
-                        else if (parameterTypes[0] == String.class)
-                        {
-                            blSetted = true;
-                            setValue(strFieldName, String.valueOf(objValue));
-                        }
-                    }
+                    setValueToBigDecimal(method, objValue);
                 }
-                
-                if (!blSetted)
+                else if (classParamType == Boolean.class)
+                {
+                    setValueToBoolean(method, objValue);
+                }
+                else if (classParamType == Integer.class)
+                {
+                    setValueToInt(method, objValue);
+                }
+                else if (classParamType == String.class)
+                {
+                    setValueToString(method, objValue);
+                }
+                else
                 {
                     method.invoke(this, new Object[] { objValue });
                 }
             }
-            catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex)
+            else
             {
-                Logger.getLogger().error(ex.getMessage(), ex);
+                method.invoke(this, new Object[] { objValue });
             }
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
         }
     }
     
-    protected void setValueToBoolean(String strFieldName, Object objValue)
+    /***************************************************************************
+     * @param method
+     * @param objValue
+     * @throws Exception
+     * @author Rocex Wang
+     * @version 2020-5-18 14:22:43
+     ***************************************************************************/
+    protected void setValueToBigDecimal(Method method, Object objValue) throws Exception
+    {
+        BigDecimal decimal = null;
+        
+        if (objValue == null || objValue instanceof BigDecimal)
+        {
+            decimal = (BigDecimal) objValue;
+        }
+        else if (objValue instanceof Integer)
+        {
+            decimal = new BigDecimal(objValue.toString());
+        }
+        
+        method.invoke(this, new Object[] { decimal });
+    }
+    
+    /***************************************************************************
+     * @param method
+     * @param objValue
+     * @throws Exception
+     * @author Rocex Wang
+     * @version 2020-5-18 14:19:26
+     ***************************************************************************/
+    protected void setValueToBoolean(Method method, Object objValue) throws Exception
     {
         Boolean blValue = null;
         
-        if (objValue == null)
-        {
-            blValue = false;
-        }
-        else if (objValue instanceof Boolean)
+        if (objValue == null || objValue instanceof Boolean)
         {
             blValue = (Boolean) objValue;
         }
@@ -258,38 +371,66 @@ public class SuperVO implements Serializable
         {
             blValue = ((BigDecimal) objValue).intValue() == 1;
         }
+        else if (objValue instanceof Integer)
+        {
+            blValue = ((Integer) objValue).intValue() == 1;
+        }
         else
         {
             blValue = Boolean.valueOf(objValue.toString());
         }
         
-        setFieldValue(strFieldName, blValue);
+        method.invoke(this, new Object[] { blValue });
     }
     
     /***************************************************************************
-     * @param strFieldName
+     * @param method
      * @param objValue
      * @author Rocex Wang
      * @version 2020-1-6 13:23:56
+     * @throws Exception
      ***************************************************************************/
-    protected void setValueToInt(String strFieldName, Object objValue)
+    protected void setValueToInt(Method method, Object objValue) throws Exception
     {
         Integer intValue = null;
         
-        if (objValue instanceof BigDecimal)
-        {
-            intValue = ((BigDecimal) objValue).intValue();
-        }
-        else if (objValue instanceof Integer)
+        if (objValue == null || objValue instanceof Integer)
         {
             intValue = (Integer) objValue;
         }
-        else if (objValue != null)
+        else if (objValue instanceof BigDecimal)
+        {
+            intValue = ((BigDecimal) objValue).intValue();
+        }
+        else
         {
             intValue = Integer.parseInt(objValue.toString());
         }
         
-        setFieldValue(strFieldName, intValue);
+        method.invoke(this, new Object[] { intValue });
+    }
+    
+    /***************************************************************************
+     * @param method
+     * @param objValue
+     * @throws Exception
+     * @author Rocex Wang
+     * @version 2020-5-28 11:44:25
+     ***************************************************************************/
+    protected void setValueToString(Method method, Object objValue) throws Exception
+    {
+        String strValue = null;
+        
+        if (objValue == null || objValue instanceof String)
+        {
+            strValue = (String) objValue;
+        }
+        else
+        {
+            strValue = objValue.toString();
+        }
+        
+        method.invoke(this, new Object[] { strValue });
     }
     
     /***************************************************************************
@@ -299,43 +440,35 @@ public class SuperVO implements Serializable
      ***************************************************************************/
     public Map<String, Object> toMap()
     {
+        String strKey = getClass().getName();
+        
+        Map<String, Method> mapGetter = mapAllGetter.get(strKey);
+        
+        if (mapGetter == null || mapGetter.isEmpty())
+        {
+            initGetter();
+            
+            mapGetter = mapAllGetter.get(strKey);
+        }
+        
         Map<String, Object> mapKeyValue = new LinkedHashMap<>();
         
-        Method[] methods = getClass().getMethods();
+        Set<Entry<String, Method>> entrySet = mapGetter.entrySet();
         
-        for (Method method : methods)
+        for (Entry<String, Method> entry : entrySet)
         {
-            if (method.getParameterCount() != 0)
-            {
-                continue;
-            }
-            
-            String strName = method.getName();
+            Object objValue = null;
             
             try
             {
-                if (strName.startsWith("get") && !"getClass".equals(strName))
+                objValue = entry.getValue().invoke(this, (Object[]) null);
+                
+                if (objValue == null)
                 {
-                    Object objValue = method.invoke(this, (Object[]) null);
-                    
-                    if (objValue == null)
-                    {
-                        continue;
-                    }
-                    
-                    mapKeyValue.put(strName.substring(3), objValue);
+                    continue;
                 }
-                else if (strName.startsWith("is") && method.getReturnType() == Boolean.class)
-                {
-                    Object objValue = method.invoke(this, (Object[]) null);
-                    
-                    if (objValue == null)
-                    {
-                        continue;
-                    }
-                    
-                    mapKeyValue.put(strName.substring(2), objValue);
-                }
+                
+                mapKeyValue.put(entry.getKey(), objValue);
             }
             catch (IllegalAccessException | IllegalArgumentException | InvocationTargetException ex)
             {
