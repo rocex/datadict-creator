@@ -49,6 +49,7 @@ public class CreateDataDictAction
     private Map<String, String> mapEnumString = new HashMap<>();                 // enum id 和 enum name and value 的对应关系
     private Map<String, String> mapId = new HashMap<>();                         // 为了减小生成的文件体积，把元数据id和序号做个对照关系
     private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();        // module id 和 module 的对应关系
+    private Map<String, String> mapTableNamePrimaryKeys = new HashMap<>();       // 表名和表主键列表的对应关系，多个主键用；分隔，表名用全小写
     
     private SQLExecutor sqlExecutor = null;
     
@@ -285,16 +286,7 @@ public class CreateDataDictAction
             listPropertyVO.sort((prop1, prop2) -> prop1.getId().compareToIgnoreCase(prop2.getId()));
             
             // 找到表的主键
-            ResultSet rsPkColumns = dbMetaData.getPrimaryKeys(null, strSchema, classVO.getDefaultTableName());
-            
-            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
-            
-            String strPks = "";
-            
-            for (PropertyVO propertyVO : listPkPropertyVO)
-            {
-                strPks += propertyVO.getId().toLowerCase() + ";";
-            }
+            String strPks = getPrimaryKeys(dbMetaData, classVO.getDefaultTableName(), mapColumn);
             
             classVO.setKeyAttribute(strPks);
             classVO.setDefaultTableName(classVO.getDefaultTableName().toLowerCase());
@@ -823,6 +815,70 @@ public class CreateDataDictAction
         ModuleVO moduleVO = (ModuleVO) mapModuleVO.get(componentVO.getOwnModule());
         
         return moduleVO;
+    }
+    
+    /***************************************************************************
+     * 根据数据库特性一次性读取所有表的主键，如果不能确定数据库，还是按照jdbc的api每次只取一个表的主键
+     * @param dbMetaData
+     * @param strTableName
+     * @param mapColumn
+     * @return String
+     * @throws Exception
+     * @author Rocex Wang
+     * @version 2020-5-22 14:03:59
+     ***************************************************************************/
+    protected String getPrimaryKeys(DatabaseMetaData dbMetaData, String strTableName, Map<String, String> mapColumn) throws Exception
+    {
+        String strPks = "";
+        
+        if (dbMetaData.getDatabaseProductName().toLowerCase().contains("oracle"))
+        {
+            if (mapTableNamePrimaryKeys.isEmpty())
+            {
+                TimerLogger.getLogger().begin("oracle query all primary keys");
+                
+                String strSQL = "select column_name id,table_name classid from user_cons_columns where constraint_name in(select constraint_name from user_constraints where constraint_type='P')";
+                
+                sqlExecutor.executeQuery(new BeanListProcessor<>(PropertyVO.class, null, propertyVO ->
+                {
+                    
+                    String strPk = mapTableNamePrimaryKeys.get(propertyVO.getClassId().toLowerCase());
+                    
+                    if (strPk == null)
+                    {
+                        strPk = propertyVO.getId().toLowerCase();
+                    }
+                    else
+                    {
+                        strPk = strPk + ";" + propertyVO.getId().toLowerCase();
+                    }
+                    
+                    mapTableNamePrimaryKeys.put(propertyVO.getClassId().toLowerCase(), strPk);
+                    
+                    return false;
+                }), strSQL);
+                
+                TimerLogger.getLogger().end("oracle query all primary keys");
+            }
+            
+            strPks = mapTableNamePrimaryKeys.get(strTableName.toLowerCase());
+            
+            return strPks == null ? "" : strPks;
+        }
+        else
+        {
+            // 找到表的主键
+            ResultSet rsPkColumns = dbMetaData.getPrimaryKeys(null, strSchema, strTableName);
+            
+            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
+            
+            for (PropertyVO propertyVO : listPkPropertyVO)
+            {
+                strPks += propertyVO.getId().toLowerCase() + ";";
+            }
+        }
+        
+        return strPks;
     }
     
     /***************************************************************************
