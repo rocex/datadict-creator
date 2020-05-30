@@ -160,7 +160,10 @@ public class StringHelper
             return 0;
         }
         
-        strSource = strSource.trim();
+        if (blTrim)
+        {
+            strSource = strSource.trim();
+        }
         
         int iLength = 0;
         
@@ -209,15 +212,15 @@ public class StringHelper
             return strValue;
         }
         
-        String strResult = "";
+        StringBuilder strResult = new StringBuilder();
         
         String[] strSplits = strValue.split("_");
         
         for (String strSplit : strSplits)
         {
-            strResult += firstCharToUpperCase(strSplit);
+            strResult.append(firstCharToUpperCase(strSplit));
         }
         
-        return strResult;
+        return strResult.toString();
     }
 }

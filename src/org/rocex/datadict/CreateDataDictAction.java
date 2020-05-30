@@ -43,13 +43,13 @@ public class CreateDataDictAction
 {
     private int iIndex = 1;
     
-    private Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();         // class id 和 class 的对应关系
-    private Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();  // component id 和 component 内所有 class 链接的对应关系
-    private Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();     // component id 和 component 的对应关系
-    private Map<String, String> mapEnumString = new HashMap<>();                 // enum id 和 enum name and value 的对应关系
-    private Map<String, String> mapId = new HashMap<>();                         // 为了减小生成的文件体积，把元数据id和序号做个对照关系
-    private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();        // module id 和 module 的对应关系
-    private Map<String, String> mapTableNamePrimaryKeys = new HashMap<>();       // 表名和表主键列表的对应关系，多个主键用；分隔，表名用全小写
+    private Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();            // class id 和 class 的对应关系
+    private Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();     // component id 和 component 内所有 class 链接的对应关系
+    private Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();        // component id 和 component 的对应关系
+    private Map<String, String> mapEnumString = new HashMap<>();                    // enum id 和 enum name and value 的对应关系
+    private Map<String, String> mapId = new HashMap<>();                            // 为了减小生成的文件体积，把元数据id和序号做个对照关系
+    private Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();           // module id 和 module 的对应关系
+    private Map<String, String> mapTableNamePrimaryKeys = new HashMap<>();          // 表名和表主键列表的对应关系，多个主键用；分隔，表名用全小写
     
     private SQLExecutor sqlExecutor = null;
     
