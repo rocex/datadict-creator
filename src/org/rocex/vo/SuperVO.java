@@ -11,6 +11,7 @@ import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
 import java.util.Set;
+import java.util.TreeMap;
 
 import org.rocex.utils.Logger;
 
@@ -92,8 +93,9 @@ public class SuperVO implements Serializable
     }
     
     /***************************************************************************
-     * @param strFieldName
-     * @return
+     * 得到 strFieldName 的 getter 方法
+     * @param strFieldName 不区分大小写
+     * @return Method
      * @author Rocex Wang
      * @version 2020-5-26 14:30:56
      ***************************************************************************/
@@ -108,13 +110,14 @@ public class SuperVO implements Serializable
             initGetter();
         }
         
-        Method method = mapAllGetter.get(strKey).get(strFieldName);
+        Method method = mapAllGetter.get(strKey).get(strFieldName.toLowerCase());
         
         return method;
     }
     
     /***************************************************************************
-     * @param strFieldName
+     * 得到 strFieldName 的 setter 方法
+     * @param strFieldName 不区分大小写
      * @return Method
      * @author Rocex Wang
      * @version 2020-5-18 14:15:26
@@ -136,7 +139,8 @@ public class SuperVO implements Serializable
     }
     
     /***************************************************************************
-     * @param data
+     * 取得 strFieldName 的值
+     * @param strFieldName 不区分大小写
      * @return Object
      * @author Rocex Wang
      * @version 2019-6-11 11:05:23
@@ -167,6 +171,7 @@ public class SuperVO implements Serializable
     }
     
     /***************************************************************************
+     * 初始化收集 VO 的所有 getter
      * @author Rocex Wang
      * @version 2020-5-26 13:51:22
      ***************************************************************************/
@@ -203,6 +208,7 @@ public class SuperVO implements Serializable
     }
     
     /***************************************************************************
+     * 初始化收集 VO 的所有 setter
      * @author Rocex Wang
      * @version 2020-5-26 14:21:40
      ***************************************************************************/
@@ -229,7 +235,7 @@ public class SuperVO implements Serializable
     
     /***************************************************************************
      * 直接给属性赋值
-     * @param strFieldName
+     * @param strFieldName 不区分大小写
      * @param objValue
      * @author Rocex Wang
      * @version 2020-1-18 13:45:45
@@ -266,7 +272,8 @@ public class SuperVO implements Serializable
     }
     
     /***************************************************************************
-     * @param strFieldName
+     * 设置 strFieldName 的值
+     * @param strFieldName 不区分大小写
      * @param objValue
      * @author Rocex Wang
      * @version 2019-6-11 11:18:34
@@ -451,7 +458,7 @@ public class SuperVO implements Serializable
             mapGetter = mapAllGetter.get(strKey);
         }
         
-        Map<String, Object> mapKeyValue = new LinkedHashMap<>();
+        Map<String, Object> mapKeyValue = new TreeMap<>();
         
         Set<Entry<String, Method>> entrySet = mapGetter.entrySet();
         
