@@ -18,6 +18,8 @@ let oldTreeData = JSON.parse(JSON.stringify(dataDictIndexData));
 function onClick(e, treeId, treeNode) {
 	var zTree = $.fn.zTree.getZTreeObj('DataDict');
 	zTree.expandNode(treeNode);
+
+	treeNode.url && sendBaiDu(window.location.href);
 }
 
 function debounce(fn, time) {
