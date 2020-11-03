@@ -11,9 +11,11 @@ public class PropertyVO extends MetaVO
     private Integer iAttrSequence;
     private Integer iDataTypeStyle;
     private Integer iPrecise;
+
     private String strAttrMaxValue;
     private String strAttrMinValue;
     private String strClassId;
+    private String strCustomAttr;
     private String strDataType;
     private String strDefaultValue;
     private String strNullable;
@@ -68,6 +70,16 @@ public class PropertyVO extends MetaVO
     public String getClassId()
     {
         return strClassId;
+    }
+    
+    /***************************************************************************
+     * @return the customAttr
+     * @author Rocex Wang
+     * @version 2020-11-3 18:27:38
+     ***************************************************************************/
+    public String getCustomAttr()
+    {
+        return strCustomAttr;
     }
     
     /***************************************************************************
@@ -188,6 +200,16 @@ public class PropertyVO extends MetaVO
     public void setClassId(String classId)
     {
         strClassId = classId;
+    }
+    
+    /***************************************************************************
+     * @param customAttr the customAttr to set
+     * @author Rocex Wang
+     * @version 2020-11-3 18:27:38
+     ***************************************************************************/
+    public void setCustomAttr(String customAttr)
+    {
+        strCustomAttr = customAttr;
     }
     
     /***************************************************************************

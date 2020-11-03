@@ -346,7 +346,7 @@ public class CreateDataDictAction
             return;
         }
 
-        String strPropertySQL = "select distinct a.id id,a.name name,a.displayname displayname,attrlength,attrminvalue,attrmaxvalue,attrsequence"
+        String strPropertySQL = "select distinct a.id id,a.name name,a.displayname displayname,attrlength,attrminvalue,attrmaxvalue,attrsequence,customattr"
                 + ",datatype,datatypestyle,a.defaultvalue defaultvalue,a.nullable nullable,a.precise precise,refmodelname,classid,b.sqldatetype sqldatetype,b.pkey"
                 + " from md_property a left join md_column b on a.name=b.name where classid=? and b.tableid=? order by b.pkey desc,a.attrsequence";
 
@@ -924,7 +924,8 @@ public class CreateDataDictAction
                 || strFieldCode.matches("(hvdef)[0-9]+") || strFieldCode.matches("(free)[0-9]+") || strFieldCode.matches("(vbfree)[0-9]+")
                 || strFieldCode.matches("(vbdef)[0-9]+") || strFieldCode.matches("(defitem)[0-9]+")
                 || strFieldCode.matches("(vuserdef)[0-9]+") || strFieldCode.matches("(freevalue)[0-9]+")
-                || strFieldCode.matches("(hdef)[0-9]+") || strFieldCode.matches("(bdef)[0-9]+");
+                || strFieldCode.matches("(hdef)[0-9]+") || strFieldCode.matches("(bdef)[0-9]+") || strFieldCode.matches("(nfactor)[0-9]+")
+                || strFieldCode.matches("(vcostfree)[0-9]+");
     }
 
     /***************************************************************************
@@ -1029,7 +1030,7 @@ public class CreateDataDictAction
             {
                 listPkPropertyVO.add(propertyVO);
             }
-            else if (isCustomProperty(strPropKey))
+            else if ("Y".equalsIgnoreCase(propertyVO.getCustomAttr()) || isCustomProperty(strPropKey))
             {
                 listCustomPropertyVO.add(propertyVO);
             }
