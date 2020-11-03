@@ -925,7 +925,9 @@ public class CreateDataDictAction
                 || strFieldCode.matches("(vbdef)[0-9]+") || strFieldCode.matches("(defitem)[0-9]+")
                 || strFieldCode.matches("(vuserdef)[0-9]+") || strFieldCode.matches("(freevalue)[0-9]+")
                 || strFieldCode.matches("(hdef)[0-9]+") || strFieldCode.matches("(bdef)[0-9]+") || strFieldCode.matches("(nfactor)[0-9]+")
-                || strFieldCode.matches("(vcostfree)[0-9]+");
+                || strFieldCode.matches("(vcostfree)[0-9]+") || strFieldCode.matches("(glbdef)[0-9]+") || strFieldCode.matches("(jobglbdef)[0-9]+")
+                || strFieldCode.matches("(vbatchdef)[0-9]+") || strFieldCode.matches("(vbprodbatdef)[0-9]+") || strFieldCode.matches("(vsndef)[0-9]+") 
+                || strFieldCode.matches("(vbcdef)[0-9]+");
     }
 
     /***************************************************************************
