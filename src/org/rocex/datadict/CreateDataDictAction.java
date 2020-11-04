@@ -33,6 +33,7 @@ import org.rocex.db.processor.BeanListProcessor;
 import org.rocex.db.processor.SQLExecutor;
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
+import org.rocex.utils.NaturalComparator;
 import org.rocex.utils.TimerLogger;
 
 /***************************************************************************
@@ -42,7 +43,7 @@ import org.rocex.utils.TimerLogger;
  ***************************************************************************/
 public class CreateDataDictAction
 {
-    private Set<String> hashCustomProperty = new HashSet<>(); // 自定义项，格式：表名.字段名
+    private Set<String> hashCustomProperty = new HashSet<>(); // 自定义项缓存，格式：表名.字段名
 
     private int iIndex = 1;
 
@@ -59,10 +60,10 @@ public class CreateDataDictAction
     private String strCreateTime = DateFormat.getDateTimeInstance().format(new Date());
 
     // 自定义项字段名前缀
-    private String strCustomPatterns[] = { "def", "vdef", "vfree", "vbdef", "vsndef", "vbfree", "vbcdef", "defitem", "vpfree", "zyx",
-            "vuserdef", "obmdef", "hvdef", "vbodyuserdef", "vhdef", "vgdef", "hdef", "vstbdef", "vpdef", "vbprodbatdef", "vheaduserdef",
-            "bc_vdef", "vsdef", "vhodef", "vstdef", "vbatchdef", "bdef", "freevalue", "h_def", "vrcdef", "des_freedef", "src_freedef",
-            "vprodbatdef", "factor", "free", "nfactor", "glbdef", "jobglbdef", "vcostfree" };
+    private String strCustomPatterns[] = { "def", "vdef", "vfree", "vbdef", "vsndef", "vbfree", "vbcdef", "defitem", "vpfree", "zyx", "vuserdef", "obmdef",
+            "hvdef", "vbodyuserdef", "vhdef", "vgdef", "hdef", "vstbdef", "vpdef", "vbprodbatdef", "vheaduserdef", "bc_vdef", "vsdef", "vhodef", "vstdef",
+            "vbatchdef", "bdef", "freevalue", "h_def", "vrcdef", "des_freedef", "src_freedef", "vprodbatdef", "factor", "free", "nfactor", "glbdef",
+            "jobglbdef", "vcostfree" };
 
     private String strOutputDdcDir;     // 输出数据字典文件目录
     private String strOutputRootDir;    // 输出文件根目录
@@ -302,18 +303,20 @@ public class CreateDataDictAction
 
             listPropertyVO.sort((prop1, prop2) -> prop1.getId().compareToIgnoreCase(prop2.getId()));
 
+            listPropertyVO.sort(new NaturalComparator<PropertyVO>()
+            {
+                @Override
+                protected String getCompareKey(PropertyVO prop)
+                {
+                    return prop.getId();
+                }
+            });
+
             // 找到表的主键
             String strPks = getPrimaryKeys(dbMetaData, classVO.getDefaultTableName(), mapColumn);
 
             classVO.setKeyAttribute(strPks);
             classVO.setDefaultTableName(classVO.getDefaultTableName().toLowerCase());
-
-            // 整理表的字段，把主键列放到首位，把自定义项、dr、ts放到末尾
-            List<PropertyVO> listPropertyOrderVO = new ArrayList<>();  // 主键列
-            List<PropertyVO> listPropertyCustomVO = new ArrayList<>(); // 自定义项
-            List<PropertyVO> listPropertyFinalVO = new ArrayList<>();  // dr、ts
-
-            List<String> listPk = Arrays.asList(strPks.split(";"));
 
             for (PropertyVO propertyVO : listPropertyVO)
             {
@@ -323,29 +326,9 @@ public class CreateDataDictAction
                 propertyVO.setName(propertyVO.getId());
                 propertyVO.setDisplayName(propertyVO.getId());
                 propertyVO.setNullable("1".equals(propertyVO.getNullable()) ? "Y" : "N");
-
-                if (listPk.contains(propertyVO.getId()))
-                {
-                    listPropertyOrderVO.add(0, propertyVO);
-                }
-                else if ("dr".equals(propertyVO.getId()) || "ts".equals(propertyVO.getId()))
-                {
-                    listPropertyFinalVO.add(propertyVO);
-                }
-                else if (isCustomProperty(propertyVO.getId()))
-                {
-                    listPropertyCustomVO.add(propertyVO);
-                }
-                else
-                {
-                    listPropertyOrderVO.add(propertyVO);
-                }
             }
 
-            listPropertyOrderVO.addAll(listPropertyCustomVO);
-            listPropertyOrderVO.addAll(listPropertyFinalVO);
-
-            createDataDictFile(classVO, listPropertyOrderVO);
+            createDataDictFile(classVO, listPropertyVO);
         }
 
         TimerLogger.getLogger().end("create all table data dict file: " + listAllClassVO.size());
@@ -459,9 +442,8 @@ public class CreateDataDictAction
             // 是否必输
             String strMustInput = "N".equals(propertyVO.getNullable()) ? "√" : "";
 
-            String strHtmlRow = MessageFormat.format(strHtmlDataDictRow, strRowStyle, i + 1, propertyVO.getName(),
-                    propertyVO.getDisplayName(), propertyVO.getName(), strDbType, strMustInput, strRefClassPathHref, strDefaultValue,
-                    strDataScope);
+            String strHtmlRow = MessageFormat.format(strHtmlDataDictRow, strRowStyle, i + 1, propertyVO.getName(), propertyVO.getDisplayName(),
+                    propertyVO.getName(), strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strDataScope);
 
             strHtmlRows.append(strHtmlRow);
         }
@@ -476,9 +458,8 @@ public class CreateDataDictAction
 
         String strFullClassname = classVO.getFullClassname() == null ? "" : " / " + classVO.getFullClassname();
 
-        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictFile"), classVO.getDisplayName(),
-                classVO.getDefaultTableName(), strFullClassname, DataDictCreator.settings.get(strVersion + ".DataDictVersion"),
-                strClassList, strHtmlRows, getFooter());
+        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictFile"), classVO.getDisplayName(), classVO.getDefaultTableName(),
+                strFullClassname, DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList, strHtmlRows, getFooter());
 
         FileHelper.writeFileThread(getClassFilePath(classVO), strHtml);
     }
@@ -513,8 +494,8 @@ public class CreateDataDictAction
 
             String strUrl = getClassUrl(classVO);
 
-            strClassRows.append(MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO),
-                    classVO.getDefaultTableName(), classVO.getDisplayName(), strUrl, "ddc"));
+            strClassRows.append(MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
+                    classVO.getDisplayName(), strUrl, "ddc"));
 
             String strModuleId = getModuleId(classVO);
 
@@ -548,8 +529,8 @@ public class CreateDataDictAction
             {
                 String strUrl = getClassUrl(classVO);
 
-                strClassRows.append(MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), "all",
-                        classVO.getDefaultTableName().toLowerCase(), classVO.getDisplayName(), strUrl, "ddc"));
+                strClassRows.append(MessageFormat.format(strLeafTemplate, getMappedClassId(classVO), "all", classVO.getDefaultTableName().toLowerCase(),
+                        classVO.getDisplayName(), strUrl, "ddc"));
             }
         }
 
@@ -704,12 +685,10 @@ public class CreateDataDictAction
                 strClassStyle = "classList-master";
             }
 
-            String strClassLink = MessageFormat.format("<a href=\"{0}\" class=\"{1}\">{2}</a>", getClassUrl2(classVO), strClassStyle,
-                    classVO.getDisplayName());
+            String strClassLink = MessageFormat.format("<a href=\"{0}\" class=\"{1}\">{2}</a>", getClassUrl2(classVO), strClassStyle, classVO.getDisplayName());
 
             // 主实体放在首位
-            strClassLinks = "Y".equals(classVO.getIsPrimary()) ? strClassLink + " / " + strClassLinks
-                    : strClassLinks + " / " + strClassLink;
+            strClassLinks = "Y".equals(classVO.getIsPrimary()) ? strClassLink + " / " + strClassLinks : strClassLinks + " / " + strClassLink;
         }
 
         strClassLinks = strClassLinks.trim().replace("/  /", "/");
@@ -913,8 +892,7 @@ public class CreateDataDictAction
             // 找到表的主键
             ResultSet rsPkColumns = dbMetaData.getPrimaryKeys(null, strSchema, strTableName);
 
-            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id")
-                    .doAction(rsPkColumns);
+            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
 
             for (PropertyVO propertyVO : listPkPropertyVO)
             {
@@ -966,9 +944,9 @@ public class CreateDataDictAction
         mapTable.put("TABLE_NAME", "DefaultTableName");
 
         // 排除一些表
-        String strFilters[] = new String[] { "aqua_explain_", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_",
-                "sm_securitylog_", "tb_fd_sht", "tb_tmp_tcheck", "tb_tt_", "temp000", "temppkts", "temptable_oa", "temp_", "temq_",
-                "tmpbd_", "tmpub_calog_temp", "tmp_", "tm_mqsend_success_", "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_" };
+        String strFilters[] = new String[] { "aqua_explain_", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_", "sm_securitylog_", "tb_fd_sht",
+                "tb_tmp_tcheck", "tb_tt_", "temp000", "temppkts", "temptable_oa", "temp_", "temq_", "tmpbd_", "tmpub_calog_temp", "tmp_", "tm_mqsend_success_",
+                "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_" };
 
         List<ClassVO> listAllClassVO = (List<ClassVO>) new BeanListProcessor<>(ClassVO.class, mapTable, classVO ->
         {
@@ -1057,7 +1035,8 @@ public class CreateDataDictAction
 
                 hashCustomProperty.add(classVO.getDefaultTableName() + "." + strPropKey);
             }
-            else if ("dr".equalsIgnoreCase(strPropKey) || "ts".equalsIgnoreCase(strPropKey))
+            else if ("dr".equalsIgnoreCase(strPropKey) || "ts".equalsIgnoreCase(strPropKey) || "creator".equalsIgnoreCase(strPropKey)
+                    || "creationtime".equalsIgnoreCase(strPropKey) || "modifier".equalsIgnoreCase(strPropKey) || "modifiedtime".equalsIgnoreCase(strPropKey))
             {
                 listPropertyFinalVO.add(propertyVO);
             }
