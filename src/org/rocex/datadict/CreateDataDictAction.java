@@ -94,9 +94,10 @@ public class CreateDataDictAction
         
         sqlExecutor = new SQLExecutor(dbProp);
         
+        // 补齐正则表达式
         for (int i = 0; i < strCustomPatterns.length; i++)
         {
-            strCustomPatterns[i] = "(" + strCustomPatterns + ")[0-9]+";
+            strCustomPatterns[i] = "(" + strCustomPatterns[i] + ")[0-9]+";
         }
     }
     
