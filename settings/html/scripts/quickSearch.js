@@ -19,7 +19,9 @@ function onClick(e, treeId, treeNode) {
 	var zTree = $.fn.zTree.getZTreeObj('DataDict');
 	zTree.expandNode(treeNode);
 
-	treeNode.url && sendBaiDu(window.location.href);
+	let urlHref = window.location.href
+	urlHref = urlHref.slice(0, urlHref.lastIndexOf('/'));
+	treeNode.url && sendBaiDu(urlHref);
 }
 
 function debounce(fn, time) {
