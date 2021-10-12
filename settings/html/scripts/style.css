@@ -2,7 +2,7 @@ body {
 	margin-top: 5px;
 	margin-left: 5px;
 	margin-right: 5px;
-	font-size: 14px;
+	font-size: 15px;
 }
 
 .title {
@@ -21,7 +21,7 @@ body {
 	float: right;
 	margin-right: 8px;
 	margin-top: 16px;
-	opacity: 0.5;
+	opacity: 0.7;
 }
 
 .classList {
@@ -52,32 +52,37 @@ body {
 	opacity: 0.6;
 }
 
-#propTable {
+table.js-sort-table th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { 
+    content: " \25C6"; /* \25B4 \25BE \25C6 */
+}
+
+#dictTable {
 	width: 100%;
 	font-size: 14px;
 	border-collapse: collapse;
 }
 
-#propTable td,
-#propTable th {
+#dictTable td,
+#dictTable th {
 	text-align: left;
 	padding-left: 10px;
-	border: 1px dashed #f3a539;
+	border: 1px solid #dcdbdb;
 	padding: 3px 7px 3px 7px;
 }
 
-#propTable th {
+#dictTable th {
 	font-size: 16px;
 	padding-top: 5px;
 	padding-bottom: 5px;
 	text-align: center;
 	white-space: nowrap;
-	background-color: #60c876;
+	background-color: #E6E6E6;
+	cursor: pointer;
 }
 
-#propTable tr:nth-child(2n + 1) {
-	/*color: #000000;#f4f8e9*/
-	background-color: RGB(94, 202, 117, 0.1);
+#dictTable tr:nth-child(2n) {
+	/*color: #000000;*/
+	background-color: #FBFBFB;/*RGB(94, 202, 117, 0.1);*/
 }
 
 .pk-row {

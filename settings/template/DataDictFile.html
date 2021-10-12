@@ -5,6 +5,7 @@
     <title>{0} {1} - {3}</title>
     <link rel="shortcut icon" href="../favicon.ico" />
     <link rel="stylesheet" type="text/css" href="../scripts/style.css" />
+    <script src="../scripts/sort-table.min.js"></script>
 </head>
 
 <body>
@@ -19,19 +20,23 @@
     <div class="classList">
         {4}
     </div>
-    <table id="propTable">
-        <tr>
-            <th width="1%">序号</th>
-            <th width="10%">属性编码</th>
-            <th width="10%">属性名称</th>
-            <th width="10%">字段编码</th>
-            <th width="10%">字段类型</th>
-            <th width="5%">是否必输</th>
-            <th width="20%">引用模型</th>
-            <th width="5%">默认值</th>
-            <th>取值范围/枚举</th>
-        </tr>
+    <table id="dictTable" class="js-sort-table">
+	    <thead>
+	        <tr>
+	            <th width="1%" id="number" class="js-sort-number">序号</th>
+	            <th width="10%" id="propCode">属性编码</th>
+	            <th width="10%" id="PropName">属性名称</th>
+	            <th width="10%" id="fieldCode">字段编码</th>
+	            <th width="10%" id="fieldType">字段类型</th>
+	            <th width="5%" id="notNull">是否必输</th>
+	            <th width="20%" id="refType">引用模型</th>
+	            <th width="5%" id="defaultValue">默认值</th>
+	            <th id="enumValue">取值范围/枚举</th>
+	        </tr>
+	    </thead>
+	    <tbody>
 {5}
+		</tbody>
     </table>
     <br>
     {6}
