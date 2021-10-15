@@ -1,5 +1,7 @@
 package org.rocex.datadict.vo;
 
+import java.util.List;
+
 /***************************************************************************
  * <br>
  * @author Rocex Wang
@@ -8,6 +10,9 @@ package org.rocex.datadict.vo;
 public class ClassVO extends MetaVO
 {
     private Integer iClassType;
+    
+    private List<PropertyVO> propertyVO;
+    
     private String strComponentId;
     private String strDefaultTableName;
     private String strFullClassname;
@@ -75,6 +80,16 @@ public class ClassVO extends MetaVO
     }
     
     /***************************************************************************
+     * @return the propertyVO
+     * @author Rocex Wang
+     * @since 2021-10-15 03:00:29
+     ***************************************************************************/
+    public List<PropertyVO> getPropertyVO()
+    {
+        return propertyVO;
+    }
+    
+    /***************************************************************************
      * @param classType the classType to set
      * @author Rocex Wang
      * @version 2020-4-22 16:46:54
@@ -132,5 +147,15 @@ public class ClassVO extends MetaVO
     public void setKeyAttribute(String keyAttribute)
     {
         strKeyAttribute = keyAttribute;
+    }
+    
+    /***************************************************************************
+     * @param propertyVO the propertyVO to set
+     * @author Rocex Wang
+     * @since 2021-10-15 03:00:29
+     ***************************************************************************/
+    public void setPropertyVO(List<PropertyVO> propertyVO)
+    {
+        this.propertyVO = propertyVO;
     }
 }
