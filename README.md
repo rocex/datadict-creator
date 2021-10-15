@@ -8,6 +8,11 @@
 # 数据字典对应的产品版本
 ${version}.DataDictVersion = NC Cloud ${version}
 
+# 生成数据字典格式，取值：html/json，都是静态页面，所不同的是json的会通过js动态替换字典内容，html完全静态内容
+# html 通过frameset布局，每个实体都是一个html静态页面，会有很多文件，调整格式很麻烦
+# json 通过div布局，每个实体都是一个json数据文件，前端只有一个模板文件
+generateType = json
+
 # 生成的html文件输出目录
 ${version}.OutputDir = C:/datadict/datadict-${version}/
 
