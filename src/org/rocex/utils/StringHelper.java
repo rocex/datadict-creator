@@ -1,6 +1,9 @@
 package org.rocex.utils;
 
+import java.util.HashSet;
+import java.util.Set;
 import java.util.UUID;
+import java.util.concurrent.ThreadLocalRandom;
 
 /***************************************************************************
  * <br>
@@ -10,6 +13,8 @@ import java.util.UUID;
 public class StringHelper
 {
     public static final String WHITESPACE = " \n\r\f\t";
+    
+    private static Set<String> setExist = new HashSet<>();
     
     /***************************************************************************
      * 驼峰转下划线，例如：userName -> user_name
@@ -175,6 +180,48 @@ public class StringHelper
         }
         
         return iLength;
+    }
+    
+    /***************************************************************************
+     * @param iLength
+     * @return 返回定长随机字符串
+     * @author Rocex Wang
+     * @since 2021-10-19 15:51:46
+     ***************************************************************************/
+    public static String getRandom(int iLength)
+    {
+        String strSource = "0123456789abcdefghijklmnopqrstuvwxyz";
+
+        StringBuffer strResult = new StringBuffer();
+
+        // new SecureRandom()
+        ThreadLocalRandom.current().ints(iLength, 0, 36).forEach(t ->
+        {
+            strResult.append(strSource.charAt(t));
+        });
+
+        return strResult.toString();
+    }
+    
+    /***************************************************************************
+     * @param iLength
+     * @return 返回定长随机字符串，并保证和之前返回的不重复
+     * @author Rocex Wang
+     * @since 2021-10-19 16:55:07
+     ***************************************************************************/
+    public static String getRandomNoRepeat(int iLength)
+    {
+        while (true)
+        {
+            String strResult = getRandom(iLength);
+            
+            if (!setExist.contains(strResult))
+            {
+                setExist.add(strResult);
+                
+                return strResult;
+            }
+        }
     }
     
     /***************************************************************************

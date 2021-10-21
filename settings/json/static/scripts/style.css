@@ -1,0 +1,162 @@
+body {
+    margin-top: 5px;
+    margin-left: 5px;
+    margin-right: 5px;
+    font-size: 15px;
+}
+
+#left {
+    left: 5px;
+    display: flex;
+    max-height: 99%;
+    position: absolute;
+    flex-direction: column;
+    width: calc(20% - 10px);
+    height: calc(100% - 5px);
+}
+
+#right {
+    display: flex;
+    margin-left: 1em;
+    position: absolute;
+    flex-direction: column;
+    left: calc(20% - 10px);
+    width: calc(80% - 8px);
+    height: calc(100% - 30px);
+    max-height: calc(100% - 5px);
+}
+
+.dataDictArea {
+    height: 94%;
+    max-height: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+}
+
+ul.ztree {
+    width: 98%;
+    margin-top: 5px;
+    max-height: 100%;
+    overflow-x: auto;
+    overflow-y: auto;
+    background: #fafafa;
+    height: calc(100% - 16px);
+    border: 1px solid #617775;
+}
+
+.title {
+    text-align: center;
+    background: #24292f;
+    /* border: solid 1px #ccc; */
+    min-height: 46px;
+    color: white;
+}
+
+.title h3 {
+    margin: 9px auto;
+    font-size: 20px;
+}
+
+.rightVersion {
+    float: right;
+    margin-right: 8px;
+    margin-top: 16px;
+    opacity: 0.7;
+}
+
+.classList {
+    padding-right: 5px;
+    padding-top: 3px;
+    padding-bottom: 3px;
+    opacity: 0.8;
+    font-size: 15px;
+}
+
+.classList-master {
+    font-weight: bold;
+}
+
+.classList-current {
+    color: red !important;
+}
+
+.classList-master-current {
+    color: red !important;
+    font-weight: bold;
+}
+
+.footer {
+    /* padding-right: 20px; */
+    position: absolute;
+    text-align: right;
+    opacity: 0.6;
+    bottom: 3px;
+    right: 20px;
+}
+
+/*table.js-sort-table th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { 
+    content: " \25C6"; /* \25B4 \25BE \25C6 
+} */
+
+#dataDictTable {
+    width: 100%;
+    font-size: 15px;
+    border-collapse: collapse;
+}
+
+#dataDictTable td,
+#dataDictTable th {
+    text-align: left;
+    padding-left: 10px;
+    border: 1px solid #dcdbdb;
+    padding: 3px 7px 3px 7px;
+}
+
+#dataDictTable th {
+    font-size: 16px;
+    padding-top: 5px;
+    padding-bottom: 5px;
+    text-align: center;
+    white-space: nowrap;
+    background-color: #f0f0f0;
+    cursor: pointer;
+}
+
+/* RGB(94, 202, 117, 0.1); */
+#dataDictTable tr:nth-child(2n) {
+    background-color: #fefefe;
+}
+
+.pk-row {
+    color: red !important;
+    font-weight: bold;
+}
+
+.home {
+    float: left;
+    margin-left: 8px;
+    margin-top: 12px;
+}
+
+.separator {
+    color: #60c876;
+    opacity: 0.2;
+}
+
+a:link {
+    color: #09c;
+    text-decoration: none;
+}
+
+a:visited {
+    color: #09c;
+    text-decoration: none;
+}
+
+a:hover {
+    text-decoration: none;
+}
+
+a:active {
+    text-decoration: none;
+}
