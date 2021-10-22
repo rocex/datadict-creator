@@ -1,9 +1,6 @@
 package org.rocex.datadict;
 
 import java.io.File;
-import java.io.IOException;
-import java.nio.file.Files;
-import java.nio.file.Paths;
 import java.util.Properties;
 
 import org.rocex.utils.FileHelper;
@@ -17,7 +14,7 @@ import org.rocex.utils.TimerLogger;
  ***************************************************************************/
 public class DataDictCreator
 {
-    public static Properties settings = FileHelper.load("settings" + File.separator + "settings.properties");
+    protected static Properties settings = FileHelper.load("settings" + File.separator + "settings.properties");
     
     /***************************************************************************
      * @param args
@@ -27,18 +24,8 @@ public class DataDictCreator
     public static void main(String[] args)
     {
         TimerLogger.getLogger().begin("create all data dictionary");
-        
-        try
-        {
-            settings.setProperty("HtmlIndexFile", new String(Files.readAllBytes(Paths.get("settings", "template", "index.html"))));
-            settings.setProperty("HtmlDataDictFile", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictFile.html"))));
-            settings.setProperty("HtmlDataDictRow", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictRow.html"))));
-            settings.setProperty("HtmlDataDictFooterFile", new String(Files.readAllBytes(Paths.get("settings", "template", "DataDictFooterFile.html"))));
-        }
-        catch (IOException ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
+
+        String strCreateType = settings.getProperty("createType", "json");
         
         String strDataDictVersionList = settings.getProperty("DataDictVersionList");
         
@@ -50,7 +37,7 @@ public class DataDictCreator
             
             TimerLogger.getLogger().begin("create data dictionary " + strDataDictVersion);
             
-            CreateDataDictAction action = new CreateDataDictAction(strVersion);
+            IAction action = "html".equalsIgnoreCase(strCreateType) ? new CreateHtmlDataDictAction(strVersion) : new CreateJsonDataDictAction(strVersion);
             
             action.doAction();
             
