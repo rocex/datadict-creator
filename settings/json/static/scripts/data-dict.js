@@ -69,6 +69,9 @@ function loadDataDict(classId) {
     $.ajax({
         url: "./dict/" + classId + ".json",
         dataType: "json",
+        error: function () {
+            alert("网络好像中断了，请联系管理员！");
+        },
         success: function (data) {
             if (data === undefined) {
                 return false;
@@ -76,6 +79,7 @@ function loadDataDict(classId) {
 
             $("#classDisplayName").html(data.displayName);
             $("#classDefaultTableName").html(" (" + data.defaultTableName + "/" + data.fullClassname + ")");
+            $("#classList").html(data.classListUrl);
 
             let ddcBody = "";
 
@@ -84,16 +88,16 @@ function loadDataDict(classId) {
                 let trClass = propertyVO.keyProp ? "pk-row" : "";
 
                 ddcBody += `<tr class="${trClass}">
-                                <td>${index++}</td>
-                                <td>${propertyVO.name}</td>
-                                <td>${propertyVO.displayName}</td>
-                                <td>${propertyVO.name}</td>
-                                <td>${propertyVO.sqlDateType}</td>
-                                <td style="text-align: center">${propertyVO.nullable && propertyVO.nullable === "N" ? "√" : ""}</td>
-                                <td>${propertyVO.refClassPathHref}</td>
-                                <td>${propertyVO.attrMinValue ? propertyVO.attrMinValue : ""}</td>
-                                <td>${propertyVO.dataScope ? propertyVO.dataScope : ""}</td>
-                            </tr>`;
+                        <td>${index++}</td>
+                        <td>${propertyVO.name}</td>
+                        <td>${propertyVO.displayName}</td>
+                        <td>${propertyVO.name}</td>
+                        <td>${propertyVO.sqlDateType}</td>
+                        <td style="text-align: center">${propertyVO.nullable && propertyVO.nullable === "N" ? "√" : ""}</td>
+                        <td>${propertyVO.refClassPathHref}</td>
+                        <td>${propertyVO.attrMinValue ? propertyVO.attrMinValue : ""}</td>
+                        <td>${propertyVO.dataScope ? propertyVO.dataScope : ""}</td>
+                    </tr>`;
             });
 
             $("#dataDictTableBody").html(ddcBody);
