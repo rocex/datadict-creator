@@ -10,15 +10,26 @@ import java.util.List;
 public class ClassVO extends MetaVO
 {
     private Integer iClassType;
-    
+
     private List<PropertyVO> propertyVO;
-    
+
+    private String strClassListUrl;
     private String strComponentId;
     private String strDefaultTableName;
     private String strFullClassname;
     private String strIsPrimary;
     private String strKeyAttribute;
-    
+
+    /***************************************************************************
+     * @return the classListUrl
+     * @author Rocex Wang
+     * @since 2021-10-22 03:40:16
+     ***************************************************************************/
+    public String getClassListUrl()
+    {
+        return strClassListUrl;
+    }
+
     /***************************************************************************
      * @return the classType
      * @author Rocex Wang
@@ -28,7 +39,7 @@ public class ClassVO extends MetaVO
     {
         return iClassType;
     }
-    
+
     /***************************************************************************
      * @return the componentId
      * @author Rocex Wang
@@ -38,7 +49,7 @@ public class ClassVO extends MetaVO
     {
         return strComponentId;
     }
-    
+
     /***************************************************************************
      * @return the defaultTableName
      * @author Rocex Wang
@@ -48,7 +59,7 @@ public class ClassVO extends MetaVO
     {
         return strDefaultTableName;
     }
-    
+
     /***************************************************************************
      * @return the fullClassname
      * @author Rocex Wang
@@ -58,7 +69,7 @@ public class ClassVO extends MetaVO
     {
         return strFullClassname;
     }
-    
+
     /***************************************************************************
      * @return the isPrimary
      * @author Rocex Wang
@@ -68,7 +79,7 @@ public class ClassVO extends MetaVO
     {
         return strIsPrimary;
     }
-    
+
     /***************************************************************************
      * @return the keyAttribute
      * @author Rocex Wang
@@ -78,7 +89,7 @@ public class ClassVO extends MetaVO
     {
         return strKeyAttribute;
     }
-    
+
     /***************************************************************************
      * @return the propertyVO
      * @author Rocex Wang
@@ -88,7 +99,17 @@ public class ClassVO extends MetaVO
     {
         return propertyVO;
     }
-    
+
+    /***************************************************************************
+     * @param classListUrl the classListUrl to set
+     * @author Rocex Wang
+     * @since 2021-10-22 03:40:16
+     ***************************************************************************/
+    public void setClassListUrl(String classListUrl)
+    {
+        strClassListUrl = classListUrl;
+    }
+
     /***************************************************************************
      * @param classType the classType to set
      * @author Rocex Wang
@@ -98,7 +119,7 @@ public class ClassVO extends MetaVO
     {
         iClassType = classType;
     }
-    
+
     /***************************************************************************
      * @param componentId the componentId to set
      * @author Rocex Wang
@@ -108,7 +129,7 @@ public class ClassVO extends MetaVO
     {
         strComponentId = componentId;
     }
-    
+
     /***************************************************************************
      * @param defaultTableName the defaultTableName to set
      * @author Rocex Wang
@@ -118,7 +139,7 @@ public class ClassVO extends MetaVO
     {
         strDefaultTableName = defaultTableName;
     }
-    
+
     /***************************************************************************
      * @param fullClassname the fullClassname to set
      * @author Rocex Wang
@@ -128,7 +149,7 @@ public class ClassVO extends MetaVO
     {
         strFullClassname = fullClassname;
     }
-    
+
     /***************************************************************************
      * @param isPrimary the isPrimary to set
      * @author Rocex Wang
@@ -138,7 +159,7 @@ public class ClassVO extends MetaVO
     {
         strIsPrimary = isPrimary;
     }
-    
+
     /***************************************************************************
      * @param keyAttribute the keyAttribute to set
      * @author Rocex Wang
@@ -148,7 +169,7 @@ public class ClassVO extends MetaVO
     {
         strKeyAttribute = keyAttribute;
     }
-    
+
     /***************************************************************************
      * @param propertyVO the propertyVO to set
      * @author Rocex Wang
