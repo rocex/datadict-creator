@@ -385,7 +385,7 @@ public abstract class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void createDataDictFile(ClassVO classVO, List<PropertyVO> listPropertyVO)
     {
-        if (listPropertyVO == null)
+        if (listPropertyVO == null || listPropertyVO.isEmpty())
         {
             return;
         }
@@ -393,95 +393,37 @@ public abstract class CreateDataDictAction implements IAction
         listPropertyVO = sortPropertyVO(classVO, listPropertyVO);
 
         classVO.setPropertyVO(listPropertyVO);
-
-        StringBuilder strHtmlRows = new StringBuilder();
-        String strHtmlDataDictRow = DataDictCreator.settings.getProperty("HtmlDataDictRow");
-
-        List<String> listPk = Arrays.asList(classVO.getKeyAttribute().split(";"));
+        
+        classVO.setClassListUrl(getClassListUrl(classVO));
 
         for (int i = 0; i < listPropertyVO.size(); i++)
         {
             PropertyVO propertyVO = listPropertyVO.get(i);
 
             // 引用实体模型
-            String strRefClassPathHref = "";
-            ClassVO refClassVO = (ClassVO) mapClassVO.get(propertyVO.getDataType());
-
-            if (refClassVO != null)
-            {
-                strRefClassPathHref = refClassVO.getDisplayName();
-
-                if (refClassVO.getClassType() == 201)
-                {
-                    String strRefClassPath = getClassUrl2(refClassVO);
-
-                    strRefClassPathHref = MessageFormat.format(strRefClassPathHrefTemplate, strRefClassPath, refClassVO.getDisplayName());
-                }
-
-                strRefClassPathHref = strRefClassPathHref + " (" + refClassVO.getName() + ")";
-            }
-
-            propertyVO.setRefClassPathHref(strRefClassPathHref);
+            propertyVO.setRefClassPathHref(getRefClassPathHref(propertyVO));
             
-            // 数据库类型
-            String strDbType = getDbSqlType(propertyVO);
+            // 枚举/取值范围
+            propertyVO.setDataScope(getDataScope(propertyVO));
 
             // 默认值
-            String strDefaultValue = propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue();
+            propertyVO.setDefaultValue(propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue());
 
-            // 枚举/取值范围
-            String strDataScope = "";
-            if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300
-                    && mapEnumString.containsKey(propertyVO.getDataType()))
-            {
-                strDataScope = mapEnumString.get(propertyVO.getDataType());
-            }
-            else
-            {
-                strDataScope = "[" + (propertyVO.getAttrMinValue() == null ? "" : propertyVO.getAttrMinValue()) + " , "
-                        + (propertyVO.getAttrMaxValue() == null ? "" : propertyVO.getAttrMaxValue()) + "]";
-
-                if ("[ , ]".equals(strDataScope))
-                {
-                    strDataScope = "";
-                }
-            }
-
-            propertyVO.setDataScope(strDataScope);
-            
-            // 每行的css，主键行字体红色，其它行正常黑色
-            String strRowStyle = listPk.contains(propertyVO.getId()) ? "pk-row" : "";
-
-            // 是否必输
-            String strMustInput = "N".equals(propertyVO.getNullable()) ? "√" : "";
-            
-            // String strHtmlRow = MessageFormat.format(strHtmlDataDictRow, strRowStyle, i + 1, propertyVO.getName(),
-            // propertyVO.getDisplayName(),
-            // propertyVO.getName(), strDbType, strMustInput, strRefClassPathHref, strDefaultValue, strDataScope);
-            //
-            // strHtmlRows.append(strHtmlRow);
+            createDataDictFileRow(classVO, propertyVO, i);
         }
-
-        // 组件内实体列表链接
-        String strClassList = getClassListUrl(classVO);
-
-        if (strClassList.startsWith("/")) // 截掉最前面的斜杠
-        {
-            strClassList = strClassList.substring(1);
-        }
-
-        classVO.setClassListUrl(strClassList);
-
-        String strFullClassname = classVO.getFullClassname() == null ? "" : " / " + classVO.getFullClassname();
-
-        // String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictFile"),
-        // classVO.getDisplayName(), classVO.getDefaultTableName(),
-        // strFullClassname, DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList, strHtmlRows,
-        // getFooter());
-        
-        // FileHelper.writeFileThread(getClassFilePath(classVO), strHtml);
     }
-
+    
+    /***************************************************************************
+     * @param classVO
+     * @param propertyVO
+     * @param iRowIndex
+     * @author Rocex Wang
+     * @since 2021-10-25 10:43:57
+     ***************************************************************************/
+    protected void createDataDictFileRow(ClassVO classVO, PropertyVO propertyVO, int iRowIndex)
+    {
+    }
+    
     /***************************************************************************
      * @author Rocex Wang
      * @version 2020-5-18 9:42:59
@@ -497,18 +439,18 @@ public abstract class CreateDataDictAction implements IAction
 
         TimerLogger.getLogger().end("create index html file");
     }
-
+    
     /***************************************************************************
      * 生成构造实体树的json数据
      * @param listModuleVO
      * @param listClassVO
-     * @param listAllTable
+     * @param listAllTableVO
      * @author Rocex Wang
      * @version 2020-4-29 11:21:07
      ***************************************************************************/
-    protected void createTreeData(List<ModuleVO> listModuleVO, List<ClassVO> listClassVO, List<ClassVO> listAllTable)
+    protected void createTreeData(List<ModuleVO> listModuleVO, List<ClassVO> listClassVO, List<ClassVO> listAllTableVO)
     {
-        TimerLogger.getLogger().begin("create data dict tree data: " + (listClassVO.size() + listAllTable.size()));
+        TimerLogger.getLogger().begin("create data dict tree data: " + (listClassVO.size() + listAllTableVO.size()));
 
         StringBuilder strModuleRows = new StringBuilder(); // 所有模块
         StringBuilder strClassRows = new StringBuilder();  // 所有实体
@@ -551,11 +493,11 @@ public abstract class CreateDataDictAction implements IAction
         }
 
         // 所有表都按字母顺序挂在一个节点下，不再分级
-        if (!listAllTable.isEmpty())
+        if (!listAllTableVO.isEmpty())
         {
             strModuleRows.append(MessageFormat.format(strTreeDataModuleTemplate, "all", "all", "", "所有表"));
 
-            for (ClassVO classVO : listAllTable)
+            for (ClassVO classVO : listAllTableVO)
             {
                 String strUrl = getClassUrl(classVO);
 
@@ -567,7 +509,7 @@ public abstract class CreateDataDictAction implements IAction
         FileHelper.writeFileThread(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js"),
                 "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
 
-        TimerLogger.getLogger().end("create data dict tree data: " + (listClassVO.size() + listAllTable.size()));
+        TimerLogger.getLogger().end("create data dict tree data: " + (listClassVO.size() + listAllTableVO.size()));
     }
 
     /****************************************************************************
@@ -579,7 +521,7 @@ public abstract class CreateDataDictAction implements IAction
     @Override
     public void doAction()
     {
-        // emptyTargetFolder();
+        emptyTargetDir();
 
         createIndexHtmlFile();
 
@@ -615,10 +557,10 @@ public abstract class CreateDataDictAction implements IAction
             {
                 createDataDictFile(classVO);
             }
-
-            // createAllTableDataDictFile(listAllTableVO);
-
+            
             TimerLogger.getLogger().end("create data dict file: " + listClassVO.size());
+
+            createAllTableDataDictFile(listAllTableVO);
         }
         catch (Exception ex)
         {
@@ -737,6 +679,35 @@ public abstract class CreateDataDictAction implements IAction
     protected String getClassUrl2(ClassVO classVO)
     {
         return "./" + getMappedClassId(classVO) + ".html";
+    }
+
+    /***************************************************************************
+     * 枚举/取值范围
+     * @param propertyVO
+     * @return
+     * @author Rocex Wang
+     * @since 2021-10-25 10:52:50
+     ***************************************************************************/
+    protected String getDataScope(PropertyVO propertyVO)
+    {
+        String strDataScope = "";
+        if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300
+                && mapEnumString.containsKey(propertyVO.getDataType()))
+        {
+            strDataScope = mapEnumString.get(propertyVO.getDataType());
+        }
+        else
+        {
+            strDataScope = "[" + (propertyVO.getAttrMinValue() == null ? "" : propertyVO.getAttrMinValue()) + " , "
+                    + (propertyVO.getAttrMaxValue() == null ? "" : propertyVO.getAttrMaxValue()) + "]";
+
+            if ("[ , ]".equals(strDataScope))
+            {
+                strDataScope = "";
+            }
+        }
+
+        return strDataScope;
     }
 
     /***************************************************************************
@@ -909,6 +880,34 @@ public abstract class CreateDataDictAction implements IAction
         }
 
         return strPks;
+    }
+
+    /***************************************************************************
+     * @param propertyVO
+     * @return 引用实体模型
+     * @author Rocex Wang
+     * @since 2021-10-25 10:54:10
+     ***************************************************************************/
+    protected String getRefClassPathHref(PropertyVO propertyVO)
+    {
+        String strRefClassPathHref = "";
+        ClassVO refClassVO = (ClassVO) mapClassVO.get(propertyVO.getDataType());
+
+        if (refClassVO != null)
+        {
+            strRefClassPathHref = refClassVO.getDisplayName();
+
+            if (refClassVO.getClassType() == 201)
+            {
+                String strRefClassPath = getClassUrl2(refClassVO);
+
+                strRefClassPathHref = MessageFormat.format(strRefClassPathHrefTemplate, strRefClassPath, refClassVO.getDisplayName());
+            }
+
+            strRefClassPathHref = strRefClassPathHref + " (" + refClassVO.getName() + ")";
+        }
+        
+        return strRefClassPathHref;
     }
 
     /***************************************************************************
