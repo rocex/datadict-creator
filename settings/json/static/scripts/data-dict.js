@@ -94,8 +94,8 @@ function loadDataDict(classId) {
                         <td>${propertyVO.name}</td>
                         <td>${propertyVO.sqlDateType}</td>
                         <td style="text-align: center">${propertyVO.nullable && propertyVO.nullable === "N" ? "√" : ""}</td>
-                        <td>${propertyVO.refClassPathHref}</td>
-                        <td>${propertyVO.attrMinValue ? propertyVO.attrMinValue : ""}</td>
+                        <td>${propertyVO.refClassPathHref ? propertyVO.refClassPathHref : ""}</td>
+                        <td>${propertyVO.defaultValue ? propertyVO.defaultValue : ""}</td>
                         <td>${propertyVO.dataScope ? propertyVO.dataScope : ""}</td>
                     </tr>`;
             });
