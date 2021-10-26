@@ -56,10 +56,8 @@ function onClick(e, treeId, treeNode) {
         return;
     }
 
-    let urlHref = window.location.href;
-    urlHref = urlHref.slice(0, urlHref.lastIndexOf("/"));
-
-    loadDataDict(treeNode.id) && sendBaidu(urlHref);
+    loadDataDict(treeNode.id);
+    sendBaidu(window.location.href);
 }
 
 function loadDataDict(classId) {
@@ -67,8 +65,9 @@ function loadDataDict(classId) {
     $("#dataDictArea").css("display", "initial");
 
     $.ajax({
-        url: "./dict/" + classId + ".json",
+        cache: false,
         dataType: "json",
+        url: "./dict/" + classId + ".json",
         error: function () {
             alert("网络好像中断了，请联系管理员！");
         },
@@ -78,8 +77,8 @@ function loadDataDict(classId) {
             }
 
             $("#classDisplayName").html(data.displayName);
-            $("#classDefaultTableName").html(" (" + data.defaultTableName + "/" + data.fullClassname + ")");
-            $("#classList").html(data.classListUrl);
+            $("#classDefaultTableName").html(" (" + data.defaultTableName + (data.fullClassname ? "/" + data.fullClassname : "") + ")");
+            $("#classList").html(data.classListUrl ? data.classListUrl : "");
 
             let ddcBody = "";
 
