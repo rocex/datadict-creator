@@ -2,11 +2,16 @@ package org.rocex.datadict.vo;
 
 import java.util.List;
 
+import javax.persistence.Index;
+import javax.persistence.Table;
+
 /***************************************************************************
  * <br>
  * @author Rocex Wang
  * @version 2020-4-21 13:20:06
  ***************************************************************************/
+@Table(name = "md_class", indexes = { @Index(name = "i_md_class_component_id", columnList = "component_id"),
+        @Index(name = "i_md_class_default_table_name", columnList = "default_table_name") })
 public class ClassVO extends MetaVO
 {
     private Integer iClassType;
@@ -19,7 +24,7 @@ public class ClassVO extends MetaVO
     private String strFullClassname;
     private String strIsPrimary;
     private String strKeyAttribute;
-
+    
     /***************************************************************************
      * @return the classListUrl
      * @author Rocex Wang

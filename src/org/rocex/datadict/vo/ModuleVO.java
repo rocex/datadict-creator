@@ -1,14 +1,17 @@
 package org.rocex.datadict.vo;
 
+import javax.persistence.Table;
+
 /***************************************************************************
  * <br>
  * @author Rocex Wang
  * @version 2020-4-21 16:22:12
  ***************************************************************************/
+@Table(name = "md_module")
 public class ModuleVO extends MetaVO
 {
     private String strModuleId;
-    
+
     /***************************************************************************
      * @return the moduleId
      * @author Rocex Wang
@@ -18,7 +21,7 @@ public class ModuleVO extends MetaVO
     {
         return strModuleId;
     }
-    
+
     /***************************************************************************
      * @param moduleId the moduleId to set
      * @author Rocex Wang
