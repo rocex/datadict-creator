@@ -23,6 +23,14 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
+        boolean blSync = true;
+
+        if (blSync)
+        {
+            new SyncDBSchemaAction("2105jz").doAction();
+            return;
+        }
+        
         TimerLogger.getLogger().begin("create all data dictionary");
 
         String strCreateType = settings.getProperty("createType", "json");

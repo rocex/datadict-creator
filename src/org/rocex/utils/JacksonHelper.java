@@ -17,45 +17,46 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 public class JacksonHelper
 {
     private ObjectMapper mapper;
-    
-    private JacksonPropertyFilterProvider filterProvider;
 
+    private JacksonPropertyFilterProvider filterProvider;
+    
     public JacksonHelper()
     {
         super();
-        
+
         mapper = new ObjectMapper();
         filterProvider = new JacksonPropertyFilterProvider(mapper);
     }
-
+    
     public JacksonHelper exclude(Class<?> clazz, String... strFields)
     {
         filterProvider.exclude(clazz, strFields);
-        
-        return this;
-    }
-    
-    public JacksonHelper include(Class<?> clazz, String... strFields)
-    {
-        filterProvider.include(clazz, strFields);
 
         return this;
     }
-    
+
+    public JacksonHelper include(Class<?> clazz, String... strFields)
+    {
+        filterProvider.include(clazz, strFields);
+        
+        return this;
+    }
+
     public void serialize(Object obj, Path pathFile)
     {
         mapper.setDateFormat(StdDateFormat.getDateTimeInstance());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
+        
         try
         {
             if (Files.notExists(pathFile.getParent()))
             {
                 Files.createDirectories(pathFile.getParent());
             }
-
-            mapper.writerWithDefaultPrettyPrinter().writeValue(pathFile.toFile(), obj);
+            
+            mapper.writeValue(pathFile.toFile(), obj);
+            // mapper.writerWithDefaultPrettyPrinter().writeValue(pathFile.toFile(), obj);
         }
         catch (IOException ex)
         {
