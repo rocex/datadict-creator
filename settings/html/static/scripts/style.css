@@ -52,9 +52,9 @@ body {
 	opacity: 0.6;
 }
 
-table.js-sort-table th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { 
-    content: " \25C6"; /* \25B4 \25BE \25C6 */
-}
+/*table.js-sort-table th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { 
+    content: " \25C6"; /* \25B4 \25BE \25C6 
+} */
 
 #dictTable {
 	width: 100%;
