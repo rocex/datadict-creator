@@ -1,6 +1,5 @@
 package org.rocex.datadict;
 
-import java.io.File;
 import java.nio.file.Path;
 import java.sql.SQLException;
 import java.util.List;
@@ -32,7 +31,8 @@ public class SyncDBSchemaAction extends CreateDataDictAction
         
         Properties dbPropTarget = new Properties();
         
-        dbPropTarget.setProperty("jdbc.url", "jdbc:sqlite:" + strOutputRootDir + File.separator + "dict.sqlite");
+        // dbPropTarget.setProperty("jdbc.url", "jdbc:sqlite:" + strOutputRootDir + File.separator + "dict.sqlite");
+        dbPropTarget.setProperty("jdbc.url", "jdbc:sqlite:C:/datadict/datadict.sqlite");
         dbPropTarget.setProperty("jdbc.driver", "org.sqlite.JDBC");
         
         sqlExecutorTarget = new SQLExecutor(dbPropTarget);
@@ -52,6 +52,7 @@ public class SyncDBSchemaAction extends CreateDataDictAction
         String strModuleSQL = "select distinct lower(id) id,lower(name) name,displayname,b.moduleid moduleid from md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
         String strComponentSQL = "select distinct id,name,displayname,lower(ownmodule) ownmodule from md_component where versiontype=0";
         String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary from md_class order by lower(defaulttablename)";
+        String strEnumValueSQL = "select id,name,value from md_enumvalue order by id,enumsequence";
         
         // List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL);
         List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL);

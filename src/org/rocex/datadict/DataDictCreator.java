@@ -15,7 +15,7 @@ import org.rocex.utils.TimerLogger;
 public class DataDictCreator
 {
     protected static Properties settings = FileHelper.load("settings" + File.separator + "settings.properties");
-    
+
     /***************************************************************************
      * @param args
      * @author Rocex Wang
@@ -23,37 +23,37 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        boolean blSync = true;
-
+        boolean blSync = false;
+        
         if (blSync)
         {
             new SyncDBSchemaAction("2105jz").doAction();
             return;
         }
-        
-        TimerLogger.getLogger().begin("create all data dictionary");
 
+        TimerLogger.getLogger().begin("create all data dictionary");
+        
         String strCreateType = settings.getProperty("createType", "json");
-        
+
         String strDataDictVersionList = settings.getProperty("DataDictVersionList");
-        
+
         String[] strDataDictVersions = strDataDictVersionList.split(",");
-        
+
         for (String strVersion : strDataDictVersions)
         {
             String strDataDictVersion = settings.getProperty(strVersion + ".DataDictVersion");
-            
+
             TimerLogger.getLogger().begin("create data dictionary " + strDataDictVersion);
-            
+
             IAction action = "html".equalsIgnoreCase(strCreateType) ? new CreateHtmlDataDictAction(strVersion) : new CreateJsonDataDictAction(strVersion);
-            
+
             action.doAction();
-            
+
             TimerLogger.getLogger().end("create data dictionary " + strDataDictVersion);
-            
+
             Logger.getLogger().debug("\n");
         }
-        
+
         TimerLogger.getLogger().end("create all data dictionary");
     }
 }

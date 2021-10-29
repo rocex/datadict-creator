@@ -27,7 +27,9 @@ public class SQLParameter implements Serializable
         {
             throw new IllegalArgumentException("SQLParameter cannot be null!!!");
         }
-        
+
+        statement.clearParameters();
+
         for (int i = 1, iParamCount = param.getCountParams(); i <= iParamCount; i++)
         {
             Object objParam = param.get(i - 1);
@@ -43,11 +45,11 @@ public class SQLParameter implements Serializable
             }
             else if (objParam instanceof Integer)
             {
-                statement.setInt(i, ((Integer) objParam).intValue());
+                statement.setInt(i, (Integer) objParam);
             }
             else if (objParam instanceof Short)
             {
-                statement.setShort(i, ((Short) objParam).shortValue());
+                statement.setShort(i, (Short) objParam);
             }
             else if (objParam instanceof Timestamp)
             {
@@ -71,19 +73,15 @@ public class SQLParameter implements Serializable
             }
             else if (objParam instanceof Double)
             {
-                statement.setDouble(i, ((Double) objParam).doubleValue());
+                statement.setDouble(i, (Double) objParam);
             }
             else if (objParam instanceof Float)
             {
-                statement.setFloat(i, ((Float) objParam).floatValue());
+                statement.setFloat(i, (Float) objParam);
             }
             else if (objParam instanceof Long)
             {
-                statement.setLong(i, ((Long) objParam).longValue());
-            }
-            else if (objParam instanceof Boolean)
-            {
-                statement.setBoolean(i, ((Boolean) objParam).booleanValue());
+                statement.setLong(i, (Long) objParam);
             }
             else if (objParam instanceof java.sql.Date)
             {
@@ -283,7 +281,10 @@ public class SQLParameter implements Serializable
     {
         if (param == null)
         {
-            throw new IllegalArgumentException("SQL Parameter object cannot be null, which can be replaced by NullType Object!!");
+            addNullParam(Types.JAVA_OBJECT);
+            return;
+            // throw new IllegalArgumentException("SQL Parameter object cannot be null, which can be replaced by NullType
+            // Object!!");
         }
         
         listParam.add(param);
