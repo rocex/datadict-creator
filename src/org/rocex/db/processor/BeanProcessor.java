@@ -119,7 +119,7 @@ public class BeanProcessor<T extends SuperVO> extends ResultSetProcessor
      * @version 2019-8-7 10:16:06
      ****************************************************************************/
     @Override
-    protected T processResultSet(ResultSet resultSet) throws Exception
+    protected T processResultSet(ResultSet resultSet) throws SQLException
     {
         T superVO = null;
         

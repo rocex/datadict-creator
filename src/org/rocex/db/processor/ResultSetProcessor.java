@@ -11,7 +11,7 @@ import java.sql.SQLException;
 public abstract class ResultSetProcessor
 {
     private boolean blAutoCloseResultSet = true;
-    
+
     /***************************************************************************
      * @param resultSet
      * @return Object
@@ -19,20 +19,16 @@ public abstract class ResultSetProcessor
      * @author Rocex Wang
      * @version 2019-8-13 14:42:50
      ***************************************************************************/
-    public Object doAction(ResultSet resultSet) throws Exception
+    public Object doAction(ResultSet resultSet) throws SQLException
     {
         if (resultSet == null)
         {
             throw new IllegalArgumentException("resultset parameter can't be null");
         }
-        
+
         try
         {
             return processResultSet(resultSet);
-        }
-        catch (SQLException ex)
-        {
-            throw new SQLException("the resultsetProcessor error!" + ex.getMessage(), ex.getSQLState());
         }
         finally
         {
@@ -42,7 +38,7 @@ public abstract class ResultSetProcessor
             }
         }
     }
-    
+
     /***************************************************************************
      * @param resultSet
      * @return Object
@@ -50,8 +46,8 @@ public abstract class ResultSetProcessor
      * @version 2019-8-7 10:14:42
      * @throws Exception
      ***************************************************************************/
-    protected abstract Object processResultSet(ResultSet resultSet) throws Exception;
-    
+    protected abstract Object processResultSet(ResultSet resultSet) throws SQLException;
+
     /***************************************************************************
      * @param closeResultSet the closeResultSet to set
      * @author Rocex Wang
