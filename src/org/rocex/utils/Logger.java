@@ -14,13 +14,13 @@ public class Logger
     public static int iLoggerLevelError = 30;
     public static int iLoggerLevelOff = 9999;
     public static int iLoggerLevelTrace = 10;
-    
+
     private static Logger logger;
-    
+
     private DateTimeFormatter formatter = DateTimeFormatter.ofPattern("yyyy-MM-dd HH:mm:ss");
-    
+
     private int iEnableLevel = Logger.iLoggerLevelDebug;
-    
+
     /***************************************************************************
      * @return Logger
      * @author Rocex Wang
@@ -32,10 +32,10 @@ public class Logger
         {
             logger = new Logger();
         }
-        
+
         return logger;
     }
-    
+
     /***************************************************************************
      * @param strMsg
      * @author Rocex Wang
@@ -45,7 +45,7 @@ public class Logger
     {
         log(iLoggerLevelDebug, "debug", strMsg);
     }
-    
+
     /***************************************************************************
      * @param strMsg
      * @author Rocex Wang
@@ -55,7 +55,7 @@ public class Logger
     {
         log(iLoggerLevelError, "error", strMsg);
     }
-    
+
     /***************************************************************************
      * @param strMsg
      * @param ex
@@ -65,13 +65,18 @@ public class Logger
     public void error(String strMsg, Throwable ex)
     {
         log(iLoggerLevelError, "error", strMsg);
-        
+
         if (iLoggerLevelError >= iEnableLevel)
         {
             ex.printStackTrace();
         }
     }
-    
+
+    public int getEnableLevel()
+    {
+        return iEnableLevel;
+    }
+
     /***************************************************************************
      * @param iLevel
      * @param strMsg
@@ -84,10 +89,10 @@ public class Logger
         {
             return;
         }
-        
+
         System.out.println(LocalDateTime.now().format(formatter) + " [" + strLevel + "] " + strMsg);
     }
-    
+
     /***************************************************************************
      * @param enableLevel the enableLevel to set
      * @author Rocex Wang
@@ -97,7 +102,7 @@ public class Logger
     {
         iEnableLevel = enableLevel;
     }
-    
+
     /***************************************************************************
      * @param enableLevel trace < debug < error
      * @author Rocex Wang
