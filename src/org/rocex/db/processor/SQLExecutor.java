@@ -30,9 +30,12 @@ import org.rocex.vo.SuperVO;
  ***************************************************************************/
 public class SQLExecutor
 {
-    private Connection connection = null;
+    public static final int iBatchSize = 1000;//
+
     protected Properties dbProp = null;
-    
+
+    private Connection connection = null;
+
     /***************************************************************************
      * @author Rocex Wang
      * @version 2020-4-27 10:05:45
@@ -40,10 +43,10 @@ public class SQLExecutor
     public SQLExecutor(Properties dbProp)
     {
         super();
-        
+
         this.dbProp = dbProp;
     }
-    
+
     /***************************************************************************
      * @param resultSet
      * @author Rocex Wang
@@ -55,7 +58,7 @@ public class SQLExecutor
         {
             return;
         }
-        
+
         try
         {
             resultSet.close();
@@ -65,7 +68,7 @@ public class SQLExecutor
             Logger.getLogger().error(ex.getMessage(), ex);
         }
     }
-    
+
     /***************************************************************************
      * @param statement
      * @author Rocex Wang
@@ -77,7 +80,7 @@ public class SQLExecutor
         {
             return;
         }
-        
+
         try
         {
             statement.close();
@@ -87,7 +90,7 @@ public class SQLExecutor
             Logger.getLogger().error(ex.getMessage(), ex);
         }
     }
-    
+
     /***************************************************************************
      * <br>
      * Created on 2017-2-10 16:15:04<br>
@@ -100,7 +103,7 @@ public class SQLExecutor
         {
             return;
         }
-        
+
         try
         {
             connection.close();
@@ -109,10 +112,10 @@ public class SQLExecutor
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }
-        
+
         Logger.getLogger().trace("connection closed.");
     }
-    
+
     /***************************************************************************
      * @param strSQL
      * @return PreparedStatement
@@ -123,26 +126,28 @@ public class SQLExecutor
     PreparedStatement createPreparedStatement(String strSQL) throws SQLException
     {
         Connection connection = getConnection();
-        
+
         PreparedStatement statement = null;
-        
+
         try
         {
-            statement = connection.prepareStatement(strSQL, ResultSet.TYPE_SCROLL_INSENSITIVE, ResultSet.CONCUR_READ_ONLY);
+            // statement = connection.prepareStatement(strSQL, ResultSet.TYPE_SCROLL_INSENSITIVE,
+            // ResultSet.CONCUR_READ_ONLY);
+            statement = connection.prepareStatement(strSQL);
         }
         catch (Exception ex)
         {
             statement = connection.prepareStatement(strSQL);
-            
+
             Logger.getLogger().error(ex.getMessage());
         }
-        
+
         statement.closeOnCompletion();
         statement.setQueryTimeout(30);
-        
+
         return statement;
     }
-    
+
     /***************************************************************************
      * @return Statement
      * @throws Exception
@@ -152,26 +157,27 @@ public class SQLExecutor
     Statement createStatement() throws SQLException
     {
         Connection connection = getConnection();
-        
+
         Statement statement = null;
-        
+
         try
         {
-            statement = connection.createStatement(getResultSetType(), ResultSet.CONCUR_READ_ONLY);
+            // statement = connection.createStatement(getResultSetType(), ResultSet.CONCUR_READ_ONLY);
+            statement = connection.createStatement();
         }
         catch (Exception ex)
         {
             statement = connection.createStatement();
-            
+
             Logger.getLogger().error(ex.getMessage());
         }
-        
+
         statement.closeOnCompletion();
         statement.setQueryTimeout(30);
-        
+
         return statement;
     }
-    
+
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datahub.db.ISQLExecutor#executeQuery(java.lang.Class, java.lang.String,
@@ -182,10 +188,10 @@ public class SQLExecutor
     public List<? extends SuperVO> executeQuery(Class<? extends SuperVO> clazz, String strSQL, SQLParameter param) throws SQLException
     {
         ResultSetProcessor processor = new BeanListProcessor<>(clazz);
-        
+
         return (List<? extends SuperVO>) executeQuery(strSQL, param, processor);
     }
-    
+
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datahub.db.ISQLExecutor#executeQuery(java.lang.String, ResultSetProcessor)
@@ -198,24 +204,24 @@ public class SQLExecutor
         {
             return null;
         }
-        
+
         ResultSet resultSet = null;
         Statement statement = null;
-        
+
         try
         {
             statement = createStatement();
-            
+
             Logger.getLogger().trace(strSQL);
-            
+
             resultSet = statement.executeQuery(strSQL);
-            
+
             return processor.doAction(resultSet);
         }
         catch (Exception ex)
         {
             Logger.getLogger().error(ex.getMessage(), ex);
-            
+
             throw ex;
         }
         finally
@@ -224,7 +230,7 @@ public class SQLExecutor
             close(statement);
         }
     }
-    
+
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datahub.db.ISQLExecutor#executeQuery(java.lang.String,
@@ -239,31 +245,31 @@ public class SQLExecutor
         {
             return null;
         }
-        
+
         ResultSet resultSet = null;
         PreparedStatement statement = null;
-        
+
         try
         {
             statement = createPreparedStatement(strSQL);
-            
+
             Logger.getLogger().trace(strSQL);
-            
+
             if (param != null)
             {
                 Logger.getLogger().trace(param.toString());
-                
+
                 SQLParameter.setStatementParameter(statement, param);
             }
-            
+
             resultSet = statement.executeQuery();
-            
+
             return processor.doAction(resultSet);
         }
         catch (Exception ex)
         {
             Logger.getLogger().error(ex.getMessage(), ex);
-            
+
             throw ex;
         }
         finally
@@ -272,7 +278,7 @@ public class SQLExecutor
             close(statement);
         }
     }
-    
+
     /***************************************************************************
      * @param strSQL
      * @return int
@@ -283,15 +289,15 @@ public class SQLExecutor
     public int executeUpdate(String strSQL) throws SQLException
     {
         Statement statement = null;
-        
+
         try
         {
             statement = createStatement();
-            
+
             Logger.getLogger().trace(strSQL);
-            
+
             int iSuccessCount = statement.executeUpdate(strSQL);
-            
+
             return iSuccessCount;
         }
         catch (SQLException ex)
@@ -302,10 +308,10 @@ public class SQLExecutor
         {
             close(statement);
         }
-        
+
         return -1;
     }
-    
+
     /***************************************************************************
      * @param strSQLs
      * @return int
@@ -316,19 +322,28 @@ public class SQLExecutor
     public int[] executeUpdate(String... strSQLs) throws SQLException
     {
         Statement statement = null;
-        
+
+        boolean blAutoCommit = getConnection().getAutoCommit();
+
         try
         {
+            getConnection().setAutoCommit(false);
+
             statement = createStatement();
-            
+
             for (String strSQL : strSQLs)
             {
                 statement.addBatch(strSQL);
+
                 Logger.getLogger().trace(strSQL);
             }
-            
+
             int[] iSuccessCount = statement.executeBatch();
-            
+
+            getConnection().commit();
+
+            statement.clearBatch();
+
             return iSuccessCount;
         }
         catch (Exception ex)
@@ -338,11 +353,13 @@ public class SQLExecutor
         finally
         {
             close(statement);
+
+            getConnection().setAutoCommit(blAutoCommit);
         }
-        
+
         return new int[] {};
     }
-    
+
     /***************************************************************************
      * @param strSQL
      * @param params
@@ -354,22 +371,39 @@ public class SQLExecutor
     public int[] executeUpdate(String strSQL, SQLParameter... params) throws SQLException
     {
         int[] iResult = new int[params.length];
-        
+
         PreparedStatement statement = null;
-        
+
+        boolean blAutoCommit = getConnection().getAutoCommit();
+
         try
         {
+            getConnection().setAutoCommit(false);
+
             statement = createPreparedStatement(strSQL);
-            
+
             Logger.getLogger().trace(strSQL);
-            
-            for (int i = 0; i < params.length; i++)
+
+            for (int i = 0, j = 1, k = 0; i < params.length; i++, j++)
             {
                 SQLParameter.setStatementParameter(statement, params[i]);
-                
-                iResult[i] = statement.executeUpdate();
+
+                statement.addBatch();
+
+                if (j % iBatchSize == 0 || j == params.length)
+                {
+                    int[] iBatchResult = statement.executeBatch();
+
+                    getConnection().commit();
+
+                    statement.clearBatch();
+
+                    System.arraycopy(iBatchResult, 0, iResult, k, iBatchResult.length);
+
+                    k += iBatchResult.length;
+                }
             }
-            
+
             return iResult;
         }
         catch (SQLException ex)
@@ -379,11 +413,13 @@ public class SQLExecutor
         finally
         {
             close(statement);
+
+            getConnection().setAutoCommit(blAutoCommit);
         }
-        
+
         return new int[] {};
     }
-    
+
     /***************************************************************************
      * <br>
      * Created on 2017-2-10 16:10:05<br>
@@ -396,12 +432,12 @@ public class SQLExecutor
         if (connection == null || connection.isClosed())
         {
             Logger.getLogger().trace("create connection...");
-            
+
             String strDriver = dbProp.getProperty("jdbc.driver");
             String strConnUrl = dbProp.getProperty("jdbc.url");
             String strUserName = dbProp.getProperty("jdbc.user");
             String strPassword = dbProp.getProperty("jdbc.password");
-            
+
             try
             {
                 Class.forName(strDriver);
@@ -410,13 +446,13 @@ public class SQLExecutor
             {
                 Logger.getLogger().error(ex.getMessage(), ex);
             }
-            
+
             connection = DriverManager.getConnection(strConnUrl, strUserName, strPassword);
         }
-        
+
         return connection;
     }
-    
+
     /***************************************************************************
      * @param method
      * @return field name
@@ -426,12 +462,12 @@ public class SQLExecutor
     public String getFieldName(Method method)
     {
         Column annoColumn = method.getAnnotation(Column.class);
-        
+
         if (annoColumn != null && StringHelper.isNotEmpty(annoColumn.name()))
         {
             return annoColumn.name();
         }
-        
+
         String strField = method.getName();
         if (strField.startsWith("get") || strField.startsWith("set"))
         {
@@ -441,10 +477,10 @@ public class SQLExecutor
         {
             strField = strField.substring(2);
         }
-        
+
         return StringHelper.camelToUnderline(strField);
     }
-    
+
     /***************************************************************************
      * @param clazz
      * @return id field name
@@ -454,22 +490,22 @@ public class SQLExecutor
     public String getIdFieldName(Class<?> clazz)
     {
         Method[] methods = clazz.getMethods();
-        
+
         for (Method method : methods)
         {
             Id annoId = method.getAnnotation(Id.class);
-            
+
             if (annoId != null)
             {
                 String strField = getFieldName(method);
-                
+
                 return strField;
             }
         }
-        
+
         throw new RuntimeException("实体类[" + clazz.getName() + "]必须有一个包含@Id的方法");
     }
-    
+
     /***************************************************************************
      * @param <T>
      * @param strFields
@@ -481,22 +517,22 @@ public class SQLExecutor
     public <T extends SuperVO> SQLParameter[] getParamInsert(String[] strFields, T... superVOs)
     {
         Method[] methods = SuperVO.getGetter(superVOs[0].getClass());
-        
+
         SQLParameter[] params = new SQLParameter[superVOs.length];
-        
+
         for (int i = 0; i < superVOs.length; i++)
         {
             params[i] = new SQLParameter();
-            
+
             for (Method method : methods)
             {
                 Column annoColumn = method.getAnnotation(Column.class);
-                
+
                 if (annoColumn != null && !annoColumn.insertable())
                 {
                     continue;
                 }
-                
+
                 try
                 {
                     params[i].addParam(method.invoke(superVOs[i], (Object[]) null));
@@ -507,10 +543,10 @@ public class SQLExecutor
                 }
             }
         }
-        
+
         return params;
     }
-    
+
     /***************************************************************************
      * @return resultSetType
      * @author Rocex Wang
@@ -520,7 +556,7 @@ public class SQLExecutor
     {
         return ResultSet.TYPE_SCROLL_SENSITIVE;
     }
-    
+
     /***************************************************************************
      * @param clazz
      * @param strFields
@@ -531,41 +567,41 @@ public class SQLExecutor
     public String getSQLCreate(Class<? extends SuperVO> clazz, String... strFields)
     {
         String strTableName = getTableNameFromClass(clazz);
-        
+
         StringBuilder strSQL = new StringBuilder("create table ").append(strTableName).append("(");
-        
+
         Method[] methods = SuperVO.getGetter(clazz);
-        
+
         for (Method method : methods)
         {
             Column annoColumn = method.getAnnotation(Column.class);
-            
+
             int iLength = 255;
             int iPrecision = 0;
             boolean blNullable = true;
-            
+
             if (annoColumn != null)
             {
                 if (!annoColumn.insertable() && !annoColumn.updatable())
                 {
                     continue;
                 }
-                
+
                 if (StringHelper.isNotEmpty(annoColumn.columnDefinition()))
                 {
                     strSQL.append(annoColumn.columnDefinition());
-                    
+
                     continue;
                 }
-                
+
                 iLength = annoColumn.length();
                 iPrecision = annoColumn.precision();
                 blNullable = annoColumn.nullable();
             }
-            
+
             // formula varchar2(400) default '~' null
             StringBuilder strField = new StringBuilder(getFieldName(method));
-            
+
             Class<?> returnType = method.getReturnType();
             if (returnType == Integer.class)
             {
@@ -579,24 +615,24 @@ public class SQLExecutor
             {
                 strField.append(" varchar(").append(iLength).append(")");
             }
-            
+
             strSQL.append(strField).append(blNullable ? " null" : " not null").append(",");
         }
-        
+
         String strIdFieldName = getIdFieldName(clazz);
-        
+
         strSQL.append(" constraint ").append(strTableName).append("_").append(strIdFieldName).append(" primary key (").append(strIdFieldName).append("))");
-        
+
         return strSQL.toString();
     }
-    
+
     public String getSQLDelete(Class<? extends SuperVO> clazz)
     {
         String strSQL = "delete from " + getTableNameFromClass(clazz);
-        
+
         return strSQL;
     }
-    
+
     /***************************************************************************
      * @param clazz
      * @param strFields
@@ -607,38 +643,38 @@ public class SQLExecutor
     public String getSQLInsert(Class<? extends SuperVO> clazz, String... strFields)
     {
         String strTableName = getTableNameFromClass(clazz);
-        
+
         StringBuilder strSQL = new StringBuilder("insert into ").append(strTableName).append("(");
-        
+
         List<String> listField = new ArrayList<>();
         Method[] methods = SuperVO.getGetter(clazz);
-        
+
         for (Method method : methods)
         {
             Column annoColumn = method.getAnnotation(Column.class);
-            
+
             if (annoColumn != null && !annoColumn.insertable())
             {
                 continue;
             }
-            
+
             listField.add(getFieldName(method));
         }
-        
+
         StringBuilder strField = new StringBuilder();
         StringBuilder strMark = new StringBuilder();
-        
+
         listField.stream().forEach(strFieldName ->
         {
             strField.append(",").append(strFieldName);
             strMark.append(",?");
         });
-        
+
         strSQL.append(strField.substring(1)).append(") values (").append(strMark.substring(1)).append(")");
-        
+
         return strSQL.toString();
     }
-    
+
     /***************************************************************************
      * @param clazz
      * @param strFields
@@ -649,36 +685,36 @@ public class SQLExecutor
     public String getSQLUpdate(Class<? extends SuperVO> clazz, String... strFields)
     {
         String strTableName = getTableNameFromClass(clazz);
-        
+
         StringBuilder strSQL = new StringBuilder("update ").append(strTableName).append(" set ");
-        
+
         List<String> listField = new ArrayList<>();
         Method[] methods = SuperVO.getGetter(clazz);
-        
+
         for (Method method : methods)
         {
             Column annoColumn = method.getAnnotation(Column.class);
-            
+
             if (annoColumn != null && !annoColumn.updatable())
             {
                 continue;
             }
-            
+
             listField.add(getFieldName(method));
         }
-        
+
         StringBuilder strField = new StringBuilder();
-        
+
         listField.stream().forEach(strFieldName ->
         {
             strField.append(",").append(strFieldName).append("=?");
         });
-        
+
         strSQL.append(strField.substring(1));
-        
+
         return strSQL.toString();
     }
-    
+
     /***************************************************************************
      * 获取指定实体类对应的表名
      * @param clazz
@@ -690,12 +726,12 @@ public class SQLExecutor
     {
         final String strClassName = clazz.getSimpleName();
         final Table table = clazz.getAnnotation(Table.class);
-        
+
         String strTableName = table != null && StringHelper.isNotEmpty(table.name()) ? table.name() : StringHelper.camelToUnderline(strClassName);
-        
+
         return strTableName;
     }
-    
+
     /***************************************************************************
      * @param classes
      * @author Rocex Wang
@@ -707,20 +743,20 @@ public class SQLExecutor
         {
             return;
         }
-        
+
         for (Class<? extends SuperVO> clazz : classes)
         {
             if (isTableExist(getTableNameFromClass(clazz)))
             {
                 continue;
             }
-            
+
             String strSQL = getSQLCreate(clazz);
-            
+
             try
             {
                 executeUpdate(strSQL);
-                
+
                 initTableIndexes(clazz);
             }
             catch (SQLException ex)
@@ -729,7 +765,7 @@ public class SQLExecutor
             }
         }
     }
-    
+
     /***************************************************************************
      * @param clazz
      * @author Rocex Wang
@@ -738,23 +774,23 @@ public class SQLExecutor
     public void initTableIndexes(Class<? extends SuperVO> clazz)
     {
         final Table table = clazz.getAnnotation(Table.class);
-        
+
         Index[] indexes = null;
-        
+
         if (table == null || (indexes = table.indexes()) == null || indexes.length == 0)
         {
             return;
         }
-        
+
         String strTableName = getTableNameFromClass(clazz);
-        
+
         for (Index index : indexes)
         {
             index.columnList();
-            
+
             StringBuilder strSQL = new StringBuilder("create index ").append(index.name()).append(" on ").append(strTableName).append(" (")
                     .append(index.columnList()).append(")");
-            
+
             try
             {
                 executeUpdate(strSQL.toString());
@@ -765,7 +801,7 @@ public class SQLExecutor
             }
         }
     }
-    
+
     /***************************************************************************
      * @param <T>
      * @param superVOs
@@ -777,14 +813,14 @@ public class SQLExecutor
     public <T extends SuperVO> String[] insertVO(T... superVOs) throws SQLException
     {
         String strSQL = getSQLInsert(superVOs[0].getClass());
-        
+
         SQLParameter[] params = getParamInsert(null, superVOs);
-        
+
         executeUpdate(strSQL, params);
-        
+
         return null;
     }
-    
+
     /***************************************************************************
      * @param strTableName
      * @return boolean
@@ -793,24 +829,32 @@ public class SQLExecutor
      ***************************************************************************/
     public boolean isTableExist(String strTableName)
     {
-        String strSQL = "select count(1) from " + strTableName + " where 1=0";
-        
+        ResultSet resultSet = null;
+
         try
         {
-            return (boolean) executeQuery(strSQL, new ResultSetProcessor()
+            resultSet = getConnection().getMetaData().getTables(null, null, strTableName, new String[] { "TABLE" });
+
+            Object objResult = new ResultSetProcessor()
             {
                 @Override
                 protected Object processResultSet(ResultSet resultSet) throws SQLException
                 {
-                    return true;
+                    return resultSet.next();
                 }
-            });
+            }.doAction(resultSet);
+
+            return (boolean) objResult;
         }
-        catch (SQLException ex)
+        catch (Exception ex)
         {
-            Logger.getLogger().error(ex.getMessage());
+            Logger.getLogger().error(ex.getMessage(), ex);
         }
-        
+        finally
+        {
+            close(resultSet);
+        }
+
         return false;
     }
 }
