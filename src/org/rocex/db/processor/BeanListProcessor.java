@@ -3,10 +3,12 @@ package org.rocex.db.processor;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
+import java.util.EventObject;
 import java.util.List;
 import java.util.Map;
 import java.util.function.Predicate;
 
+import org.rocex.datadict.IAction;
 import org.rocex.utils.Logger;
 import org.rocex.vo.SuperVO;
 
@@ -17,16 +19,16 @@ import org.rocex.vo.SuperVO;
  ***************************************************************************/
 public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
 {
-    protected boolean blSupportPagenation = false;// 是否支持分页
-
+    private final Map<String, String> mapFieldRelationship;// 查询的数据库字段和VO中字段在不相同的情况下的对照关系，相同的可忽略
+    
+    private final String[] strFields; // 只处理指定的字段，每个值对应到VO中的属性(不区分大小写)，null为都处理
+    
     protected Class<T> clazz = null;
-
+    
+    private IAction pagingAction;
+    
     private Predicate<? super T> filter;
-
-    private Map<String, String> mapFieldRelationship;// 查询的数据库字段和VO中字段在不相同的情况下的对照关系，相同的可忽略
-
-    private String strFields[]; // 只处理指定的字段，每个值对应到VO中的属性(不区分大小写)，null为都处理
-
+    
     /***************************************************************************
      * @param clazz
      * @author Rocex Wang
@@ -36,7 +38,7 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
     {
         this(clazz, null);
     }
-
+    
     /***************************************************************************
      * @param clazz
      * @param blCloseResultSet
@@ -46,10 +48,10 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
     public BeanListProcessor(Class<T> clazz, boolean blCloseResultSet)
     {
         this(clazz, null);
-
+        
         setAutoCloseResultSet(blCloseResultSet);
     }
-
+    
     /***************************************************************************
      * @param clazz
      * @param mapFieldRelationship 查询的数据库字段和VO中字段在不相同的情况下的对照关系，相同的可忽略
@@ -60,17 +62,16 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
     public BeanListProcessor(Class<T> clazz, Map<String, String> mapFieldRelationship, Predicate<? super T> filter, String... strFields)
     {
         super();
-
+        
         this.clazz = clazz;
         this.filter = filter;
         this.strFields = strFields;
         this.mapFieldRelationship = mapFieldRelationship;
     }
-
+    
     /***************************************************************************
      * @param clazz
      * @param mapRelationship
-     * @param blCloseResultSet
      * @param strFields
      * @author Rocex Wang
      * @version 2020-5-14 16:54:58
@@ -79,10 +80,10 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
     {
         this(clazz, mapRelationship, null, strFields);
     }
-
+    
     /****************************************************************************
      * {@inheritDoc}<br>
-     * @see org.rocex.datahub.db.processor.BeanProcessor#processResultSet(java.sql.ResultSet)
+     * @see org.rocex.db.processor.BeanProcessor#processResultSet(ResultSet)
      * @author Rocex Wang
      * @version 2019-8-7 10:16:06
      ****************************************************************************/
@@ -90,43 +91,55 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
     protected List<T> processResultSet(ResultSet resultSet) throws SQLException
     {
         List<T> listVO = new ArrayList<>();
-
+        List<T> listAllVO = new ArrayList<>();
+        
         try
         {
             BeanProcessor<T> beanProcessor = new BeanProcessor<>(clazz, mapFieldRelationship, strFields);
-
-            if (filter != null)
+            
+            while (resultSet.next())
             {
-                while (resultSet.next())
+                T rowVO = beanProcessor.processRow(resultSet);
+                
+                if (filter != null)
                 {
-                    T processRow = beanProcessor.processRow(resultSet);
-
-                    if (filter.test(processRow))
+                    if (filter.test(rowVO))
                     {
-                        listVO.add(processRow);
+                        listVO.add(rowVO);
                     }
                 }
-            }
-            else
-            {
-                while (resultSet.next())
+                else
                 {
-                    T processRow = beanProcessor.processRow(resultSet);
-
-                    listVO.add(processRow);
+                    listVO.add(rowVO);
+                }
+                
+                if (pagingAction != null && listVO.size() == SQLExecutor.iBatchSize)
+                {
+                    pagingAction.doAction(new EventObject(listVO));
+                    
+                    listAllVO.addAll(listVO);
+                    listVO.clear();
                 }
             }
+            
+            if (pagingAction != null && !listVO.isEmpty())
+            {
+                pagingAction.doAction(new EventObject(listVO));
+            }
+            
+            listAllVO.addAll(listVO);
+            listVO.clear();
         }
         catch (Exception ex)
         {
             Logger.getLogger().error(ex.getMessage(), ex);
-
+            
             throw new SQLException(ex.getMessage(), ex);
         }
-
-        return listVO;
+        
+        return listAllVO;
     }
-
+    
     /***************************************************************************
      * @param filter the filter to set
      * @author Rocex Wang
@@ -135,5 +148,15 @@ public class BeanListProcessor<T extends SuperVO> extends ResultSetProcessor
     public void setFilter(Predicate<? super T> filter)
     {
         this.filter = filter;
+    }
+    
+    /***************************************************************************
+     * @param pagingAction
+     * @author Rocex Wang
+     * @since 2021-11-09 11:00:35
+     ***************************************************************************/
+    public void setPagingAction(IAction pagingAction)
+    {
+        this.pagingAction = pagingAction;
     }
 }
