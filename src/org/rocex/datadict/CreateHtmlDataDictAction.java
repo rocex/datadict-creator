@@ -85,7 +85,7 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
         super.createDataDictFileRow(classVO, propertyVO, iRowIndex);
 
         // 数据库类型
-        String strDbType = getDbSqlType(propertyVO);
+        String strDbType = getDataTypeSql(propertyVO);
 
         // 是否必输
         String strMustInput = "N".equals(propertyVO.getNullable()) ? "√" : "";
