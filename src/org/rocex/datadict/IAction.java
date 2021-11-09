@@ -1,5 +1,7 @@
 package org.rocex.datadict;
 
+import java.util.EventObject;
+
 /***************************************************************************
  * <br>
  * @author Rocex Wang
@@ -10,6 +12,7 @@ public interface IAction
     /***************************************************************************
      * @author Rocex Wang
      * @version 2020-4-21 15:47:35
+     * @param evt
      ***************************************************************************/
-    void doAction();
+    void doAction(EventObject evt);
 }
