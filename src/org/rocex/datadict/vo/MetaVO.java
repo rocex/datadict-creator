@@ -1,5 +1,6 @@
 package org.rocex.datadict.vo;
 
+import javax.persistence.Column;
 import javax.persistence.Id;
 
 import org.rocex.vo.SuperVO;
@@ -14,7 +15,7 @@ public class MetaVO extends SuperVO
     private String strDisplayName;
     private String strId;
     private String strName;
-
+    
     /***************************************************************************
      * @return the displayName
      * @author Rocex Wang
@@ -24,18 +25,19 @@ public class MetaVO extends SuperVO
     {
         return strDisplayName;
     }
-
+    
     /***************************************************************************
      * @return the id
      * @author Rocex Wang
      * @version 2020-4-21 13:45:33
      ***************************************************************************/
     @Id
+    @Column(nullable = false, length = 128)
     public String getId()
     {
         return strId;
     }
-
+    
     /***************************************************************************
      * @return the name
      * @author Rocex Wang
@@ -45,7 +47,7 @@ public class MetaVO extends SuperVO
     {
         return strName;
     }
-
+    
     /***************************************************************************
      * @param displayName the displayName to set
      * @author Rocex Wang
@@ -55,7 +57,7 @@ public class MetaVO extends SuperVO
     {
         strDisplayName = displayName;
     }
-
+    
     /***************************************************************************
      * @param id the id to set
      * @author Rocex Wang
@@ -65,7 +67,7 @@ public class MetaVO extends SuperVO
     {
         strId = id;
     }
-
+    
     /***************************************************************************
      * @param name the name to set
      * @author Rocex Wang
