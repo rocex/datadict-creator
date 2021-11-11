@@ -2,6 +2,7 @@ package org.rocex.datadict.vo;
 
 import java.util.List;
 
+import javax.persistence.Column;
 import javax.persistence.Index;
 import javax.persistence.Table;
 
@@ -14,7 +15,7 @@ import javax.persistence.Table;
         @Index(name = "i_md_class_default_table_name", columnList = "default_table_name") })
 public class ClassVO extends MetaVO
 {
-    private Integer iClassType;
+    private Integer iClassType;     // 999 - 数据库表
 
     private List<PropertyVO> propertyVO;
 
@@ -24,7 +25,7 @@ public class ClassVO extends MetaVO
     private String strFullClassname;
     private String strIsPrimary;
     private String strKeyAttribute;
-    
+
     /***************************************************************************
      * @return the classListUrl
      * @author Rocex Wang
@@ -100,6 +101,7 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-10-15 03:00:29
      ***************************************************************************/
+    @Column(insertable = false, updatable = false)
     public List<PropertyVO> getPropertyVO()
     {
         return propertyVO;
