@@ -69,7 +69,7 @@ function loadDataDict(classId) {
         dataType: "json",
         url: "./dict/" + classId + ".json",
         error: function () {
-            alert("网络好像中断了，请联系管理员！");
+            alert("请求失败，请稍后再试或联系管理员！");
         },
         success: function (data) {
             if (data === undefined) {

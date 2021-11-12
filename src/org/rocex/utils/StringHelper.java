@@ -12,10 +12,10 @@ import java.util.concurrent.ThreadLocalRandom;
  ***************************************************************************/
 public class StringHelper
 {
-    private static Set<String> setExist = new HashSet<>();
-    
+    private static Set<String> setExistId = new HashSet<>();
+
     public static final String WHITESPACE = " \n\r\f\t";
-    
+
     /***************************************************************************
      * 驼峰转下划线，例如：userName -> user_name
      * @param strValue
@@ -29,19 +29,19 @@ public class StringHelper
         {
             return strValue;
         }
-        
+
         String strResult = "";
-        
+
         char[] chars = strValue.toCharArray();
-        
+
         for (char ch : chars)
         {
             strResult += ch >= 'A' && ch <= 'Z' ? "_" + (char) (ch + ('a' - 'A')) : ch;
         }
-        
+
         return strResult.startsWith("_") ? strResult.substring(1) : strResult;
     }
-    
+
     /***************************************************************************
      * @param objValue
      * @return String
@@ -52,7 +52,7 @@ public class StringHelper
     {
         return defaultString(objValue == null ? null : objValue.toString());
     }
-    
+
     /***************************************************************************
      * @param strValue
      * @return String
@@ -63,7 +63,7 @@ public class StringHelper
     {
         return defaultString(strValue, "");
     }
-    
+
     /***************************************************************************
      * @param strValue
      * @param strDefault
@@ -75,7 +75,7 @@ public class StringHelper
     {
         return strValue == null ? strDefault : strValue;
     }
-    
+
     /***************************************************************************
      * @param object1
      * @param object2
@@ -89,15 +89,15 @@ public class StringHelper
         {
             return true;
         }
-        
+
         if (object1 == null || object2 == null)
         {
             return false;
         }
-        
+
         return object1.equals(object2);
     }
-    
+
     /***************************************************************************
      * @param strValue
      * @return 首字母变小写
@@ -108,18 +108,18 @@ public class StringHelper
     public static String firstCharToLowerCase(String strValue)
     {
         char firstChar = strValue.charAt(0);
-        
+
         if (firstChar >= 'A' && firstChar <= 'Z')
         {
             char[] chars = strValue.toCharArray();
             chars[0] += 'a' - 'A';
-            
+
             return new String(chars);
         }
-        
+
         return strValue;
     }
-    
+
     /***************************************************************************
      * @param strValue
      * @return 首字母变大写
@@ -130,18 +130,18 @@ public class StringHelper
     public static String firstCharToUpperCase(String strValue)
     {
         char firstChar = strValue.charAt(0);
-        
+
         if (firstChar >= 'a' && firstChar <= 'z')
         {
             char[] chars = strValue.toCharArray();
             chars[0] -= 'a' - 'A';
-            
+
             return new String(chars);
         }
-        
+
         return strValue;
     }
-    
+
     /***************************************************************************
      * @return String
      * @author Rocex Wang
@@ -151,7 +151,7 @@ public class StringHelper
     {
         return getRandomNoRepeat(10);
     }
-    
+
     /*********************************************************************************************************
      * Created on 2004-7-7 11:21:57 <br>
      * @param strSource
@@ -161,7 +161,7 @@ public class StringHelper
     {
         return getLength(strSource, false);
     }
-    
+
     /*********************************************************************************************************
      * Created on 2004-7-7 11:21:57 <br>
      * @param strSource
@@ -174,24 +174,24 @@ public class StringHelper
         {
             return 0;
         }
-        
+
         if (blTrim)
         {
             strSource = strSource.trim();
         }
-        
+
         int iLength = 0;
-        
+
         for (int i = 0; i < strSource.length(); i++)
         {
             char strTemp = strSource.charAt(i);
-            
+
             iLength = iLength + (strTemp >= 0 && strTemp <= 255 ? 1 : 2);
         }
-        
+
         return iLength;
     }
-    
+
     /***************************************************************************
      * @param iLength
      * @return 返回定长随机字符串
@@ -224,16 +224,18 @@ public class StringHelper
         while (true)
         {
             String strResult = getRandom(iLength);
-            
-            if (!setExist.contains(strResult))
+
+            if (!setExistId.contains(strResult))
             {
-                setExist.add(strResult);
-                
+                setExistId.add(strResult);
+
                 return strResult;
             }
+
+            Logger.getLogger().error("生成了重复id，容量: " + setExistId.size());
         }
     }
-    
+
     /***************************************************************************
      * @return UUID.toString()
      * @author Rocex Wang
@@ -243,7 +245,7 @@ public class StringHelper
     {
         return UUID.randomUUID().toString();
     }
-    
+
     /***************************************************************************
      * @param strSource
      * @return boolean
@@ -254,7 +256,7 @@ public class StringHelper
     {
         return strSource == null || strSource.length() == 0;
     }
-    
+
     /***************************************************************************
      * @param strSource
      * @return boolean
@@ -265,7 +267,7 @@ public class StringHelper
     {
         return strSource != null && strSource.length() > 0;
     }
-    
+
     /***************************************************************************
      * 下划线转驼峰，例如：user_name -> userName
      * @param strValue
@@ -279,16 +281,16 @@ public class StringHelper
         {
             return strValue;
         }
-        
+
         StringBuilder strResult = new StringBuilder();
-        
+
         String[] strSplits = strValue.split("_");
-        
+
         for (String strSplit : strSplits)
         {
             strResult.append(firstCharToUpperCase(strSplit));
         }
-        
+
         return strResult.toString();
     }
 }
