@@ -12,30 +12,32 @@ import javax.persistence.Table;
  * @version 2020-4-21 13:20:06
  ***************************************************************************/
 @Table(name = "md_class", indexes = { @Index(name = "i_md_class_component_id", columnList = "component_id"),
-        @Index(name = "i_md_class_default_table_name", columnList = "default_table_name") })
+        @Index(name = "i_md_class_default_table_name", columnList = "default_table_name"), @Index(name = "i_md_class_class_type", columnList = "class_type") })
 public class ClassVO extends MetaVO
 {
     private Integer iClassType;     // 999 - 数据库表
-
+    
     private List<PropertyVO> propertyVO;
-
+    
     private String strClassListUrl;
     private String strComponentId;
     private String strDefaultTableName;
     private String strFullClassname;
+    private String strHelp;
     private String strIsPrimary;
     private String strKeyAttribute;
-
+    
     /***************************************************************************
      * @return the classListUrl
      * @author Rocex Wang
      * @since 2021-10-22 03:40:16
      ***************************************************************************/
+    @Column(insertable = false, updatable = false)
     public String getClassListUrl()
     {
         return strClassListUrl;
     }
-
+    
     /***************************************************************************
      * @return the classType
      * @author Rocex Wang
@@ -45,7 +47,7 @@ public class ClassVO extends MetaVO
     {
         return iClassType;
     }
-
+    
     /***************************************************************************
      * @return the componentId
      * @author Rocex Wang
@@ -55,7 +57,7 @@ public class ClassVO extends MetaVO
     {
         return strComponentId;
     }
-
+    
     /***************************************************************************
      * @return the defaultTableName
      * @author Rocex Wang
@@ -65,7 +67,7 @@ public class ClassVO extends MetaVO
     {
         return strDefaultTableName;
     }
-
+    
     /***************************************************************************
      * @return the fullClassname
      * @author Rocex Wang
@@ -75,7 +77,17 @@ public class ClassVO extends MetaVO
     {
         return strFullClassname;
     }
-
+    
+    /***************************************************************************
+     * @return the help
+     * @author Rocex Wang
+     * @since 2021-11-12 03:29:20
+     ***************************************************************************/
+    public String getHelp()
+    {
+        return strHelp;
+    }
+    
     /***************************************************************************
      * @return the isPrimary
      * @author Rocex Wang
@@ -85,7 +97,7 @@ public class ClassVO extends MetaVO
     {
         return strIsPrimary;
     }
-
+    
     /***************************************************************************
      * @return the keyAttribute
      * @author Rocex Wang
@@ -95,7 +107,7 @@ public class ClassVO extends MetaVO
     {
         return strKeyAttribute;
     }
-
+    
     /***************************************************************************
      * @return the propertyVO
      * @author Rocex Wang
@@ -106,7 +118,7 @@ public class ClassVO extends MetaVO
     {
         return propertyVO;
     }
-
+    
     /***************************************************************************
      * @param classListUrl the classListUrl to set
      * @author Rocex Wang
@@ -116,7 +128,7 @@ public class ClassVO extends MetaVO
     {
         strClassListUrl = classListUrl;
     }
-
+    
     /***************************************************************************
      * @param classType the classType to set
      * @author Rocex Wang
@@ -126,7 +138,7 @@ public class ClassVO extends MetaVO
     {
         iClassType = classType;
     }
-
+    
     /***************************************************************************
      * @param componentId the componentId to set
      * @author Rocex Wang
@@ -136,7 +148,7 @@ public class ClassVO extends MetaVO
     {
         strComponentId = componentId;
     }
-
+    
     /***************************************************************************
      * @param defaultTableName the defaultTableName to set
      * @author Rocex Wang
@@ -146,7 +158,7 @@ public class ClassVO extends MetaVO
     {
         strDefaultTableName = defaultTableName;
     }
-
+    
     /***************************************************************************
      * @param fullClassname the fullClassname to set
      * @author Rocex Wang
@@ -156,7 +168,17 @@ public class ClassVO extends MetaVO
     {
         strFullClassname = fullClassname;
     }
-
+    
+    /***************************************************************************
+     * @param help the help to set
+     * @author Rocex Wang
+     * @since 2021-11-12 03:29:20
+     ***************************************************************************/
+    public void setHelp(String help)
+    {
+        strHelp = help;
+    }
+    
     /***************************************************************************
      * @param isPrimary the isPrimary to set
      * @author Rocex Wang
@@ -166,7 +188,7 @@ public class ClassVO extends MetaVO
     {
         strIsPrimary = isPrimary;
     }
-
+    
     /***************************************************************************
      * @param keyAttribute the keyAttribute to set
      * @author Rocex Wang
@@ -176,7 +198,7 @@ public class ClassVO extends MetaVO
     {
         strKeyAttribute = keyAttribute;
     }
-
+    
     /***************************************************************************
      * @param propertyVO the propertyVO to set
      * @author Rocex Wang

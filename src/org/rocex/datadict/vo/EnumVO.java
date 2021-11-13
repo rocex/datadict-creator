@@ -2,6 +2,7 @@ package org.rocex.datadict.vo;
 
 import java.math.BigDecimal;
 
+import javax.persistence.Index;
 import javax.persistence.Table;
 
 /***************************************************************************
@@ -9,14 +10,14 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @version 2020-4-23 13:35:11
  ***************************************************************************/
-@Table(name = "md_enumvalue")
+@Table(name = "md_enumvalue", indexes = { @Index(name = "i_md_enumvalue_class_id", columnList = "class_id,enum_sequence") })
 public class EnumVO extends MetaVO
 {
     private BigDecimal iEnumSequence;
-
+    
     private String strClassId;
     private String strEnumValue;
-
+    
     /***************************************************************************
      * @return the classId
      * @author Rocex Wang
@@ -26,7 +27,7 @@ public class EnumVO extends MetaVO
     {
         return strClassId;
     }
-
+    
     /***************************************************************************
      * @return the enumSequence
      * @author Rocex Wang
@@ -36,7 +37,7 @@ public class EnumVO extends MetaVO
     {
         return iEnumSequence;
     }
-
+    
     /***************************************************************************
      * @return the value
      * @author Rocex Wang
@@ -46,7 +47,7 @@ public class EnumVO extends MetaVO
     {
         return strEnumValue;
     }
-
+    
     /***************************************************************************
      * @param classId the classId to set
      * @author Rocex Wang
@@ -56,7 +57,7 @@ public class EnumVO extends MetaVO
     {
         strClassId = classId;
     }
-
+    
     /***************************************************************************
      * @param enumSequence the enumSequence to set
      * @author Rocex Wang
@@ -66,7 +67,7 @@ public class EnumVO extends MetaVO
     {
         iEnumSequence = enumSequence;
     }
-
+    
     /***************************************************************************
      * @param value the value to set
      * @author Rocex Wang

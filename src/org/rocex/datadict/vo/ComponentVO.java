@@ -15,6 +15,7 @@ public class ComponentVO extends MetaVO
 {
     private List<ClassVO> classVO;
 
+    private String strOriginalId;
     private String strOwnModule;
 
     /***************************************************************************
@@ -29,6 +30,16 @@ public class ComponentVO extends MetaVO
     }
 
     /***************************************************************************
+     * @return the originalId
+     * @author Rocex Wang
+     * @since 2021-11-12 07:07:59
+     ***************************************************************************/
+    public String getOriginalId()
+    {
+        return strOriginalId;
+    }
+
+    /***************************************************************************
      * @return the ownModule
      * @author Rocex Wang
      * @version 2020-4-22 10:27:36
@@ -37,7 +48,7 @@ public class ComponentVO extends MetaVO
     {
         return strOwnModule;
     }
-    
+
     /***************************************************************************
      * @param classVO the classVO to set
      * @author Rocex Wang
@@ -47,7 +58,17 @@ public class ComponentVO extends MetaVO
     {
         this.classVO = classVO;
     }
-    
+
+    /***************************************************************************
+     * @param originalId the originalId to set
+     * @author Rocex Wang
+     * @since 2021-11-12 07:07:59
+     ***************************************************************************/
+    public void setOriginalId(String originalId)
+    {
+        strOriginalId = originalId;
+    }
+
     /***************************************************************************
      * @param ownModule the ownModule to set
      * @author Rocex Wang

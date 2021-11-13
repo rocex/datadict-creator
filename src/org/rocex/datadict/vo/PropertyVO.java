@@ -2,6 +2,7 @@ package org.rocex.datadict.vo;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
+import javax.persistence.Index;
 import javax.persistence.Table;
 
 /***************************************************************************
@@ -9,7 +10,7 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @version 2020-4-21 13:44:18
  ***************************************************************************/
-@Table(name = "md_property")
+@Table(name = "md_property", indexes = { @Index(name = "i_md_property_class_id", columnList = "class_id") })
 public class PropertyVO extends MetaVO
 {
     private boolean blKeyProp = false;
@@ -113,6 +114,16 @@ public class PropertyVO extends MetaVO
     }
 
     /***************************************************************************
+     * @return the sqlDateType
+     * @author Rocex Wang
+     * @version 2020-4-23 11:36:08
+     ***************************************************************************/
+    public String getDataTypeSql()
+    {
+        return strDataTypeSql;
+    }
+
+    /***************************************************************************
      * @return the dataTypeStyle
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
@@ -188,16 +199,6 @@ public class PropertyVO extends MetaVO
     public String getRefModelName()
     {
         return strRefModelName;
-    }
-
-    /***************************************************************************
-     * @return the sqlDateType
-     * @author Rocex Wang
-     * @version 2020-4-23 11:36:08
-     ***************************************************************************/
-    public String getDataTypeSql()
-    {
-        return strDataTypeSql;
     }
 
     /***************************************************************************
@@ -291,6 +292,16 @@ public class PropertyVO extends MetaVO
     }
 
     /***************************************************************************
+     * @param sqlDateType the sqlDateType to set
+     * @author Rocex Wang
+     * @version 2020-4-23 11:36:08
+     ***************************************************************************/
+    public void setDataTypeSql(String sqlDateType)
+    {
+        strDataTypeSql = sqlDateType;
+    }
+
+    /***************************************************************************
      * @param dataTypeStyle the dataTypeStyle to set
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
@@ -368,15 +379,5 @@ public class PropertyVO extends MetaVO
     public void setRefModelName(String refModelName)
     {
         strRefModelName = refModelName;
-    }
-
-    /***************************************************************************
-     * @param sqlDateType the sqlDateType to set
-     * @author Rocex Wang
-     * @version 2020-4-23 11:36:08
-     ***************************************************************************/
-    public void setDataTypeSql(String sqlDateType)
-    {
-        strDataTypeSql = sqlDateType;
     }
 }

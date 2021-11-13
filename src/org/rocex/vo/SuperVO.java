@@ -59,54 +59,54 @@ public class SuperVO implements Serializable
     protected static void initGetter(Class<? extends SuperVO> clazz)
     {
         Map<String, Method> mapGetter = new LinkedHashMap();
-        
+
         mapAllGetter.put(clazz.getName(), mapGetter);
-        
+
         Method[] methods = clazz.getMethods();
-        
+
         Arrays.sort(methods, (m1, m2) -> m1.getName().compareTo(m2.getName()));
-        
+
         String strIdField = null;
-        
+
         for (Method method : methods)
         {
             if (method.getParameterCount() != 0)
             {
                 continue;
             }
-            
+
             String strKey = null;
             String strName = method.getName();
-            
+
             if (strName.startsWith("get") && !"getClass".equals(strName) && !"getGetter".equals(strName) && !"getSetter".equals(strName)
                     && !"getValue".equals(strName))
             {
                 strKey = strName.substring(3).toLowerCase();
-                
+
                 mapGetter.put(strKey, method);
             }
-            else if (strName.startsWith("is") && method.getReturnType() == Boolean.class)
+            else if (strName.startsWith("is") && (method.getReturnType() == Boolean.class || method.getReturnType() == boolean.class))
             {
                 strKey = strName.substring(2).toLowerCase();
-                
+
                 mapGetter.put(strKey, method);
             }
-            
+
             if (method.getAnnotation(Id.class) != null)
             {
                 strIdField = strKey;
             }
         }
-        
+
         // 把id排到最前面
         if (strIdField != null)
         {
             Method methodId = mapGetter.remove(strIdField);
-            
+
             Map<String, Method> mapGetter2 = new LinkedHashMap<>();
             mapGetter2.put(strIdField, methodId);
             mapGetter2.putAll(mapGetter);
-            
+
             mapAllGetter.put(clazz.getName(), mapGetter2);
         }
     }
@@ -358,7 +358,7 @@ public class SuperVO implements Serializable
                 {
                     setValueToBigDecimal(method, objValue);
                 }
-                else if (classParamType == Boolean.class)
+                else if (classParamType == boolean.class || classParamType == Boolean.class)
                 {
                     setValueToBoolean(method, objValue);
                 }

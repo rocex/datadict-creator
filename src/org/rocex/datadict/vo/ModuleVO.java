@@ -10,25 +10,25 @@ import javax.persistence.Table;
 @Table(name = "md_module")
 public class ModuleVO extends MetaVO
 {
-    private String strModuleId;
+    private String strParentModuleId;
 
     /***************************************************************************
-     * @return the moduleId
+     * @return the parentModuleId
      * @author Rocex Wang
-     * @version 2020-5-19 20:57:57
+     * @since 2021-11-12 02:26:17
      ***************************************************************************/
-    public String getModuleId()
+    public String getParentModuleId()
     {
-        return strModuleId;
+        return strParentModuleId;
     }
 
     /***************************************************************************
-     * @param moduleId the moduleId to set
+     * @param parentModuleId the parentModuleId to set
      * @author Rocex Wang
-     * @version 2020-5-19 20:57:57
+     * @since 2021-11-12 02:26:17
      ***************************************************************************/
-    public void setModuleId(String moduleId)
+    public void setParentModuleId(String parentModuleId)
     {
-        strModuleId = moduleId;
+        strParentModuleId = parentModuleId;
     }
 }
