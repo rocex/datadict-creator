@@ -1,11 +1,11 @@
 package org.rocex.datadict;
 
+import java.io.File;
+import java.util.Properties;
+
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
 import org.rocex.utils.TimerLogger;
-
-import java.io.File;
-import java.util.Properties;
 
 /***************************************************************************
  * 根据数据库中元数据生成nc数据字典<br>

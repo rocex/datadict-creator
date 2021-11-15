@@ -5,9 +5,6 @@ import java.io.IOException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
-import java.sql.DatabaseMetaData;
-import java.sql.ResultSet;
-import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -32,7 +29,6 @@ import org.rocex.db.processor.BeanListProcessor;
 import org.rocex.db.processor.SQLExecutor;
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
-import org.rocex.utils.NaturalComparator;
 import org.rocex.utils.StringHelper;
 import org.rocex.utils.TimerLogger;
 
@@ -44,16 +40,15 @@ import org.rocex.utils.TimerLogger;
 public abstract class CreateDataDictAction implements IAction
 {
     protected static int iIdLength = 10; // 主键长度
-    
+
+    protected Map<String, String> mapColumn = new HashMap<>();
     protected Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();            // class id 和 class 的对应关系
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();     // component id 和 component 内所有 class 链接的对应关系
-    protected Map<String, String> mapColumn = new HashMap<>();
+
     protected Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();        // component id 和 component 的对应关系
     protected Map<String, String> mapEnumString = new HashMap<>();                    // enum id 和 enum name and value 的对应关系
     protected Map<String, String> mapId = new HashMap<>();                            // 为了减小生成的文件体积，把元数据id和序号做个对照关系
     protected Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();           // module id 和 module 的对应关系
-    
-    protected Map<String, String> mapTableNamePrimaryKeys = new HashMap<>();          // 表名和表主键列表的对应关系，多个主键用；分隔，表名用全小写
 
     protected SQLExecutor sqlExecutor = null;
 
@@ -68,14 +63,10 @@ public abstract class CreateDataDictAction implements IAction
             "vbatchdef", "bdef", "freevalue", "h_def", "vrcdef", "des_freedef", "src_freedef", "vprodbatdef", "factor", "free", "nfactor", "glbdef",
             "jobglbdef", "vcostfree" };
 
-    protected String strDBSchema;           // 数据库schema
     protected String strOutputDictDir;      // 输出数据字典文件目录
     protected String strOutputRootDir;      // 输出文件根目录
     protected String strRefClassPathHrefTemplate = "<a href=\"{0}\">{1}</a>";               // 引用模型 链接模板
 
-    // 排除一些表，最前面的英文逗号必须保留
-    protected String strTableFilters = ",aqua_explain_,hr_temptable,ic_temp_,iufo_measpub_,iufo_measure_data_,sm_securitylog_,tb_fd_sht,tb_tmp_tcheck,tb_tt_,temp000"
-            + ",temppkts,temptable_oa,temp_,temq_,tmpbd_,tmpub_calog_temp,tmp_,tm_mqsend_success_,uidbcache_temp_,uidbcache_temp_,wa_temp_,zdp_";
     protected String strTreeDataClassTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",url:\"{4}\",target:\"{5}\"'}',";    // 左树实体 链接模板
     protected String strTreeDataModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\"'}',";  // 左树模块 链接模板
     protected String strVersion;            // 数据字典版本
@@ -93,14 +84,12 @@ public abstract class CreateDataDictAction implements IAction
         strOutputRootDir = DataDictCreator.settings.getProperty(strVersion + ".OutputDir");
         strOutputDictDir = strOutputRootDir + File.separator + "dict";
 
-        strDBSchema = DataDictCreator.settings.getProperty(strVersion + ".jdbc.user").toUpperCase();
-
         Properties dbProp = new Properties();
 
-        dbProp.setProperty("jdbc.url", DataDictCreator.settings.getProperty(strVersion + ".jdbc.url"));
-        dbProp.setProperty("jdbc.user", DataDictCreator.settings.getProperty(strVersion + ".jdbc.user"));
-        dbProp.setProperty("jdbc.driver", DataDictCreator.settings.getProperty(strVersion + ".jdbc.driver"));
-        dbProp.setProperty("jdbc.password", DataDictCreator.settings.getProperty(strVersion + ".jdbc.password"));
+        // dbProp.setProperty("jdbc.url", "jdbc:sqlite:" + strOutputRootDir + File.separator +
+        // "datadict.sqlite");
+        dbProp.setProperty("jdbc.url", "jdbc:sqlite:C:/datadict/datadict.sqlite");
+        dbProp.setProperty("jdbc.driver", "org.sqlite.JDBC");
 
         sqlExecutor = new SQLExecutor(dbProp);
 
@@ -109,40 +98,6 @@ public abstract class CreateDataDictAction implements IAction
         {
             strCustomPatterns[i] = "(" + strCustomPatterns[i] + ")[0-9]+";
         }
-        
-        mapColumn.put("COLUMN_NAME", "Name");
-        mapColumn.put("COLUMN_SIZE", "AttrLength");
-        mapColumn.put("COLUMN_DEF", "DefaultValue");
-        mapColumn.put("TABLE_NAME", "ClassId");
-        mapColumn.put("TYPE_NAME", "DataTypeSql");
-        mapColumn.put("DECIMAL_DIGITS", "Precise");
-        mapColumn.put("NULLABLE", "Nullable");
-    }
-
-    /***************************************************************************
-     * 修复一些数据库数据问题
-     * @author Rocex Wang
-     * @version 2020-5-9 14:05:43
-     ***************************************************************************/
-    protected void adjustData()
-    {
-        TimerLogger.getLogger().begin("fix data");
-
-        String[] strSQLs = { "update md_class set name='Memo' where id='BS000010000100001030' and name='MEMO'",
-                "update md_class set name='MultiLangText' where id='BS000010000100001058' and name='MULTILANGTEXT'",
-                "update md_class set name='Custom' where id in('BS000010000100001056','BS000010000100001059') and name='CUSTOM'",
-                "update md_module set displayname='财务' where id='gl'" };
-
-        try
-        {
-            sqlExecutor.executeUpdate(strSQLs);
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
-
-        TimerLogger.getLogger().end("fix data");
     }
 
     /***************************************************************************
@@ -191,9 +146,9 @@ public abstract class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void buildEnumMap()
     {
-        TimerLogger.getLogger().begin("build enum map");
+        TimerLogger.getLogger().begin("query and build enum map");
 
-        String strEnumValueSQL = "select id,name,value as enum_value from md_enumvalue order by id,enumsequence";
+        String strEnumValueSQL = "select class_id as id,name,enum_value from md_enumvalue order by class_id,enum_sequence";
 
         List<EnumVO> listEnumValueVO = null;
 
@@ -225,7 +180,7 @@ public abstract class CreateDataDictAction implements IAction
             mapEnumString.put(enumVO.getId(), strEnum);
         }
 
-        TimerLogger.getLogger().end("build enum map");
+        TimerLogger.getLogger().end("query and build enum map");
     }
 
     /***************************************************************************
@@ -271,53 +226,6 @@ public abstract class CreateDataDictAction implements IAction
     }
 
     /***************************************************************************
-     * @param listAllTableVO
-     * @throws SQLException
-     * @throws Exception
-     * @author Rocex Wang
-     * @version 2020-5-13 16:22:33
-     ***************************************************************************/
-    protected void createAllTableDataDictFile(List<ClassVO> listAllTableVO) throws SQLException, Exception
-    {
-        TimerLogger.getLogger().begin("create all table data dict file: " + listAllTableVO.size());
-
-        Map<String, List<PropertyVO>> mapTableNamePropertyVO = queryAllDBField();
-        
-        DatabaseMetaData dbMetaData = sqlExecutor.getConnection().getMetaData();
-
-        for (ClassVO tableVO : listAllTableVO)
-        {
-            List<PropertyVO> listPropertyVO = mapTableNamePropertyVO.get(tableVO.getDefaultTableName());
-
-            listPropertyVO.sort((prop1, prop2) -> prop1.getName().compareToIgnoreCase(prop2.getName()));
-
-            listPropertyVO.sort(new NaturalComparator<PropertyVO>()
-            {
-                @Override
-                protected String getCompareKey(PropertyVO prop)
-                {
-                    return prop.getName();
-                }
-            });
-
-            // 找到表的主键
-            String strPks = getPrimaryKeys(dbMetaData, tableVO.getDefaultTableName(), mapColumn);
-
-            tableVO.setKeyAttribute(strPks);
-            tableVO.setDefaultTableName(tableVO.getDefaultTableName().toLowerCase());
-
-            for (PropertyVO propertyVO : listPropertyVO)
-            {
-                propertyVO.setClassId(tableVO.getId());
-            }
-
-            createDataDictFile(tableVO, listPropertyVO);
-        }
-
-        TimerLogger.getLogger().end("create all table data dict file: " + listAllTableVO.size());
-    }
-
-    /***************************************************************************
      * 生成数据字典文件
      * @param classVO
      * @author Rocex Wang
@@ -325,7 +233,7 @@ public abstract class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void createDataDictFile(ClassVO classVO)
     {
-        if (classVO.getClassType() != 201)
+        if (classVO.getClassType() != 201 && classVO.getClassType() != 999)
         {
             return;
         }
@@ -334,11 +242,13 @@ public abstract class CreateDataDictAction implements IAction
                 + ",attrmaxvalue,attrsequence,customattr,datatype,datatypestyle,a.defaultvalue defaultvalue"
                 + ",a.nullable nullable,a.precise precise,refmodelname,classid,b.sqldatetype data_type_sql,b.pkey"
                 + " from md_property a left join md_column b on a.name=b.name where classid=? and b.tableid=? order by b.pkey desc,a.attrsequence";
+        
+        strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? order by key_prop desc,attr_sequence";
 
         // 取实体所有属性
         SQLParameter para = new SQLParameter();
         para.addParam(classVO.getId());
-        para.addParam(classVO.getDefaultTableName());
+        // para.addParam(classVO.getDefaultTableName());
 
         List<PropertyVO> listPropertyVO = null;
 
@@ -376,9 +286,7 @@ public abstract class CreateDataDictAction implements IAction
         for (int i = 0; i < listPropertyVO.size(); i++)
         {
             PropertyVO propertyVO = listPropertyVO.get(i);
-            
-            propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
-            
+
             // 引用实体模型
             propertyVO.setRefClassPathHref(getRefClassPathHref(propertyVO));
 
@@ -404,22 +312,6 @@ public abstract class CreateDataDictAction implements IAction
     }
 
     /***************************************************************************
-     * @author Rocex Wang
-     * @version 2020-5-18 9:42:59
-     ***************************************************************************/
-    protected void createIndexHtmlFile()
-    {
-        TimerLogger.getLogger().begin("create index html file");
-
-        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlIndexFile"),
-                DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strCreateTime);
-
-        FileHelper.writeFileThread(Paths.get(strOutputRootDir, "index.html"), strHtml);
-
-        TimerLogger.getLogger().end("create index html file");
-    }
-
-    /***************************************************************************
      * 生成构造实体树的json数据
      * @param listModuleVO
      * @param listClassVO
@@ -427,7 +319,7 @@ public abstract class CreateDataDictAction implements IAction
      * @author Rocex Wang
      * @version 2020-4-29 11:21:07
      ***************************************************************************/
-    protected void createTreeData(List<ModuleVO> listModuleVO, List<ClassVO> listClassVO, List<ClassVO> listAllTableVO)
+    protected void createDataDictTree(List<ModuleVO> listModuleVO, List<ClassVO> listClassVO, List<ClassVO> listAllTableVO)
     {
         TimerLogger.getLogger().begin("create data dict tree data: " + (listClassVO.size() + listAllTableVO.size()));
 
@@ -474,24 +366,35 @@ public abstract class CreateDataDictAction implements IAction
         if (!listAllTableVO.isEmpty())
         {
             strModuleRows.append(MessageFormat.format(strTreeDataModuleTemplate, "all", "all", "所有表"));
-
-            String strChars = "abcdefghijklmnopqrstuvwxyz";
-
-            for (int i = 0; i < 26; i++)
-            {
-                char charAt = strChars.charAt(i);
-
-                strModuleRows.append(MessageFormat.format("'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\"'}',", "char_" + charAt, "all", charAt, charAt));
-            }
-
+            
+            char[] chars = new char[26];
+            
             for (ClassVO classVO : listAllTableVO)
             {
                 String strUrl = getClassUrl(classVO);
 
                 String strTableName = classVO.getDefaultTableName().toLowerCase();
 
-                strClassRows.append(MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), "char_" + strTableName.charAt(0), strTableName,
+                char char0 = strTableName.charAt(0);
+                
+                chars[char0 - 'a'] = char0;
+
+                strClassRows.append(MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), "char_" + char0, strTableName,
                         classVO.getDisplayName(), strUrl, "ddc"));
+            }
+
+            for (int i = 0; i < chars.length; i++)
+            {
+                char charAt = chars[i];
+                
+                if (charAt == 0)
+                {
+                    continue;
+                }
+
+                String strDisplay = new String(new char[] { charAt, charAt, charAt }).toUpperCase();
+
+                strModuleRows.append(MessageFormat.format("'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\"'}',", "char_" + charAt, "all", strDisplay, strDisplay));
             }
         }
 
@@ -499,6 +402,22 @@ public abstract class CreateDataDictAction implements IAction
                 "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
 
         TimerLogger.getLogger().end("create data dict tree data: " + (listClassVO.size() + listAllTableVO.size()));
+    }
+
+    /***************************************************************************
+     * @author Rocex Wang
+     * @version 2020-5-18 9:42:59
+     ***************************************************************************/
+    protected void createIndexHtmlFile()
+    {
+        TimerLogger.getLogger().begin("create index html file");
+
+        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlIndexFile"),
+                DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strCreateTime);
+
+        FileHelper.writeFileThread(Paths.get(strOutputRootDir, "index.html"), strHtml);
+
+        TimerLogger.getLogger().end("create index html file");
     }
 
     /****************************************************************************
@@ -516,17 +435,13 @@ public abstract class CreateDataDictAction implements IAction
 
         copyStaticHtmlFiles();
 
-        // String strModuleSQL = "select distinct lower(id) id,lower(name) name,displayname,b.moduleid moduleid from
-        // md_module a left join dap_dapsystem b on lower(a.id)=lower(b.devmodule) order by b.moduleid";
-        String strModuleSQL = "select distinct lower(id) id,lower(name) name,displayname from md_module order by name";
-        String strComponentSQL = "select id,name,displayname,lower(ownmodule) ownmodule from md_component";
-        String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary"
-                + " from md_class order by lower(defaulttablename)";
+        String strModuleSQL = "select id,display_name,name,parent_module_id from md_module order by lower(name)";
+        String strComponentSQL = "select original_id as id,display_name,name,own_module from md_component";
+        String strClassSQL = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name from md_class where class_type<>999 order by default_table_name";
+        String strClassSQL2 = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name from md_class where class_type=999 order by default_table_name";
 
         try
         {
-            adjustData();
-
             List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL, null, null);
             List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL, null, null);
             List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL, null, null);
@@ -539,9 +454,9 @@ public abstract class CreateDataDictAction implements IAction
 
             buildClassVOMapByComponentId(listClassVO);
 
-            List<ClassVO> listAllTableVO = queryAllDBTable();
+            List<ClassVO> listAllTableVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL2, null, null);
 
-            createTreeData(listModuleVO, listClassVO, listAllTableVO);
+            createDataDictTree(listModuleVO, listClassVO, listAllTableVO);
 
             TimerLogger.getLogger().begin("create data dict file: " + listClassVO.size());
 
@@ -552,7 +467,16 @@ public abstract class CreateDataDictAction implements IAction
 
             TimerLogger.getLogger().end("create data dict file: " + listClassVO.size());
 
-            createAllTableDataDictFile(listAllTableVO);
+            TimerLogger.getLogger().begin("create all table data dict file: " + listAllTableVO.size());
+
+            for (ClassVO classVO : listAllTableVO)
+            {
+                createDataDictFile(classVO);
+            }
+            
+            TimerLogger.getLogger().end("create all table data dict file: " + listAllTableVO.size());
+            
+            // createAllTableDataDictFile(listAllTableVO);
         }
         catch (Exception ex)
         {
@@ -703,31 +627,6 @@ public abstract class CreateDataDictAction implements IAction
     }
 
     /***************************************************************************
-     * 返回数据库类型定义
-     * @param propertyVO
-     * @return String
-     * @author Rocex Wang
-     * @version 2020-4-28 10:14:34
-     ***************************************************************************/
-    protected String getDataTypeSql(PropertyVO propertyVO)
-    {
-        String strDbType = propertyVO.getDataTypeSql().toLowerCase();
-
-        if (strDbType.contains("char") || strDbType.contains("text"))
-        {
-            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ")";
-        }
-        else if (strDbType.contains("decimal") || strDbType.contains("number"))
-        {
-            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ", " + propertyVO.getPrecise() + ")";
-        }
-
-        propertyVO.setDataTypeSql(strDbType);
-
-        return strDbType;
-    }
-
-    /***************************************************************************
      * 页脚版权信息
      * @return String
      * @author Rocex Wang
@@ -815,64 +714,6 @@ public abstract class CreateDataDictAction implements IAction
     }
 
     /***************************************************************************
-     * 根据数据库特性一次性读取所有表的主键，如果不能确定数据库，还是按照jdbc的api每次只取一个表的主键
-     * @param dbMetaData
-     * @param strTableName
-     * @param mapColumn
-     * @return String
-     * @throws Exception
-     * @author Rocex Wang
-     * @version 2020-5-22 14:03:59
-     ***************************************************************************/
-    protected String getPrimaryKeys(DatabaseMetaData dbMetaData, String strTableName, Map<String, String> mapColumn) throws Exception
-    {
-        String strPks = "";
-
-        if (dbMetaData.getDatabaseProductName().toLowerCase().contains("oracle"))
-        {
-            if (mapTableNamePrimaryKeys.isEmpty())
-            {
-                TimerLogger.getLogger().begin("oracle query all primary keys");
-
-                String strSQL = "select column_name id,table_name classid from user_cons_columns where constraint_name in(select constraint_name from user_constraints where constraint_type='P')";
-
-                sqlExecutor.executeQuery(strSQL, new BeanListProcessor<>(PropertyVO.class, null, propertyVO ->
-                {
-                    String strClassId = propertyVO.getClassId().toLowerCase();
-
-                    String strPk = mapTableNamePrimaryKeys.get(strClassId);
-
-                    strPk = strPk == null ? propertyVO.getId().toLowerCase() : strPk + ";" + propertyVO.getId().toLowerCase();
-
-                    mapTableNamePrimaryKeys.put(strClassId, strPk);
-
-                    return false;
-                }));
-
-                TimerLogger.getLogger().end("oracle query all primary keys");
-            }
-
-            strPks = mapTableNamePrimaryKeys.get(strTableName.toLowerCase());
-
-            return strPks == null ? "" : strPks;
-        }
-        else
-        {
-            // 找到表的主键
-            ResultSet rsPkColumns = dbMetaData.getPrimaryKeys(null, strDBSchema, strTableName);
-
-            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
-
-            for (PropertyVO propertyVO : listPkPropertyVO)
-            {
-                strPks += propertyVO.getId().toLowerCase() + ";";
-            }
-        }
-
-        return strPks;
-    }
-
-    /***************************************************************************
      * @param propertyVO
      * @return 引用实体模型
      * @author Rocex Wang
@@ -922,87 +763,6 @@ public abstract class CreateDataDictAction implements IAction
         }
 
         return false;
-    }
-
-    protected Map<String, List<PropertyVO>> queryAllDBField() throws Exception
-    {
-        TimerLogger.getLogger().begin("query all fields");
-
-        DatabaseMetaData dbMetaData = sqlExecutor.getConnection().getMetaData();
-
-        // 一次性查出所有表的字段，然后再按照表名分组
-        ResultSet rsColumns = dbMetaData.getColumns(null, strDBSchema, null, null);
-
-        Map<String, List<PropertyVO>> mapTableNamePropertyVO = new HashMap<>();
-
-        new BeanListProcessor<>(PropertyVO.class, mapColumn, propertyVO ->
-        {
-            propertyVO.setClassId(propertyVO.getClassId().toLowerCase());
-
-            List<PropertyVO> listProp = mapTableNamePropertyVO.get(propertyVO.getClassId());
-
-            if (listProp == null)
-            {
-                listProp = new ArrayList<>();
-                mapTableNamePropertyVO.put(propertyVO.getClassId(), listProp);
-            }
-
-            propertyVO.setDataType("999");
-            propertyVO.setId(StringHelper.getId());
-            propertyVO.setName(propertyVO.getName().toLowerCase());
-            propertyVO.setOriginalId(propertyVO.getName());
-            propertyVO.setDisplayName(propertyVO.getName());
-            propertyVO.setDataTypeSql(propertyVO.getDataTypeSql().toLowerCase());
-            propertyVO.setNullable("1".equals(propertyVO.getNullable()) ? "Y" : "N");
-
-            listProp.add(propertyVO);
-
-            return false;
-        }).doAction(rsColumns);
-
-        TimerLogger.getLogger().end("query all fields");
-        
-        return mapTableNamePropertyVO;
-    }
-
-    /***************************************************************************
-     * 查询所有表
-     * @param listClassVO
-     * @author Rocex Wang
-     * @version 2020-5-11 11:19:19
-     * @throws Exception
-     ***************************************************************************/
-    protected List<ClassVO> queryAllDBTable() throws Exception
-    {
-        TimerLogger.getLogger().begin("query all table");
-
-        ResultSet rsTable = sqlExecutor.getConnection().getMetaData().getTables(null, strDBSchema, "%", new String[] { "TABLE" });
-
-        Map<String, String> mapTable = new HashMap<>();
-        mapTable.put("TABLE_NAME", "DefaultTableName");
-
-        List<ClassVO> listAllClassVO = (List<ClassVO>) new BeanListProcessor<>(ClassVO.class, mapTable, classVO ->
-        {
-            String strDefaultTableName = classVO.getDefaultTableName().toLowerCase();
-
-            // 表名长度小于6、不包含下划线、要排除 的都认为不是合法要生成数据字典的表
-            if (strDefaultTableName.length() < 6 || !strDefaultTableName.contains("_") || strTableFilters.contains("," + strDefaultTableName))
-            {
-                return false;
-            }
-
-            classVO.setClassType(999);
-            classVO.setId(strDefaultTableName);
-            classVO.setName(strDefaultTableName);
-            classVO.setDisplayName(strDefaultTableName);
-            classVO.setDefaultTableName(strDefaultTableName);
-
-            return true;
-        }, "DefaultTableName").doAction(rsTable);
-
-        TimerLogger.getLogger().end("query all table");
-
-        return listAllClassVO;
     }
 
     /***************************************************************************

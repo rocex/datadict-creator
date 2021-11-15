@@ -62,8 +62,10 @@ public class CreateJsonDataDictAction extends CreateDataDictAction
 
         super.createDataDictFile(classVO, listPropertyVO);
         
-        new JacksonHelper().exclude(ClassVO.class, "classType", "componentId", "name", "keyAttribute", "id")
-                .exclude(PropertyVO.class, "id", "classId", "dataType", "dataTypeStyle").serialize(classVO, getClassFilePath(classVO));
+        new JacksonHelper()
+                .exclude(ClassVO.class, "classType", "componentId", "name", "keyAttribute", "id").exclude(PropertyVO.class, "id", "originalId", "classId",
+                        "customAttr", "dataType", "dataTypeStyle", "refModelName", "attrLength", "precise", "attrSequence")
+                .serialize(classVO, getClassFilePath(classVO));
     }
 
     /***************************************************************************
