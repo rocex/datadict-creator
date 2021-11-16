@@ -15,17 +15,42 @@ import javax.persistence.Table;
         @Index(name = "i_md_class_default_table_name", columnList = "default_table_name"), @Index(name = "i_md_class_class_type", columnList = "class_type") })
 public class ClassVO extends MetaVO
 {
+    private boolean blIsPrimary = false;
+    
     private Integer iClassType;     // 999 - 数据库表
     
     private List<PropertyVO> propertyVO;
-    
+
+    private String strAccessorClassname;
+    private String strBizItfImpClassname;
     private String strClassListUrl;
     private String strComponentId;
     private String strDefaultTableName;
     private String strFullClassname;
     private String strHelp;
-    private String strIsPrimary;
     private String strKeyAttribute;
+    private String strRefModelName;
+    private String strReturnType;
+    
+    /***************************************************************************
+     * @return the accessorClassname
+     * @author Rocex Wang
+     * @since 2021-11-16 02:14:23
+     ***************************************************************************/
+    public String getAccessorClassname()
+    {
+        return strAccessorClassname;
+    }
+    
+    /***************************************************************************
+     * @return the bizItfImpClassname
+     * @author Rocex Wang
+     * @since 2021-11-16 02:14:23
+     ***************************************************************************/
+    public String getBizItfImpClassname()
+    {
+        return strBizItfImpClassname;
+    }
     
     /***************************************************************************
      * @return the classListUrl
@@ -89,16 +114,6 @@ public class ClassVO extends MetaVO
     }
     
     /***************************************************************************
-     * @return the isPrimary
-     * @author Rocex Wang
-     * @version 2020-4-23 19:55:37
-     ***************************************************************************/
-    public String getIsPrimary()
-    {
-        return strIsPrimary;
-    }
-    
-    /***************************************************************************
      * @return the keyAttribute
      * @author Rocex Wang
      * @version 2020-4-22 14:32:45
@@ -117,6 +132,56 @@ public class ClassVO extends MetaVO
     public List<PropertyVO> getPropertyVO()
     {
         return propertyVO;
+    }
+    
+    /***************************************************************************
+     * @return the refModelName
+     * @author Rocex Wang
+     * @since 2021-11-16 02:14:23
+     ***************************************************************************/
+    public String getRefModelName()
+    {
+        return strRefModelName;
+    }
+    
+    /***************************************************************************
+     * @return the returnType
+     * @author Rocex Wang
+     * @since 2021-11-16 02:30:29
+     ***************************************************************************/
+    public String getReturnType()
+    {
+        return strReturnType;
+    }
+    
+    /***************************************************************************
+     * @return the isPrimary
+     * @author Rocex Wang
+     * @version 2020-4-23 19:55:37
+     ***************************************************************************/
+    public boolean getIsPrimary()
+    {
+        return blIsPrimary;
+    }
+    
+    /***************************************************************************
+     * @param accessorClassname the accessorClassname to set
+     * @author Rocex Wang
+     * @since 2021-11-16 02:14:23
+     ***************************************************************************/
+    public void setAccessorClassname(String accessorClassname)
+    {
+        strAccessorClassname = accessorClassname;
+    }
+    
+    /***************************************************************************
+     * @param bizItfImpClassname the bizItfImpClassname to set
+     * @author Rocex Wang
+     * @since 2021-11-16 02:14:23
+     ***************************************************************************/
+    public void setBizItfImpClassname(String bizItfImpClassname)
+    {
+        strBizItfImpClassname = bizItfImpClassname;
     }
     
     /***************************************************************************
@@ -184,9 +249,9 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-4-23 19:55:37
      ***************************************************************************/
-    public void setIsPrimary(String isPrimary)
+    public void setIsPrimary(boolean isPrimary)
     {
-        strIsPrimary = isPrimary;
+        blIsPrimary = isPrimary;
     }
     
     /***************************************************************************
@@ -207,5 +272,25 @@ public class ClassVO extends MetaVO
     public void setPropertyVO(List<PropertyVO> propertyVO)
     {
         this.propertyVO = propertyVO;
+    }
+    
+    /***************************************************************************
+     * @param refModelName the refModelName to set
+     * @author Rocex Wang
+     * @since 2021-11-16 02:14:23
+     ***************************************************************************/
+    public void setRefModelName(String refModelName)
+    {
+        strRefModelName = refModelName;
+    }
+    
+    /***************************************************************************
+     * @param returnType the returnType to set
+     * @author Rocex Wang
+     * @since 2021-11-16 02:30:29
+     ***************************************************************************/
+    public void setReturnType(String returnType)
+    {
+        strReturnType = returnType;
     }
 }

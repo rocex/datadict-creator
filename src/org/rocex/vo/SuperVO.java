@@ -418,9 +418,13 @@ public class SuperVO implements Serializable
      ***************************************************************************/
     protected void setValueToBoolean(Method method, Object objValue) throws Exception
     {
-        Boolean blValue = null;
+        Boolean blValue = false;
 
-        if (objValue == null || objValue instanceof Boolean)
+        if (objValue == null)
+        {
+            blValue = false;
+        }
+        else if (objValue instanceof Boolean)
         {
             blValue = (Boolean) objValue;
         }
@@ -431,6 +435,10 @@ public class SuperVO implements Serializable
         else if (objValue instanceof Integer)
         {
             blValue = ((Integer) objValue).intValue() == 1;
+        }
+        else if (objValue instanceof String)
+        {
+            blValue = "Y".equalsIgnoreCase((String) objValue) || "1".equals(objValue);
         }
         else
         {

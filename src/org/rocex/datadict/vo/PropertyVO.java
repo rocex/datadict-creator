@@ -1,7 +1,6 @@
 package org.rocex.datadict.vo;
 
 import javax.persistence.Column;
-import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
 
@@ -14,25 +13,51 @@ import javax.persistence.Table;
         @Index(name = "i_md_property_data_type_style", columnList = "data_type_style") })
 public class PropertyVO extends MetaVO
 {
+    private boolean blAccessPower = false;
+    private boolean blCalculation = false;
+    private boolean blCustomAttr = false;
+    private boolean blDynamicAttr = false;
     private boolean blKeyProp = false;
+    private boolean blNullable = false;
     
     private Integer iAttrLength;
     private Integer iAttrSequence;
     private Integer iDataTypeStyle;     // 999 - 数据库字段
     private Integer iPrecise;
-    
+    private String strAccessorClassname;
+    private String strAccessPowerGroup;
     private String strAttrMaxValue;
     private String strAttrMinValue;
     private String strClassId;
-    private String strCustomAttr;
     private String strDataScope;
     private String strDataType;
+    private String strDataTypeSql;
     private String strDefaultValue;
-    private String strNullable;
+    private String strDynamicTable;
+    private String strHelp;
     private String strOriginalId;
     private String strRefClassPathHref;
     private String strRefModelName;
-    private String strDataTypeSql;
+    
+    /***************************************************************************
+     * @return the accessorClassname
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public String getAccessorClassname()
+    {
+        return strAccessorClassname;
+    }
+    
+    /***************************************************************************
+     * @return the accessPowerGroup
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public String getAccessPowerGroup()
+    {
+        return strAccessPowerGroup;
+    }
     
     /***************************************************************************
      * @return the attrLength
@@ -85,20 +110,11 @@ public class PropertyVO extends MetaVO
     }
     
     /***************************************************************************
-     * @return the customAttr
-     * @author Rocex Wang
-     * @version 2020-11-3 18:27:38
-     ***************************************************************************/
-    public String getCustomAttr()
-    {
-        return strCustomAttr;
-    }
-    
-    /***************************************************************************
      * @return the dataScope
      * @author Rocex Wang
      * @since 2021-10-15 03:04:16
      ***************************************************************************/
+    @Column(insertable = false, updatable = false)
     public String getDataScope()
     {
         return strDataScope;
@@ -144,22 +160,24 @@ public class PropertyVO extends MetaVO
         return strDefaultValue;
     }
     
-    @Id
-    @Override
-    @Column(nullable = false, length = 128)
-    public String getId()
+    /***************************************************************************
+     * @return the dynamicTable
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public String getDynamicTable()
     {
-        return super.getId();
+        return strDynamicTable;
     }
     
     /***************************************************************************
-     * @return the nullable
+     * @return the help
      * @author Rocex Wang
-     * @version 2020-4-22 15:00:08
+     * @since 2021-11-16 04:05:17
      ***************************************************************************/
-    public String getNullable()
+    public String getHelp()
     {
-        return strNullable;
+        return strHelp;
     }
     
     /***************************************************************************
@@ -187,6 +205,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-10-18 05:16:45
      ***************************************************************************/
+    @Column(insertable = false, updatable = false)
     public String getRefClassPathHref()
     {
         return strRefClassPathHref;
@@ -203,6 +222,46 @@ public class PropertyVO extends MetaVO
     }
     
     /***************************************************************************
+     * @return the accessPower
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public boolean isAccessPower()
+    {
+        return blAccessPower;
+    }
+    
+    /***************************************************************************
+     * @return the calculation
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public boolean isCalculation()
+    {
+        return blCalculation;
+    }
+    
+    /***************************************************************************
+     * @return the customAttr
+     * @author Rocex Wang
+     * @version 2020-11-3 18:27:38
+     ***************************************************************************/
+    public boolean isCustomAttr()
+    {
+        return blCustomAttr;
+    }
+    
+    /***************************************************************************
+     * @return the dynamicAttr
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public boolean isDynamicAttr()
+    {
+        return blDynamicAttr;
+    }
+    
+    /***************************************************************************
      * @return the keyProp
      * @author Rocex Wang
      * @since 2021-10-18 02:14:09
@@ -210,6 +269,46 @@ public class PropertyVO extends MetaVO
     public boolean isKeyProp()
     {
         return blKeyProp;
+    }
+    
+    /***************************************************************************
+     * @return the nullable
+     * @author Rocex Wang
+     * @version 2020-4-22 15:00:08
+     ***************************************************************************/
+    public boolean isNullable()
+    {
+        return blNullable;
+    }
+    
+    /***************************************************************************
+     * @param accessorClassname the accessorClassname to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setAccessorClassname(String accessorClassname)
+    {
+        strAccessorClassname = accessorClassname;
+    }
+    
+    /***************************************************************************
+     * @param accessPower the accessPower to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setAccessPower(boolean accessPower)
+    {
+        blAccessPower = accessPower;
+    }
+    
+    /***************************************************************************
+     * @param accessPowerGroup the accessPowerGroup to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setAccessPowerGroup(String accessPowerGroup)
+    {
+        strAccessPowerGroup = accessPowerGroup;
     }
     
     /***************************************************************************
@@ -253,6 +352,16 @@ public class PropertyVO extends MetaVO
     }
     
     /***************************************************************************
+     * @param calculation the calculation to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setCalculation(boolean calculation)
+    {
+        blCalculation = calculation;
+    }
+    
+    /***************************************************************************
      * @param classId the classId to set
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
@@ -267,9 +376,9 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-11-3 18:27:38
      ***************************************************************************/
-    public void setCustomAttr(String customAttr)
+    public void setCustomAttr(boolean customAttr)
     {
-        strCustomAttr = customAttr;
+        blCustomAttr = customAttr;
     }
     
     /***************************************************************************
@@ -323,6 +432,36 @@ public class PropertyVO extends MetaVO
     }
     
     /***************************************************************************
+     * @param dynamicAttr the dynamicAttr to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setDynamicAttr(boolean dynamicAttr)
+    {
+        blDynamicAttr = dynamicAttr;
+    }
+    
+    /***************************************************************************
+     * @param dynamicTable the dynamicTable to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setDynamicTable(String dynamicTable)
+    {
+        strDynamicTable = dynamicTable;
+    }
+    
+    /***************************************************************************
+     * @param help the help to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setHelp(String help)
+    {
+        strHelp = help;
+    }
+    
+    /***************************************************************************
      * @param keyProp the keyProp to set
      * @author Rocex Wang
      * @since 2021-10-18 02:14:09
@@ -337,9 +476,9 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
      ***************************************************************************/
-    public void setNullable(String nullable)
+    public void setNullable(boolean nullable)
     {
-        strNullable = nullable;
+        blNullable = nullable;
     }
     
     /***************************************************************************

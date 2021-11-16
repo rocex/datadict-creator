@@ -15,6 +15,8 @@ public class ComponentVO extends MetaVO
 {
     private List<ClassVO> classVO;
 
+    private String strHelp;
+    private String strNamespace;
     private String strOriginalId;
     private String strOwnModule;
 
@@ -27,6 +29,26 @@ public class ComponentVO extends MetaVO
     public List<ClassVO> getClassVO()
     {
         return classVO;
+    }
+
+    /***************************************************************************
+     * @return the help
+     * @author Rocex Wang
+     * @since 2021-11-16 11:09:19
+     ***************************************************************************/
+    public String getHelp()
+    {
+        return strHelp;
+    }
+
+    /***************************************************************************
+     * @return the namespace
+     * @author Rocex Wang
+     * @since 2021-11-16 01:57:12
+     ***************************************************************************/
+    public String getNamespace()
+    {
+        return strNamespace;
     }
 
     /***************************************************************************
@@ -57,6 +79,26 @@ public class ComponentVO extends MetaVO
     public void setClassVO(List<ClassVO> classVO)
     {
         this.classVO = classVO;
+    }
+
+    /***************************************************************************
+     * @param help the help to set
+     * @author Rocex Wang
+     * @since 2021-11-16 11:09:19
+     ***************************************************************************/
+    public void setHelp(String help)
+    {
+        strHelp = help;
+    }
+
+    /***************************************************************************
+     * @param namespace the namespace to set
+     * @author Rocex Wang
+     * @since 2021-11-16 01:57:12
+     ***************************************************************************/
+    public void setNamespace(String namespace)
+    {
+        strNamespace = namespace;
     }
 
     /***************************************************************************
