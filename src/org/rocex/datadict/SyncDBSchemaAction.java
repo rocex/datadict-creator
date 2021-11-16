@@ -203,17 +203,14 @@ public class SyncDBSchemaAction implements IAction
 
             return strPks == null ? "" : strPks;
         }
-        else
+        // 找到表的主键
+        ResultSet rsPkColumns = sqlExecutorSource.getConnection().getMetaData().getPrimaryKeys(null, strDBSchema, strTableName);
+
+        List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
+
+        for (PropertyVO propertyVO : listPkPropertyVO)
         {
-            // 找到表的主键
-            ResultSet rsPkColumns = sqlExecutorSource.getConnection().getMetaData().getPrimaryKeys(null, strDBSchema, strTableName);
-
-            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
-
-            for (PropertyVO propertyVO : listPkPropertyVO)
-            {
-                strPks += propertyVO.getId().toLowerCase() + ";";
-            }
+            strPks += propertyVO.getId().toLowerCase() + ";";
         }
 
         return strPks;
@@ -270,6 +267,7 @@ public class SyncDBSchemaAction implements IAction
     {
         TimerLogger.getLogger().begin("sync all fields");
 
+        // 表名和属性最大顺序号
         Map<String, Integer> mapSequence = new HashMap<>();
         
         IAction pagingFieldAction = evt ->
@@ -280,11 +278,14 @@ public class SyncDBSchemaAction implements IAction
             {
                 propertyVO.setClassId(propertyVO.getClassId().toLowerCase());
 
+                String strPropLowerName = propertyVO.getName().toLowerCase();
+                
+                propertyVO.setName(strPropLowerName);
                 propertyVO.setDataTypeStyle(999);
                 propertyVO.setId(StringHelper.getId());
+                propertyVO.setOriginalId(strPropLowerName);
+                propertyVO.setDisplayName(strPropLowerName);
                 propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
-                propertyVO.setName(propertyVO.getName().toLowerCase());
-                propertyVO.setDisplayName(propertyVO.getName().toLowerCase());
                 propertyVO.setNullable("1".equals(propertyVO.getNullable()) ? "Y" : "N");
 
                 Integer iSequence = mapSequence.get(propertyVO.getClassId());

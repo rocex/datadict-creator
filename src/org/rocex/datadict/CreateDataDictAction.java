@@ -1,29 +1,6 @@
 package org.rocex.datadict;
 
-import java.io.File;
-import java.io.IOException;
-import java.nio.file.Path;
-import java.nio.file.Paths;
-import java.nio.file.StandardCopyOption;
-import java.text.DateFormat;
-import java.text.MessageFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.function.Function;
-import java.util.stream.Collectors;
-
-import org.rocex.datadict.vo.ClassVO;
-import org.rocex.datadict.vo.ComponentVO;
-import org.rocex.datadict.vo.EnumVO;
-import org.rocex.datadict.vo.MetaVO;
-import org.rocex.datadict.vo.ModuleVO;
-import org.rocex.datadict.vo.PropertyVO;
+import org.rocex.datadict.vo.*;
 import org.rocex.db.param.SQLParameter;
 import org.rocex.db.processor.BeanListProcessor;
 import org.rocex.db.processor.SQLExecutor;
@@ -32,6 +9,17 @@ import org.rocex.utils.Logger;
 import org.rocex.utils.StringHelper;
 import org.rocex.utils.TimerLogger;
 
+import java.io.File;
+import java.io.IOException;
+import java.nio.file.Path;
+import java.nio.file.Paths;
+import java.nio.file.StandardCopyOption;
+import java.text.DateFormat;
+import java.text.MessageFormat;
+import java.util.*;
+import java.util.function.Function;
+import java.util.stream.Collectors;
+
 /***************************************************************************
  * <br>
  * @author Rocex Wang
@@ -39,22 +27,19 @@ import org.rocex.utils.TimerLogger;
  ***************************************************************************/
 public abstract class CreateDataDictAction implements IAction
 {
-    protected static int iIdLength = 10; // 主键长度
-
-    protected Map<String, String> mapColumn = new HashMap<>();
+    protected static int iIdLength = 8; // 主键长度
+    
     protected Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();            // class id 和 class 的对应关系
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();     // component id 和 component 内所有 class 链接的对应关系
-
     protected Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();        // component id 和 component 的对应关系
     protected Map<String, String> mapEnumString = new HashMap<>();                    // enum id 和 enum name and value 的对应关系
-    protected Map<String, String> mapId = new HashMap<>();                            // 为了减小生成的文件体积，把元数据id和序号做个对照关系
+    protected Map<String, String> mapId = new HashMap<>();                            // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();           // module id 和 module 的对应关系
 
     protected SQLExecutor sqlExecutor = null;
 
     // 以下默认都是html格式数据字典的
     protected String strClassListHrefTemplate = "<a href=\"{0}\" class=\"{1}\">{2}</a>";    // 左上角实体列表链接
-
     protected String strCreateTime = DateFormat.getDateTimeInstance().format(new Date());
 
     // 自定义项字段名前缀
@@ -66,7 +51,6 @@ public abstract class CreateDataDictAction implements IAction
     protected String strOutputDictDir;      // 输出数据字典文件目录
     protected String strOutputRootDir;      // 输出文件根目录
     protected String strRefClassPathHrefTemplate = "<a href=\"{0}\">{1}</a>";               // 引用模型 链接模板
-
     protected String strTreeDataClassTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",url:\"{4}\",target:\"{5}\"'}',";    // 左树实体 链接模板
     protected String strTreeDataModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\"'}',";  // 左树模块 链接模板
     protected String strVersion;            // 数据字典版本
@@ -242,7 +226,7 @@ public abstract class CreateDataDictAction implements IAction
                 + ",attrmaxvalue,attrsequence,customattr,datatype,datatypestyle,a.defaultvalue defaultvalue"
                 + ",a.nullable nullable,a.precise precise,refmodelname,classid,b.sqldatetype data_type_sql,b.pkey"
                 + " from md_property a left join md_column b on a.name=b.name where classid=? and b.tableid=? order by b.pkey desc,a.attrsequence";
-        
+
         strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? order by key_prop desc,attr_sequence";
 
         // 取实体所有属性
@@ -366,9 +350,9 @@ public abstract class CreateDataDictAction implements IAction
         if (!listAllTableVO.isEmpty())
         {
             strModuleRows.append(MessageFormat.format(strTreeDataModuleTemplate, "all", "all", "所有表"));
-            
+
             char[] chars = new char[26];
-            
+
             for (ClassVO classVO : listAllTableVO)
             {
                 String strUrl = getClassUrl(classVO);
@@ -376,7 +360,7 @@ public abstract class CreateDataDictAction implements IAction
                 String strTableName = classVO.getDefaultTableName().toLowerCase();
 
                 char char0 = strTableName.charAt(0);
-                
+
                 chars[char0 - 'a'] = char0;
 
                 strClassRows.append(MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), "char_" + char0, strTableName,
@@ -386,7 +370,7 @@ public abstract class CreateDataDictAction implements IAction
             for (int i = 0; i < chars.length; i++)
             {
                 char charAt = chars[i];
-                
+
                 if (charAt == 0)
                 {
                     continue;
@@ -473,10 +457,8 @@ public abstract class CreateDataDictAction implements IAction
             {
                 createDataDictFile(classVO);
             }
-            
+
             TimerLogger.getLogger().end("create all table data dict file: " + listAllTableVO.size());
-            
-            // createAllTableDataDictFile(listAllTableVO);
         }
         catch (Exception ex)
         {
@@ -625,18 +607,7 @@ public abstract class CreateDataDictAction implements IAction
 
         return strDataScope;
     }
-
-    /***************************************************************************
-     * 页脚版权信息
-     * @return String
-     * @author Rocex Wang
-     * @version 2020-5-2 15:24:39
-     ***************************************************************************/
-    protected String getFooter()
-    {
-        return null;
-    }
-
+    
     /***************************************************************************
      * @param classVO
      * @return mappedId
