@@ -286,7 +286,6 @@ public class SyncDBSchemaAction implements IAction
                 propertyVO.setOriginalId(strPropLowerName);
                 propertyVO.setDisplayName(strPropLowerName);
                 propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
-                propertyVO.setNullable("1".equals(propertyVO.getNullable()) ? "Y" : "N");
 
                 Integer iSequence = mapSequence.get(propertyVO.getClassId());
 
@@ -414,12 +413,14 @@ public class SyncDBSchemaAction implements IAction
     protected void syncMetaData()
     {
         String strModuleSQL = "select distinct id,name,displayname,parentmoduleid from md_module order by name";
-        String strComponentSQL = "select id as original_id,name,displayname,ownmodule ownmodule from md_component";
-        String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary,help from md_class order by defaulttablename";
-        String strEnumValueSQL = "select id as class_id,enumsequence as enum_sequence,name,value enum_value from md_enumvalue order by id,enumsequence";
+        String strComponentSQL = "select id as original_id,name,displayname,ownmodule,namespace,help from md_component";
+        String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary,help"
+                + ",accessorclassname,bizitfimpclassname,refmodelname,returntype from md_class order by defaulttablename";
+        String strEnumValueSQL = "select id as class_id,enumsequence as enum_sequence,name,name as displayname,value enum_value from md_enumvalue order by id,enumsequence";
         String strPropertySQL = "select a.id original_id,a.name as name,a.displayname as displayname,attrlength,attrminvalue"
                 + ",attrmaxvalue,attrsequence,customattr,datatype,datatypestyle,a.defaultvalue as defaultvalue"
-                + ",a.nullable as nullable,a.precise as precise,refmodelname,classid,b.sqldatetype data_type_sql,b.pkey"
+                + ",a.nullable as nullable,a.precise as precise,refmodelname,classid,accesspowergroup,accessorclassname,dynamictable"
+                + ",a.help,accesspower,calculation,dynamicattr,b.sqldatetype data_type_sql,b.pkey key_prop"
                 + " from md_property a left join md_column b on a.name=b.name where classid=? and b.tableid=? order by b.pkey desc,a.attrsequence";
 
         IAction pagingAction = evt1 ->
