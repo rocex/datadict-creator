@@ -5,9 +5,11 @@ import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.EventObject;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
+import java.util.Set;
 
 import org.rocex.datadict.vo.ClassVO;
 import org.rocex.datadict.vo.ComponentVO;
@@ -39,8 +41,11 @@ public class SyncDBSchemaAction implements IAction
     protected String strDBSchema;           // 数据库schema
     
     // 排除一些表，最前面的英文逗号必须保留
-    protected String strTableFilters = ",aqua_explain_,hr_temptable,ic_temp_,iufo_measpub_,iufo_measure_data_,sm_securitylog_,tb_fd_sht,tb_tmp_tcheck,tb_tt_,temp000"
-            + ",temppkts,temptable_oa,temp_,temq_,tmpbd_,tmpub_calog_temp,tmp_,tm_mqsend_success_,uidbcache_temp_,uidbcache_temp_,wa_temp_,zdp_";
+    protected String strTableFilters = ", aqua_explain_, hr_temptable, ic_temp_, iufo_measpub_, iufo_measure_data_, sm_securitylog_, tb_fd_sht, tb_tmp_tcheck, tb_tt_, temp000"
+            + ", temppkts, temptable_oa, temp_, temq_, tmpbd_, tmpub_calog_temp, tmp_, tm_mqsend_success_, uidbcache_temp_, uidbcache_temp_, wa_temp_, zdp_, gltmp_verdtlbal"
+            + ", ntb_tmp_formual_, sm_securitylog_, ssccm_adjust_log_, ssccm_adjustlog_b_, t_ationid, t_emplate, t_laterow, tb_cell_wbk, tb_fd_sht, tb_tmp_tcheck_, tb_tt_bby";
+    
+    protected Set<String> set2 = new HashSet<>(); // 要同步的表名
     
     protected String strVersion;            // 数据字典版本
     
@@ -99,7 +104,10 @@ public class SyncDBSchemaAction implements IAction
         String[] strSQLs = { "update md_class set name='Memo' where id='BS000010000100001030' and name='MEMO'",
                 "update md_class set name='MultiLangText' where id='BS000010000100001058' and name='MULTILANGTEXT'",
                 "update md_class set name='Custom' where id in('BS000010000100001056','BS000010000100001059') and name='CUSTOM'",
-                "update md_module set display_name='财务' where id='gl'" };
+                "update md_module set display_name='财务' where id='gl'", "delete from md_module where id='FBM'",
+                "update md_component set own_module='fbm' where own_module='FBM'",
+                "update md_component set own_module='mmpac' where own_module='NC_MM_PAC6.31'",
+                "update md_component set own_module='hryf' where own_module='HRYF'", "update md_component set own_module='ufob' where own_module='UFOB'" };
 
         try
         {
@@ -122,6 +130,8 @@ public class SyncDBSchemaAction implements IAction
     @Override
     public void doAction(EventObject evt)
     {
+        TimerLogger.getLogger().begin("sync db schema and meta data");
+
         if (!isNeedSyncData())
         {
             return;
@@ -133,6 +143,8 @@ public class SyncDBSchemaAction implements IAction
         syncDatabaseMeta();
 
         adjustData();
+
+        TimerLogger.getLogger().end("sync db schema and meta data");
     }
     
     /***************************************************************************
@@ -203,6 +215,7 @@ public class SyncDBSchemaAction implements IAction
 
             return strPks == null ? "" : strPks;
         }
+        
         // 找到表的主键
         ResultSet rsPkColumns = sqlExecutorSource.getConnection().getMetaData().getPrimaryKeys(null, strDBSchema, strTableName);
 
@@ -226,6 +239,19 @@ public class SyncDBSchemaAction implements IAction
         return !sqlExecutorTarget.isTableExist("md_module");
     }
     
+    /***************************************************************************
+     * @param strDefaultTableName
+     * @author Rocex Wang
+     * @since 2021-11-17 19:07:50
+     ***************************************************************************/
+    protected boolean isTableNameValid(String strDefaultTableName)
+    {
+        // 表名长度小于6、不包含下划线、要排除 的都认为不是合法要生成数据字典的表
+        boolean blValid = strDefaultTableName.length() > 6 && strDefaultTableName.contains("_") && !strTableFilters.contains(", " + strDefaultTableName);
+
+        return blValid;
+    }
+
     /***************************************************************************
      * @param metaVOClass
      * @param strSQL
@@ -257,7 +283,7 @@ public class SyncDBSchemaAction implements IAction
 
         return listMetaVO;
     }
-
+    
     /***************************************************************************
      * @throws SQLException
      * @author Rocex Wang
@@ -314,7 +340,13 @@ public class SyncDBSchemaAction implements IAction
         // 一次性查出所有表的字段
         ResultSet rsColumns = dbMetaData.getColumns(null, strDBSchema, null, null);
         
-        BeanListProcessor<? extends MetaVO> processor = new BeanListProcessor<>(PropertyVO.class, mapColumn);
+        BeanListProcessor<? extends MetaVO> processor = new BeanListProcessor<>(PropertyVO.class, mapColumn, classVO ->
+        {
+            String strDefaultTableName = classVO.getClassId().toLowerCase();
+            
+            return !set2.contains(strDefaultTableName) && isTableNameValid(strDefaultTableName);
+        });
+        
         processor.setPagingAction(pagingFieldAction);
         
         processor.doAction(rsColumns);
@@ -337,6 +369,7 @@ public class SyncDBSchemaAction implements IAction
         
         Map<String, String> mapTable = new HashMap<>();
         mapTable.put("TABLE_NAME", "DefaultTableName");
+        mapTable.put("TABLE_Type", "ClassListUrl"); // 用 ClassListUrl 代替了，反正 ClassListUrl 也不保存
         
         IAction pagingAction = evt ->
         {
@@ -356,11 +389,12 @@ public class SyncDBSchemaAction implements IAction
         {
             String strDefaultTableName = classVO.getDefaultTableName().toLowerCase();
             
-            // 表名长度小于6、不包含下划线、要排除 的都认为不是合法要生成数据字典的表
-            if (strDefaultTableName.length() < 6 || !strDefaultTableName.contains("_") || strTableFilters.contains("," + strDefaultTableName))
+            if (!"table".equalsIgnoreCase(classVO.getClassListUrl()) && !isTableNameValid(strDefaultTableName))
             {
                 return false;
             }
+            
+            set2.add(strDefaultTableName);
             
             classVO.setClassType(999);
             classVO.setId(strDefaultTableName);
