@@ -677,7 +677,7 @@ public abstract class CreateDataDictAction implements IAction
         ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
         
         ModuleVO moduleVO = (ModuleVO) mapModuleVO.get(componentVO.getOwnModule());
-        
+
         return moduleVO == null ? componentVO.getOwnModule() : moduleVO.getId();
     }
     
@@ -692,6 +692,14 @@ public abstract class CreateDataDictAction implements IAction
         ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
         
         ModuleVO moduleVO = (ModuleVO) mapModuleVO.get(componentVO.getOwnModule());
+        
+        if (moduleVO == null)
+        {
+            moduleVO = new ModuleVO();
+            moduleVO.setId(componentVO.getOwnModule());
+            moduleVO.setName(componentVO.getOwnModule());
+            moduleVO.setDisplayName(componentVO.getOwnModule());
+        }
         
         return moduleVO;
     }
