@@ -19,6 +19,8 @@ public class ComponentVO extends MetaVO
     private String strNamespace;
     private String strOriginalId;
     private String strOwnModule;
+    
+    private boolean blBizModel;
 
     /***************************************************************************
      * @return the classVO
@@ -72,6 +74,26 @@ public class ComponentVO extends MetaVO
     }
 
     /***************************************************************************
+     * @return the bizModel
+     * @author Rocex Wang
+     * @since 2021-11-19 01:22:46
+     ***************************************************************************/
+    public boolean isBizModel()
+    {
+        return blBizModel;
+    }
+
+    /***************************************************************************
+     * @param bizModel the bizModel to set
+     * @author Rocex Wang
+     * @since 2021-11-19 01:22:46
+     ***************************************************************************/
+    public void setBizModel(boolean bizModel)
+    {
+        blBizModel = bizModel;
+    }
+
+    /***************************************************************************
      * @param classVO the classVO to set
      * @author Rocex Wang
      * @since 2021-10-27 06:48:49
@@ -100,7 +122,7 @@ public class ComponentVO extends MetaVO
     {
         strNamespace = namespace;
     }
-
+    
     /***************************************************************************
      * @param originalId the originalId to set
      * @author Rocex Wang
@@ -110,7 +132,7 @@ public class ComponentVO extends MetaVO
     {
         strOriginalId = originalId;
     }
-
+    
     /***************************************************************************
      * @param ownModule the ownModule to set
      * @author Rocex Wang
