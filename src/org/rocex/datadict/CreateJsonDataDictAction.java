@@ -29,7 +29,7 @@ public class CreateJsonDataDictAction extends CreateDataDictAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
     }
-    
+
     /***************************************************************************
      * @author Rocex Wang
      * @version 2020-4-26 14:52:18
@@ -37,15 +37,13 @@ public class CreateJsonDataDictAction extends CreateDataDictAction
     public CreateJsonDataDictAction(String strVersion)
     {
         super(strVersion);
-        
+
         strTreeDataClassTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\"'}',";
-        // strClassListHrefTemplate = "<a href=\'javascript:loadDataDict(\"{0}\");\' class=\"{1}\">{2}</a>";
-        // strRefClassPathHrefTemplate = "<a href=\"javascript:loadDataDict(\'{0}\');\">{1}</a>";
-        
+
         strRefClassPathHrefTemplate = "<a href=\"javascript:void(0);\" onClick=loadDataDict(\"{0}\");>{1}</a>";
         strClassListHrefTemplate = "<a href=\"javascript:void(0);\" onClick=loadDataDict(\"{0}\"); class=\"{1}\">{2}</a>";
     }
-    
+
     /***************************************************************************
      * @param classVO
      * @param listPropertyVO
@@ -59,9 +57,9 @@ public class CreateJsonDataDictAction extends CreateDataDictAction
         {
             return;
         }
-        
+
         super.createDataDictFile(classVO, listPropertyVO);
-        
+
         new JacksonHelper()
                 .exclude(ClassVO.class, "accessorClassname", "bizItfImpClassname", "classType", "componentId", "help", "id", "keyAttribute", "name",
                         "refModelName", "returnType")
@@ -70,7 +68,7 @@ public class CreateJsonDataDictAction extends CreateDataDictAction
                         "refModelName")
                 .serialize(classVO, getClassFilePath(classVO));
     }
-    
+
     /***************************************************************************
      * 实体文件全路径的绝对路径
      * @param classVO
@@ -83,7 +81,7 @@ public class CreateJsonDataDictAction extends CreateDataDictAction
     {
         return Paths.get(strOutputDictDir, getMappedClassId(classVO) + ".json");
     }
-    
+
     /***************************************************************************
      * 实体的访问url，相对于根目录
      * @param classVO
@@ -96,7 +94,7 @@ public class CreateJsonDataDictAction extends CreateDataDictAction
     {
         return getMappedClassId(classVO);
     }
-    
+
     /***************************************************************************
      * 实体的访问url，相对于当前目录
      * @param classVO
