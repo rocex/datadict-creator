@@ -84,9 +84,8 @@ public class CreateDataDictAction implements IAction
 
         Properties dbProp = new Properties();
 
-        // dbProp.setProperty("jdbc.url", "jdbc:sqlite:" + strOutputRootDir + File.separator +
-        // "datadict.sqlite");
         dbProp.setProperty("jdbc.url", "jdbc:sqlite:C:/datadict/datadict.sqlite");
+        dbProp.setProperty("jdbc.url", "jdbc:sqlite:" + strOutputRootDir + File.separator + ".." + File.separator + "datadict-" + strVersion + ".sqlite");
         dbProp.setProperty("jdbc.driver", "org.sqlite.JDBC");
 
         sqlExecutor = new SQLExecutor(dbProp);

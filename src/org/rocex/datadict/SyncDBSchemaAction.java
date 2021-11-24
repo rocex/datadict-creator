@@ -1,5 +1,6 @@
 package org.rocex.datadict;
 
+import java.io.File;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -66,6 +67,8 @@ public class SyncDBSchemaAction implements IAction
         
         this.strVersion = strVersion;
         
+        String strOutputRootDir = DataDictCreator.settings.getProperty(strVersion + ".OutputDir");
+        
         strDBSchema = DataDictCreator.settings.getProperty(strVersion + ".jdbc.user").toUpperCase();
         
         //
@@ -80,10 +83,9 @@ public class SyncDBSchemaAction implements IAction
         
         //
         Properties dbPropTarget = new Properties();
-        
-        // dbPropTarget.setProperty("jdbc.url", "jdbc:sqlite:" + strOutputRootDir + File.separator +
-        // "datadict.sqlite");
+
         dbPropTarget.setProperty("jdbc.url", "jdbc:sqlite:C:/datadict/datadict.sqlite");
+        dbPropTarget.setProperty("jdbc.url", "jdbc:sqlite:" + strOutputRootDir + File.separator + ".." + File.separator + "datadict-" + strVersion + ".sqlite");
         dbPropTarget.setProperty("jdbc.driver", "org.sqlite.JDBC");
         
         sqlExecutorTarget = new SQLExecutor(dbPropTarget);
