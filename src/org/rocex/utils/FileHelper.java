@@ -127,6 +127,32 @@ public class FileHelper
             }
         });
     }
+
+    /***************************************************************************
+     * 在新线程下删除文件夹下所有的文件夹和文件
+     * @param path
+     * @throws IOException
+     * @author Rocex Wang
+     * @since 2021-11-24 14:14:10
+     ***************************************************************************/
+    public static void deleteFolderThread(Path path) throws IOException
+    {
+        new Thread()
+        {
+            @Override
+            public void run()
+            {
+                try
+                {
+                    deleteFolderThread(path);
+                }
+                catch (IOException ex)
+                {
+                    Logger.getLogger().error(ex.getMessage(), ex);
+                }
+            }
+        }.start();
+    }
     
     /***************************************************************************
      * 加载 properties 文件

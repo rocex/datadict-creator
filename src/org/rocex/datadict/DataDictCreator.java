@@ -8,7 +8,7 @@ import org.rocex.utils.Logger;
 import org.rocex.utils.TimerLogger;
 
 /***************************************************************************
- * 根据数据库中元数据生成nc数据字典<br>
+ * 根据数据库中元数据生成NC数据字典<br>
  * @author Rocex Wang
  * @version 2020-4-21 15:43:05
  ***************************************************************************/
@@ -39,7 +39,7 @@ public class DataDictCreator
             
             TimerLogger.getLogger().begin("create data dictionary " + strDataDictVersion);
             
-            IAction action = "html".equalsIgnoreCase(strCreateType) ? new CreateHtmlDataDictAction(strVersion) : new CreateJsonDataDictAction(strVersion);
+            IAction action = "html".equalsIgnoreCase(strCreateType) ? new CreateHtmlDataDictAction(strVersion) : new CreateDataDictAction(strVersion);
             
             action.doAction(null);
             
