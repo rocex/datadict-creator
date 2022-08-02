@@ -5,9 +5,11 @@ import java.lang.reflect.Field;
 import java.lang.reflect.InvocationTargetException;
 import java.lang.reflect.Method;
 import java.math.BigDecimal;
-import java.util.Arrays;
+import java.util.ArrayList;
+import java.util.Collections;
 import java.util.HashMap;
 import java.util.LinkedHashMap;
+import java.util.List;
 import java.util.Map;
 import java.util.Map.Entry;
 import java.util.Properties;
@@ -64,7 +66,7 @@ public class SuperVO implements Serializable
 
         Method[] methods = clazz.getMethods();
 
-        Arrays.sort(methods, (m1, m2) -> m1.getName().compareTo(m2.getName()));
+        // Arrays.sort(methods, (m1, m2) -> m1.getName().compareTo(m2.getName()));
 
         String strIdField = null;
 
@@ -96,6 +98,15 @@ public class SuperVO implements Serializable
             {
                 strIdField = strKey;
             }
+        }
+
+        List<Map.Entry<String, Method>> entries = new ArrayList<>(mapGetter.entrySet());
+        Collections.sort(entries, (entry1, entry2) -> entry1.getKey().compareTo(entry2.getKey()));
+
+        mapGetter.clear();
+        for (Map.Entry<String, Method> entry : entries)
+        {
+            mapGetter.put(entry.getKey(), entry.getValue());
         }
 
         // 把id排到最前面

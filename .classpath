@@ -2,10 +2,11 @@
 <classpath>
 	<classpathentry kind="src" path="src"/>
 	<classpathentry kind="con" path="org.eclipse.jdt.launching.JRE_CONTAINER"/>
-	<classpathentry kind="lib" path="lib/jdbc_oracle_ojdbc7.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-annotations-2.13.0.jar" sourcepath="lib/jackson-annotations-2.13.0-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-core-2.13.0.jar" sourcepath="lib/jackson-core-2.13.0-sources.jar"/>
 	<classpathentry kind="lib" path="lib/jackson-databind-2.13.0.jar" sourcepath="lib/jackson-databind-2.13.0-sources.jar"/>
-	<classpathentry kind="lib" path="lib/jdbc_sqlite.jar"/>
+	<classpathentry kind="lib" path="lib/jdbc-mysql-8.0.22.jar"/>
+	<classpathentry kind="lib" path="lib/jdbc-oracle7.jar"/>
+	<classpathentry kind="lib" path="lib/jdbc-sqlite-3.36.0.3.jar"/>
 	<classpathentry kind="output" path="out"/>
 </classpath>

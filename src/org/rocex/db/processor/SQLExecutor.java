@@ -583,7 +583,7 @@ public class SQLExecutor
             
             Column annoColumn = method.getAnnotation(Column.class);
             
-            int iLength = 255;
+            int iLength = 256;
             int iPrecision = 0;
             boolean blNullable = true;
             
@@ -594,16 +594,16 @@ public class SQLExecutor
                     continue;
                 }
                 
-                if (StringHelper.isNotEmpty(annoColumn.columnDefinition()))
-                {
-                    strSQL.append(annoColumn.columnDefinition());
-                    
-                    continue;
-                }
-                
                 iLength = annoColumn.length();
                 iPrecision = annoColumn.precision();
                 blNullable = annoColumn.nullable();
+                
+                if (StringHelper.isNotEmpty(annoColumn.columnDefinition()))
+                {
+                    strSQL.append(strFieldName).append(" ").append(annoColumn.columnDefinition()).append(blNullable ? " null" : " not null").append(",");
+                    
+                    continue;
+                }
             }
             
             // formula varchar2(400) default '~' null
@@ -663,11 +663,11 @@ public class SQLExecutor
         
         StringBuilder strFieldSQL = new StringBuilder();
         StringBuilder strMarkSQL = new StringBuilder();
-
+        
         for (Method method : methods)
         {
             String strFieldName = getFieldName(method);
-
+            
             if (strFields != null && strFields.length > 0 && Arrays.binarySearch(strFields, strFieldName) < 0)
             {
                 continue;
@@ -699,7 +699,7 @@ public class SQLExecutor
     public String getSQLSelect(Class<? extends SuperVO> clazz, String... strFields)
     {
         String strTableName = getTableNameFromClass(clazz);
-
+        
         Method[] methods = SuperVO.getGetter(clazz);
         
         StringBuilder strFieldSQL = new StringBuilder();
@@ -719,7 +719,7 @@ public class SQLExecutor
             {
                 continue;
             }
-
+            
             strFieldSQL.append(",").append(strFieldName);
         }
         
@@ -748,7 +748,7 @@ public class SQLExecutor
         for (Method method : methods)
         {
             String strFieldName = getFieldName(method);
-
+            
             if (strFields != null && strFields.length > 0 && Arrays.binarySearch(strFields, strFieldName) < 0)
             {
                 continue;
@@ -887,28 +887,24 @@ public class SQLExecutor
         
         try
         {
-            resultSet = getConnection().getMetaData().getTables(null, null, strTableName, new String[] { "TABLE" });
-            
-            Object objResult = new ResultSetProcessor()
+            return (boolean) executeQuery("select 1 from " + strTableName, new ResultSetProcessor()
             {
                 @Override
                 protected Object processResultSet(ResultSet resultSet) throws SQLException
                 {
                     return resultSet.next();
                 }
-            }.doAction(resultSet);
-            
-            return (boolean) objResult;
+            });
         }
         catch (Exception ex)
         {
             Logger.getLogger().error(ex.getMessage(), ex);
+            
+            return false;
         }
         finally
         {
             close(resultSet);
         }
-        
-        return false;
     }
 }

@@ -6,6 +6,7 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
+import java.sql.SQLException;
 import java.text.DateFormat;
 import java.text.MessageFormat;
 import java.util.ArrayList;
@@ -21,7 +22,8 @@ import java.util.stream.Collectors;
 
 import org.rocex.datadict.vo.ClassVO;
 import org.rocex.datadict.vo.ComponentVO;
-import org.rocex.datadict.vo.EnumVO;
+import org.rocex.datadict.vo.DictJsonVO;
+import org.rocex.datadict.vo.EnumValueVO;
 import org.rocex.datadict.vo.MetaVO;
 import org.rocex.datadict.vo.ModuleVO;
 import org.rocex.datadict.vo.PropertyVO;
@@ -84,9 +86,17 @@ public class CreateDataDictAction implements IAction
 
         Properties dbProp = new Properties();
 
-        dbProp.setProperty("jdbc.url", "jdbc:sqlite:C:/datadict/datadict.sqlite");
-        dbProp.setProperty("jdbc.url", "jdbc:sqlite:" + strOutputRootDir + File.separator + ".." + File.separator + "datadict-" + strVersion + ".sqlite");
-        dbProp.setProperty("jdbc.driver", "org.sqlite.JDBC");
+        String strTargetUrl = DataDictCreator.settings.getProperty(strVersion + ".target.jdbc.url", DataDictCreator.settings.getProperty("target.jdbc.url"));
+        String strTargetUser = DataDictCreator.settings.getProperty(strVersion + ".target.jdbc.user", DataDictCreator.settings.getProperty("target.jdbc.user"));
+        String strTargetDriver = DataDictCreator.settings.getProperty(strVersion + ".target.jdbc.driver",
+                DataDictCreator.settings.getProperty("target.jdbc.driver"));
+        String strTargetPassword = DataDictCreator.settings.getProperty(strVersion + ".target.jdbc.password",
+                DataDictCreator.settings.getProperty("target.jdbc.password"));
+
+        dbProp.setProperty("jdbc.url", strTargetUrl);
+        dbProp.setProperty("jdbc.user", strTargetUser);
+        dbProp.setProperty("jdbc.driver", strTargetDriver);
+        dbProp.setProperty("jdbc.password", strTargetPassword);
 
         sqlExecutor = new SQLExecutor(dbProp);
 
@@ -154,13 +164,16 @@ public class CreateDataDictAction implements IAction
     {
         TimerLogger.getLogger().begin("query and build enum map");
 
-        String strEnumValueSQL = "select class_id as id,name,enum_value from md_enumvalue order by class_id,enum_sequence";
+        String strEnumValueSQL = "select class_id as id,name,enum_value,ddc_version from md_enumvalue where ddc_version=? order by class_id,enum_sequence";
 
-        List<EnumVO> listEnumValueVO = null;
+        List<EnumValueVO> listEnumValueVO = null;
 
         try
         {
-            listEnumValueVO = (List<EnumVO>) sqlExecutor.executeQuery(strEnumValueSQL, new BeanListProcessor<>(EnumVO.class));
+            SQLParameter param = new SQLParameter();
+            param.addParam(strVersion);
+
+            listEnumValueVO = (List<EnumValueVO>) sqlExecutor.executeQuery(strEnumValueSQL, param, new BeanListProcessor<>(EnumValueVO.class));
         }
         catch (Exception ex)
         {
@@ -172,18 +185,18 @@ public class CreateDataDictAction implements IAction
             return;
         }
 
-        for (EnumVO enumVO : listEnumValueVO)
+        for (EnumValueVO enumValueVO : listEnumValueVO)
         {
-            String strEnum = mapEnumString.get(enumVO.getId());
+            String strEnum = mapEnumString.get(enumValueVO.getId());
 
             if (strEnum == null)
             {
                 strEnum = "";
             }
 
-            strEnum = new StringBuilder(strEnum).append(enumVO.getEnumValue()).append("=").append(enumVO.getName()).append(";<br>").toString();
+            strEnum = new StringBuilder(strEnum).append(enumValueVO.getEnumValue()).append("=").append(enumValueVO.getName()).append(";<br>").toString();
 
-            mapEnumString.put(enumVO.getId(), strEnum);
+            mapEnumString.put(enumValueVO.getId(), strEnum);
         }
 
         TimerLogger.getLogger().end("query and build enum map");
@@ -244,11 +257,12 @@ public class CreateDataDictAction implements IAction
             return;
         }
 
-        String strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? order by key_prop desc,attr_sequence";
+        String strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? and ddc_version=? order by key_prop desc,attr_sequence";
 
         // 取实体所有属性
         SQLParameter para = new SQLParameter();
         para.addParam(classVO.getId());
+        para.addParam(strVersion);
 
         List<PropertyVO> listPropertyVO = null;
 
@@ -437,10 +451,14 @@ public class CreateDataDictAction implements IAction
 
         copyStaticHtmlFiles();
 
-        String strModuleSQL = "select id,display_name,name,parent_module_id from md_module order by lower(name)";
-        String strComponentSQL = "select original_id as id,display_name,name,own_module from md_component";
-        String strClassSQL = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name from md_class where class_type<>999 order by default_table_name";
-        String strClassSQL2 = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name from md_class where class_type=999 order by default_table_name";
+        String strVersionSQL = "ddc_version='" + strVersion + "'";
+
+        String strModuleSQL = "select id,display_name,name,parent_module_id,ddc_version from md_module where " + strVersionSQL + " order by lower(name)";
+        String strComponentSQL = "select original_id as id,display_name,name,own_module,ddc_version from md_component where " + strVersionSQL;
+        String strClassSQL = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where "
+                + strVersionSQL + " and class_type<>999 order by default_table_name";
+        String strClassSQL2 = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where "
+                + strVersionSQL + " and class_type=999 order by default_table_name";
 
         try
         {
@@ -477,6 +495,13 @@ public class CreateDataDictAction implements IAction
             }
 
             TimerLogger.getLogger().end("create db data dict file: " + listAllTableVO.size());
+
+            TimerLogger.getLogger().begin("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
+
+            saveToDictJson(listClassVO);
+            saveToDictJson(listAllTableVO);
+
+            TimerLogger.getLogger().end("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
         }
         catch (Exception ex)
         {
@@ -795,6 +820,84 @@ public class CreateDataDictAction implements IAction
         TimerLogger.getLogger().end("query " + metaVOClass.getSimpleName());
 
         return listMetaVO;
+    }
+
+    /***************************************************************************
+     * @param listClassVO
+     * @author Rocex Wang
+     * @since 2022-08-02 13:27:39
+     ***************************************************************************/
+    protected void saveToDictJson(List<ClassVO> listClassVO)
+    {
+        if (listClassVO == null || listClassVO.size() == 0)
+        {
+            return;
+        }
+
+        List<DictJsonVO> listDictJsonVO = new ArrayList<>();
+
+        for (ClassVO classVO : listClassVO)
+        {
+            byte[] objReadAllBytes = null;
+
+            try
+            {
+                Path pathClassFile = getClassFilePath(classVO);
+
+                if (Files.exists(pathClassFile))
+                {
+                    objReadAllBytes = Files.readAllBytes(pathClassFile);
+                }
+            }
+            catch (IOException ex)
+            {
+                Logger.getLogger().error(ex.getMessage(), ex);
+            }
+
+            if (objReadAllBytes == null || objReadAllBytes.length == 0)
+            {
+                continue;
+            }
+
+            DictJsonVO dictJsonVO = new DictJsonVO();
+            dictJsonVO.setTs(strCreateTime);
+            dictJsonVO.setName(classVO.getName());
+            dictJsonVO.setDdcVersion(strVersion);
+            dictJsonVO.setClassId(classVO.getId());
+            dictJsonVO.setDictJson(objReadAllBytes);
+            dictJsonVO.setId(getMappedClassId(classVO));
+            dictJsonVO.setDisplayName(classVO.getDisplayName());
+
+            listDictJsonVO.add(dictJsonVO);
+
+            if (listDictJsonVO.size() > 100)
+            {
+                try
+                {
+                    sqlExecutor.insertVO(listDictJsonVO.toArray(new DictJsonVO[0]));
+                }
+                catch (SQLException ex)
+                {
+                    Logger.getLogger().error(ex.getMessage(), ex);
+                }
+
+                listDictJsonVO.clear();
+            }
+        }
+
+        if (listDictJsonVO.size() > 0)
+        {
+            try
+            {
+                sqlExecutor.insertVO(listDictJsonVO.toArray(new DictJsonVO[0]));
+            }
+            catch (SQLException ex)
+            {
+                Logger.getLogger().error(ex.getMessage(), ex);
+            }
+
+            listDictJsonVO.clear();
+        }
     }
 
     /***************************************************************************

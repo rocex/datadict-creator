@@ -11,20 +11,26 @@ import javax.persistence.Table;
  ***************************************************************************/
 @Table(name = "md_property", indexes = { @Index(name = "i_md_property_class_id", columnList = "class_id"),
         @Index(name = "i_md_property_data_type_style", columnList = "data_type_style"),
-        @Index(name = "i_md_property_class_id_sequence", columnList = "class_id,attr_sequence") })
+        @Index(name = "i_md_property_class_id_sequence", columnList = "class_id,attr_sequence"),
+        @Index(name = "i_md_property_ddc_version", columnList = "ddc_version") })
 public class PropertyVO extends MetaVO
 {
-    private boolean blAccessPower = false;
-    private boolean blCalculation = false;
-    private boolean blCustomAttr = false;
-    private boolean blDynamicAttr = false;
-    private boolean blKeyProp = false;
-    private boolean blNullable = false;
+    private Boolean blAccessPower = false;
+    private Boolean blCalculation = false;
+    private Boolean blCustomAttr = false;
+    private Boolean blDynamicAttr = false;
+    private Boolean blFixedLength = false;
+    private Boolean blHidden = false;
+    private Boolean blKeyProp = false;
+    private Boolean blNotSerialize = false;
+    private Boolean blNullable = false;
+    private Boolean blReadOnly = false;
 
     private Integer iAttrLength;
     private Integer iAttrSequence;
     private Integer iDataTypeStyle;     // 999 - 数据库字段
     private Integer iPrecise;
+
     private String strAccessorClassname;
     private String strAccessPowerGroup;
     private String strAttrMaxValue;
@@ -35,7 +41,6 @@ public class PropertyVO extends MetaVO
     private String strDataTypeSql;
     private String strDefaultValue;
     private String strDynamicTable;
-    private String strHelp;
     private String strOriginalId;
     private String strRefClassPathHref;
     private String strRefModelName;
@@ -172,16 +177,6 @@ public class PropertyVO extends MetaVO
     }
 
     /***************************************************************************
-     * @return the help
-     * @author Rocex Wang
-     * @since 2021-11-16 04:05:17
-     ***************************************************************************/
-    public String getHelp()
-    {
-        return strHelp;
-    }
-
-    /***************************************************************************
      * @return the originalId
      * @author Rocex Wang
      * @since 2021-11-11 11:09:34
@@ -217,6 +212,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
      ***************************************************************************/
+    @Column(length = 512)
     public String getRefModelName()
     {
         return strRefModelName;
@@ -227,7 +223,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
      ***************************************************************************/
-    public boolean isAccessPower()
+    public Boolean isAccessPower()
     {
         return blAccessPower;
     }
@@ -237,7 +233,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
      ***************************************************************************/
-    public boolean isCalculation()
+    public Boolean isCalculation()
     {
         return blCalculation;
     }
@@ -247,7 +243,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-11-3 18:27:38
      ***************************************************************************/
-    public boolean isCustomAttr()
+    public Boolean isCustomAttr()
     {
         return blCustomAttr;
     }
@@ -257,9 +253,29 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
      ***************************************************************************/
-    public boolean isDynamicAttr()
+    public Boolean isDynamicAttr()
     {
         return blDynamicAttr;
+    }
+
+    /***************************************************************************
+     * @return the fixedLength
+     * @author Rocex Wang
+     * @since 2022-08-02 03:52:14
+     ***************************************************************************/
+    public Boolean isFixedLength()
+    {
+        return blFixedLength;
+    }
+
+    /***************************************************************************
+     * @return the hidden
+     * @author Rocex Wang
+     * @since 2022-08-02 03:52:14
+     ***************************************************************************/
+    public Boolean isHidden()
+    {
+        return blHidden;
     }
 
     /***************************************************************************
@@ -267,9 +283,19 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-10-18 02:14:09
      ***************************************************************************/
-    public boolean isKeyProp()
+    public Boolean isKeyProp()
     {
         return blKeyProp;
+    }
+
+    /***************************************************************************
+     * @return the notSerialize
+     * @author Rocex Wang
+     * @since 2022-08-02 03:52:14
+     ***************************************************************************/
+    public Boolean isNotSerialize()
+    {
+        return blNotSerialize;
     }
 
     /***************************************************************************
@@ -277,9 +303,19 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
      ***************************************************************************/
-    public boolean isNullable()
+    public Boolean isNullable()
     {
         return blNullable;
+    }
+
+    /***************************************************************************
+     * @return the readOnly
+     * @author Rocex Wang
+     * @since 2022-08-02 03:52:14
+     ***************************************************************************/
+    public Boolean isReadOnly()
+    {
+        return blReadOnly;
     }
 
     /***************************************************************************
@@ -297,7 +333,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
      ***************************************************************************/
-    public void setAccessPower(boolean accessPower)
+    public void setAccessPower(Boolean accessPower)
     {
         blAccessPower = accessPower;
     }
@@ -357,7 +393,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
      ***************************************************************************/
-    public void setCalculation(boolean calculation)
+    public void setCalculation(Boolean calculation)
     {
         blCalculation = calculation;
     }
@@ -377,7 +413,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-11-3 18:27:38
      ***************************************************************************/
-    public void setCustomAttr(boolean customAttr)
+    public void setCustomAttr(Boolean customAttr)
     {
         blCustomAttr = customAttr;
     }
@@ -437,7 +473,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
      ***************************************************************************/
-    public void setDynamicAttr(boolean dynamicAttr)
+    public void setDynamicAttr(Boolean dynamicAttr)
     {
         blDynamicAttr = dynamicAttr;
     }
@@ -453,13 +489,23 @@ public class PropertyVO extends MetaVO
     }
 
     /***************************************************************************
-     * @param help the help to set
+     * @param fixedLength the fixedLength to set
      * @author Rocex Wang
-     * @since 2021-11-16 04:05:17
+     * @since 2022-08-02 03:52:14
      ***************************************************************************/
-    public void setHelp(String help)
+    public void setFixedLength(Boolean fixedLength)
     {
-        strHelp = help;
+        blFixedLength = fixedLength;
+    }
+
+    /***************************************************************************
+     * @param hidden the hidden to set
+     * @author Rocex Wang
+     * @since 2022-08-02 03:52:14
+     ***************************************************************************/
+    public void setHidden(Boolean hidden)
+    {
+        blHidden = hidden;
     }
 
     /***************************************************************************
@@ -467,9 +513,19 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-10-18 02:14:09
      ***************************************************************************/
-    public void setKeyProp(boolean keyProp)
+    public void setKeyProp(Boolean keyProp)
     {
         blKeyProp = keyProp;
+    }
+
+    /***************************************************************************
+     * @param notSerialize the notSerialize to set
+     * @author Rocex Wang
+     * @since 2022-08-02 03:52:14
+     ***************************************************************************/
+    public void setNotSerialize(Boolean notSerialize)
+    {
+        blNotSerialize = notSerialize;
     }
 
     /***************************************************************************
@@ -477,7 +533,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
      ***************************************************************************/
-    public void setNullable(boolean nullable)
+    public void setNullable(Boolean nullable)
     {
         blNullable = nullable;
     }
@@ -500,6 +556,16 @@ public class PropertyVO extends MetaVO
     public void setPrecise(Integer precise)
     {
         iPrecise = precise;
+    }
+
+    /***************************************************************************
+     * @param readOnly the readOnly to set
+     * @author Rocex Wang
+     * @since 2022-08-02 03:52:14
+     ***************************************************************************/
+    public void setReadOnly(Boolean readOnly)
+    {
+        blReadOnly = readOnly;
     }
 
     /***************************************************************************

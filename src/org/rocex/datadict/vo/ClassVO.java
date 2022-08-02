@@ -12,15 +12,15 @@ import javax.persistence.Table;
  * @version 2020-4-21 13:20:06
  ***************************************************************************/
 @Table(name = "md_class", indexes = { @Index(name = "i_md_class_component_id", columnList = "component_id"),
-        @Index(name = "i_md_class_default_table_name", columnList = "default_table_name"), @Index(name = "i_md_class_class_type", columnList = "class_type") })
+        @Index(name = "i_md_class_default_table_name", columnList = "default_table_name"), @Index(name = "i_md_class_class_type", columnList = "class_type"),
+        @Index(name = "i_md_class_ddc_version", columnList = "ddc_version") })
 public class ClassVO extends MetaVO
 {
-    private boolean blIsPrimary = false;
+    private Boolean blIsPrimary = false;
+    private Boolean blIsAuthen;
     
     private Integer iClassType;     // 999 - 数据库表
     
-    private List<PropertyVO> propertyVO;
-
     private String strAccessorClassname;
     private String strBizItfImpClassname;
     private String strClassListUrl;
@@ -31,6 +31,8 @@ public class ClassVO extends MetaVO
     private String strKeyAttribute;
     private String strRefModelName;
     private String strReturnType;
+    
+    private List<PropertyVO> propertyVO;
     
     /***************************************************************************
      * @return the accessorClassname
@@ -108,9 +110,30 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-12 03:29:20
      ***************************************************************************/
+    @Override
     public String getHelp()
     {
         return strHelp;
+    }
+    
+    /***************************************************************************
+     * @return the isAuthen
+     * @author Rocex Wang
+     * @since 2022-08-02 02:34:03
+     ***************************************************************************/
+    public Boolean getIsAuthen()
+    {
+        return blIsAuthen;
+    }
+    
+    /***************************************************************************
+     * @return the isPrimary
+     * @author Rocex Wang
+     * @version 2020-4-23 19:55:37
+     ***************************************************************************/
+    public Boolean getIsPrimary()
+    {
+        return blIsPrimary;
     }
     
     /***************************************************************************
@@ -139,6 +162,7 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-16 02:14:23
      ***************************************************************************/
+    @Column(length = 512)
     public String getRefModelName()
     {
         return strRefModelName;
@@ -152,16 +176,6 @@ public class ClassVO extends MetaVO
     public String getReturnType()
     {
         return strReturnType;
-    }
-    
-    /***************************************************************************
-     * @return the isPrimary
-     * @author Rocex Wang
-     * @version 2020-4-23 19:55:37
-     ***************************************************************************/
-    public boolean getIsPrimary()
-    {
-        return blIsPrimary;
     }
     
     /***************************************************************************
@@ -239,9 +253,20 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-12 03:29:20
      ***************************************************************************/
+    @Override
     public void setHelp(String help)
     {
         strHelp = help;
+    }
+    
+    /***************************************************************************
+     * @param isAuthen the isAuthen to set
+     * @author Rocex Wang
+     * @since 2022-08-02 02:34:03
+     ***************************************************************************/
+    public void setIsAuthen(Boolean isAuthen)
+    {
+        blIsAuthen = isAuthen;
     }
     
     /***************************************************************************
@@ -249,7 +274,7 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-4-23 19:55:37
      ***************************************************************************/
-    public void setIsPrimary(boolean isPrimary)
+    public void setIsPrimary(Boolean isPrimary)
     {
         blIsPrimary = isPrimary;
     }

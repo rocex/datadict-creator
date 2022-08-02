@@ -3,6 +3,7 @@ package org.rocex.datadict.vo;
 import java.util.List;
 
 import javax.persistence.Column;
+import javax.persistence.Index;
 import javax.persistence.Table;
 
 /***************************************************************************
@@ -10,18 +11,19 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @version 2020-4-21 13:20:26
  ***************************************************************************/
-@Table(name = "md_component")
+@Table(name = "md_component", indexes = { @Index(name = "i_md_component_ddc_version", columnList = "ddc_version") })
 public class ComponentVO extends MetaVO
 {
-    private List<ClassVO> classVO;
-
-    private String strHelp;
+    private Boolean blBizModel;
+    
+    private Integer iVersion;
+    
     private String strNamespace;
     private String strOriginalId;
     private String strOwnModule;
     
-    private boolean blBizModel;
-
+    private List<ClassVO> classVO;
+    
     /***************************************************************************
      * @return the classVO
      * @author Rocex Wang
@@ -32,17 +34,7 @@ public class ComponentVO extends MetaVO
     {
         return classVO;
     }
-
-    /***************************************************************************
-     * @return the help
-     * @author Rocex Wang
-     * @since 2021-11-16 11:09:19
-     ***************************************************************************/
-    public String getHelp()
-    {
-        return strHelp;
-    }
-
+    
     /***************************************************************************
      * @return the namespace
      * @author Rocex Wang
@@ -52,7 +44,7 @@ public class ComponentVO extends MetaVO
     {
         return strNamespace;
     }
-
+    
     /***************************************************************************
      * @return the originalId
      * @author Rocex Wang
@@ -62,7 +54,7 @@ public class ComponentVO extends MetaVO
     {
         return strOriginalId;
     }
-
+    
     /***************************************************************************
      * @return the ownModule
      * @author Rocex Wang
@@ -72,27 +64,37 @@ public class ComponentVO extends MetaVO
     {
         return strOwnModule;
     }
-
+    
+    /***************************************************************************
+     * @return the version
+     * @author Rocex Wang
+     * @since 2022-08-02 02:18:50
+     ***************************************************************************/
+    public Integer getVersion()
+    {
+        return iVersion;
+    }
+    
     /***************************************************************************
      * @return the bizModel
      * @author Rocex Wang
      * @since 2021-11-19 01:22:46
      ***************************************************************************/
-    public boolean isBizModel()
+    public Boolean isBizModel()
     {
         return blBizModel;
     }
-
+    
     /***************************************************************************
      * @param bizModel the bizModel to set
      * @author Rocex Wang
      * @since 2021-11-19 01:22:46
      ***************************************************************************/
-    public void setBizModel(boolean bizModel)
+    public void setBizModel(Boolean bizModel)
     {
         blBizModel = bizModel;
     }
-
+    
     /***************************************************************************
      * @param classVO the classVO to set
      * @author Rocex Wang
@@ -104,16 +106,6 @@ public class ComponentVO extends MetaVO
     }
 
     /***************************************************************************
-     * @param help the help to set
-     * @author Rocex Wang
-     * @since 2021-11-16 11:09:19
-     ***************************************************************************/
-    public void setHelp(String help)
-    {
-        strHelp = help;
-    }
-
-    /***************************************************************************
      * @param namespace the namespace to set
      * @author Rocex Wang
      * @since 2021-11-16 01:57:12
@@ -122,7 +114,7 @@ public class ComponentVO extends MetaVO
     {
         strNamespace = namespace;
     }
-    
+
     /***************************************************************************
      * @param originalId the originalId to set
      * @author Rocex Wang
@@ -132,7 +124,7 @@ public class ComponentVO extends MetaVO
     {
         strOriginalId = originalId;
     }
-    
+
     /***************************************************************************
      * @param ownModule the ownModule to set
      * @author Rocex Wang
@@ -141,5 +133,15 @@ public class ComponentVO extends MetaVO
     public void setOwnModule(String ownModule)
     {
         strOwnModule = ownModule;
+    }
+
+    /***************************************************************************
+     * @param version the version to set
+     * @author Rocex Wang
+     * @since 2022-08-02 02:18:50
+     ***************************************************************************/
+    public void setVersion(Integer version)
+    {
+        iVersion = version;
     }
 }

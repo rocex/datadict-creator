@@ -1,5 +1,6 @@
 package org.rocex.datadict.vo;
 
+import javax.persistence.Index;
 import javax.persistence.Table;
 
 /***************************************************************************
@@ -7,7 +8,7 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @version 2020-4-21 16:22:12
  ***************************************************************************/
-@Table(name = "md_module")
+@Table(name = "md_module", indexes = { @Index(name = "i_md_module_ddc_version", columnList = "ddc_version") })
 public class ModuleVO extends MetaVO
 {
     private String strParentModuleId;

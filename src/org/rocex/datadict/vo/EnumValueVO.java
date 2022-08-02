@@ -1,7 +1,6 @@
 package org.rocex.datadict.vo;
 
-import java.math.BigDecimal;
-
+import javax.persistence.Column;
 import javax.persistence.Index;
 import javax.persistence.Table;
 
@@ -10,14 +9,15 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @version 2020-4-23 13:35:11
  ***************************************************************************/
-@Table(name = "md_enumvalue", indexes = { @Index(name = "i_md_enumvalue_class_id", columnList = "class_id,enum_sequence") })
-public class EnumVO extends MetaVO
+@Table(name = "md_enumvalue", indexes = { @Index(name = "i_md_enumvalue_class_id", columnList = "class_id,enum_sequence"),
+        @Index(name = "i_md_enumvalue_ddc_version", columnList = "ddc_version") })
+public class EnumValueVO extends MetaVO
 {
-    private BigDecimal iEnumSequence;
-    
+    private Integer iEnumSequence;
+
     private String strClassId;
     private String strEnumValue;
-    
+
     /***************************************************************************
      * @return the classId
      * @author Rocex Wang
@@ -27,17 +27,17 @@ public class EnumVO extends MetaVO
     {
         return strClassId;
     }
-    
+
     /***************************************************************************
      * @return the enumSequence
      * @author Rocex Wang
      * @since 2021-11-09 03:09:45
      ***************************************************************************/
-    public BigDecimal getEnumSequence()
+    public Integer getEnumSequence()
     {
         return iEnumSequence;
     }
-    
+
     /***************************************************************************
      * @return the value
      * @author Rocex Wang
@@ -47,7 +47,20 @@ public class EnumVO extends MetaVO
     {
         return strEnumValue;
     }
-    
+
+    /****************************************************************************
+     * {@inheritDoc}<br>
+     * @see org.rocex.datadict.vo.MetaVO#getHelp()
+     * @author Rocex Wang
+     * @since 2022-08-02 16:36:42
+     ****************************************************************************/
+    @Override
+    @Column(insertable = false, updatable = false)
+    public String getHelp()
+    {
+        return super.getHelp();
+    }
+
     /***************************************************************************
      * @param classId the classId to set
      * @author Rocex Wang
@@ -57,17 +70,17 @@ public class EnumVO extends MetaVO
     {
         strClassId = classId;
     }
-    
+
     /***************************************************************************
      * @param enumSequence the enumSequence to set
      * @author Rocex Wang
      * @since 2021-11-09 03:09:45
      ***************************************************************************/
-    public void setEnumSequence(BigDecimal enumSequence)
+    public void setEnumSequence(Integer enumSequence)
     {
         iEnumSequence = enumSequence;
     }
-    
+
     /***************************************************************************
      * @param value the value to set
      * @author Rocex Wang
