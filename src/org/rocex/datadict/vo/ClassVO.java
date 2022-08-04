@@ -16,23 +16,22 @@ import javax.persistence.Table;
         @Index(name = "i_md_class_ddc_version", columnList = "ddc_version") })
 public class ClassVO extends MetaVO
 {
-    private Boolean blIsPrimary = false;
     private Boolean blIsAuthen;
+    private Boolean blIsPrimary = false;
     
     private Integer iClassType;     // 999 - 数据库表
     
+    private List<PropertyVO> propertyVO;
     private String strAccessorClassname;
     private String strBizItfImpClassname;
     private String strClassListUrl;
     private String strComponentId;
     private String strDefaultTableName;
     private String strFullClassname;
-    private String strHelp;
     private String strKeyAttribute;
     private String strRefModelName;
-    private String strReturnType;
     
-    private List<PropertyVO> propertyVO;
+    private String strReturnType;
     
     /***************************************************************************
      * @return the accessorClassname
@@ -80,6 +79,7 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-4-22 9:47:37
      ***************************************************************************/
+    @Column(length = 50)
     public String getComponentId()
     {
         return strComponentId;
@@ -90,6 +90,7 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-4-22 10:39:06
      ***************************************************************************/
+    @Column(length = 50)
     public String getDefaultTableName()
     {
         return strDefaultTableName;
@@ -103,17 +104,6 @@ public class ClassVO extends MetaVO
     public String getFullClassname()
     {
         return strFullClassname;
-    }
-    
-    /***************************************************************************
-     * @return the help
-     * @author Rocex Wang
-     * @since 2021-11-12 03:29:20
-     ***************************************************************************/
-    @Override
-    public String getHelp()
-    {
-        return strHelp;
     }
     
     /***************************************************************************
@@ -141,6 +131,7 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @version 2020-4-22 14:32:45
      ***************************************************************************/
+    @Column(length = 50)
     public String getKeyAttribute()
     {
         return strKeyAttribute;
@@ -173,6 +164,7 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-16 02:30:29
      ***************************************************************************/
+    @Column(length = 50)
     public String getReturnType()
     {
         return strReturnType;
@@ -246,17 +238,6 @@ public class ClassVO extends MetaVO
     public void setFullClassname(String fullClassname)
     {
         strFullClassname = fullClassname;
-    }
-    
-    /***************************************************************************
-     * @param help the help to set
-     * @author Rocex Wang
-     * @since 2021-11-12 03:29:20
-     ***************************************************************************/
-    @Override
-    public void setHelp(String help)
-    {
-        strHelp = help;
     }
     
     /***************************************************************************

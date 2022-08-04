@@ -1,5 +1,6 @@
 package org.rocex.datadict.vo;
 
+import javax.persistence.Column;
 import javax.persistence.Index;
 import javax.persistence.Table;
 
@@ -12,17 +13,18 @@ import javax.persistence.Table;
 public class ModuleVO extends MetaVO
 {
     private String strParentModuleId;
-
+    
     /***************************************************************************
      * @return the parentModuleId
      * @author Rocex Wang
      * @since 2021-11-12 02:26:17
      ***************************************************************************/
+    @Column(length = 50)
     public String getParentModuleId()
     {
         return strParentModuleId;
     }
-
+    
     /***************************************************************************
      * @param parentModuleId the parentModuleId to set
      * @author Rocex Wang

@@ -25,12 +25,12 @@ public class PropertyVO extends MetaVO
     private Boolean blNotSerialize = false;
     private Boolean blNullable = false;
     private Boolean blReadOnly = false;
-
+    
     private Integer iAttrLength;
     private Integer iAttrSequence;
     private Integer iDataTypeStyle;     // 999 - 数据库字段
     private Integer iPrecise;
-
+    
     private String strAccessorClassname;
     private String strAccessPowerGroup;
     private String strAttrMaxValue;
@@ -44,7 +44,7 @@ public class PropertyVO extends MetaVO
     private String strOriginalId;
     private String strRefClassPathHref;
     private String strRefModelName;
-
+    
     /***************************************************************************
      * @return the accessorClassname
      * @author Rocex Wang
@@ -54,17 +54,18 @@ public class PropertyVO extends MetaVO
     {
         return strAccessorClassname;
     }
-
+    
     /***************************************************************************
      * @return the accessPowerGroup
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
      ***************************************************************************/
+    @Column(length = 50)
     public String getAccessPowerGroup()
     {
         return strAccessPowerGroup;
     }
-
+    
     /***************************************************************************
      * @return the attrLength
      * @author Rocex Wang
@@ -74,27 +75,29 @@ public class PropertyVO extends MetaVO
     {
         return iAttrLength;
     }
-
+    
     /***************************************************************************
      * @return the attrMaxValue
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
      ***************************************************************************/
+    @Column(length = 50)
     public String getAttrMaxValue()
     {
         return strAttrMaxValue;
     }
-
+    
     /***************************************************************************
      * @return the attrMinValue
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
      ***************************************************************************/
+    @Column(length = 50)
     public String getAttrMinValue()
     {
         return strAttrMinValue;
     }
-
+    
     /***************************************************************************
      * @return the attrSequence
      * @author Rocex Wang
@@ -104,17 +107,18 @@ public class PropertyVO extends MetaVO
     {
         return iAttrSequence;
     }
-
+    
     /***************************************************************************
      * @return the classId
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
      ***************************************************************************/
+    @Column(length = 50)
     public String getClassId()
     {
         return strClassId;
     }
-
+    
     /***************************************************************************
      * @return the dataScope
      * @author Rocex Wang
@@ -125,27 +129,29 @@ public class PropertyVO extends MetaVO
     {
         return strDataScope;
     }
-
+    
     /***************************************************************************
      * @return the dataType
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
      ***************************************************************************/
+    @Column(length = 50)
     public String getDataType()
     {
         return strDataType;
     }
-
+    
     /***************************************************************************
      * @return the sqlDateType
      * @author Rocex Wang
      * @version 2020-4-23 11:36:08
      ***************************************************************************/
+    @Column(length = 50)
     public String getDataTypeSql()
     {
         return strDataTypeSql;
     }
-
+    
     /***************************************************************************
      * @return the dataTypeStyle
      * @author Rocex Wang
@@ -155,37 +161,40 @@ public class PropertyVO extends MetaVO
     {
         return iDataTypeStyle;
     }
-
+    
     /***************************************************************************
      * @return the defaultValue
      * @author Rocex Wang
      * @version 2020-4-22 15:00:08
      ***************************************************************************/
+    @Column(length = 80)
     public String getDefaultValue()
     {
         return strDefaultValue;
     }
-
+    
     /***************************************************************************
      * @return the dynamicTable
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
      ***************************************************************************/
+    @Column(length = 50)
     public String getDynamicTable()
     {
         return strDynamicTable;
     }
-
+    
     /***************************************************************************
      * @return the originalId
      * @author Rocex Wang
      * @since 2021-11-11 11:09:34
      ***************************************************************************/
+    @Column(length = 50)
     public String getOriginalId()
     {
         return strOriginalId;
     }
-
+    
     /***************************************************************************
      * @return the precise
      * @author Rocex Wang
@@ -195,7 +204,7 @@ public class PropertyVO extends MetaVO
     {
         return iPrecise;
     }
-
+    
     /***************************************************************************
      * @return the refClassPathHref
      * @author Rocex Wang
@@ -206,7 +215,7 @@ public class PropertyVO extends MetaVO
     {
         return strRefClassPathHref;
     }
-
+    
     /***************************************************************************
      * @return the refModelName
      * @author Rocex Wang
@@ -217,7 +226,7 @@ public class PropertyVO extends MetaVO
     {
         return strRefModelName;
     }
-
+    
     /***************************************************************************
      * @return the accessPower
      * @author Rocex Wang
@@ -227,7 +236,7 @@ public class PropertyVO extends MetaVO
     {
         return blAccessPower;
     }
-
+    
     /***************************************************************************
      * @return the calculation
      * @author Rocex Wang
@@ -237,7 +246,7 @@ public class PropertyVO extends MetaVO
     {
         return blCalculation;
     }
-
+    
     /***************************************************************************
      * @return the customAttr
      * @author Rocex Wang
@@ -247,7 +256,7 @@ public class PropertyVO extends MetaVO
     {
         return blCustomAttr;
     }
-
+    
     /***************************************************************************
      * @return the dynamicAttr
      * @author Rocex Wang
@@ -257,7 +266,7 @@ public class PropertyVO extends MetaVO
     {
         return blDynamicAttr;
     }
-
+    
     /***************************************************************************
      * @return the fixedLength
      * @author Rocex Wang
@@ -267,7 +276,7 @@ public class PropertyVO extends MetaVO
     {
         return blFixedLength;
     }
-
+    
     /***************************************************************************
      * @return the hidden
      * @author Rocex Wang
@@ -277,7 +286,7 @@ public class PropertyVO extends MetaVO
     {
         return blHidden;
     }
-
+    
     /***************************************************************************
      * @return the keyProp
      * @author Rocex Wang
@@ -287,7 +296,7 @@ public class PropertyVO extends MetaVO
     {
         return blKeyProp;
     }
-
+    
     /***************************************************************************
      * @return the notSerialize
      * @author Rocex Wang
@@ -297,7 +306,7 @@ public class PropertyVO extends MetaVO
     {
         return blNotSerialize;
     }
-
+    
     /***************************************************************************
      * @return the nullable
      * @author Rocex Wang
@@ -307,7 +316,7 @@ public class PropertyVO extends MetaVO
     {
         return blNullable;
     }
-
+    
     /***************************************************************************
      * @return the readOnly
      * @author Rocex Wang
@@ -317,7 +326,7 @@ public class PropertyVO extends MetaVO
     {
         return blReadOnly;
     }
-
+    
     /***************************************************************************
      * @param accessorClassname the accessorClassname to set
      * @author Rocex Wang
@@ -327,7 +336,7 @@ public class PropertyVO extends MetaVO
     {
         strAccessorClassname = accessorClassname;
     }
-
+    
     /***************************************************************************
      * @param accessPower the accessPower to set
      * @author Rocex Wang
@@ -337,7 +346,7 @@ public class PropertyVO extends MetaVO
     {
         blAccessPower = accessPower;
     }
-
+    
     /***************************************************************************
      * @param accessPowerGroup the accessPowerGroup to set
      * @author Rocex Wang
@@ -347,7 +356,7 @@ public class PropertyVO extends MetaVO
     {
         strAccessPowerGroup = accessPowerGroup;
     }
-
+    
     /***************************************************************************
      * @param attrLength the attrLength to set
      * @author Rocex Wang
@@ -357,7 +366,7 @@ public class PropertyVO extends MetaVO
     {
         iAttrLength = attrLength;
     }
-
+    
     /***************************************************************************
      * @param attrMaxValue the attrMaxValue to set
      * @author Rocex Wang
@@ -367,7 +376,7 @@ public class PropertyVO extends MetaVO
     {
         strAttrMaxValue = attrMaxValue;
     }
-
+    
     /***************************************************************************
      * @param attrMinValue the attrMinValue to set
      * @author Rocex Wang
@@ -377,7 +386,7 @@ public class PropertyVO extends MetaVO
     {
         strAttrMinValue = attrMinValue;
     }
-
+    
     /***************************************************************************
      * @param attrSequence the attrSequence to set
      * @author Rocex Wang
@@ -387,7 +396,7 @@ public class PropertyVO extends MetaVO
     {
         iAttrSequence = attrSequence;
     }
-
+    
     /***************************************************************************
      * @param calculation the calculation to set
      * @author Rocex Wang
@@ -397,7 +406,7 @@ public class PropertyVO extends MetaVO
     {
         blCalculation = calculation;
     }
-
+    
     /***************************************************************************
      * @param classId the classId to set
      * @author Rocex Wang
@@ -407,7 +416,7 @@ public class PropertyVO extends MetaVO
     {
         strClassId = classId;
     }
-
+    
     /***************************************************************************
      * @param customAttr the customAttr to set
      * @author Rocex Wang
@@ -417,7 +426,7 @@ public class PropertyVO extends MetaVO
     {
         blCustomAttr = customAttr;
     }
-
+    
     /***************************************************************************
      * @param dataScope the dataScope to set
      * @author Rocex Wang
@@ -427,7 +436,7 @@ public class PropertyVO extends MetaVO
     {
         strDataScope = dataScope;
     }
-
+    
     /***************************************************************************
      * @param dataType the dataType to set
      * @author Rocex Wang
@@ -437,7 +446,7 @@ public class PropertyVO extends MetaVO
     {
         strDataType = dataType;
     }
-
+    
     /***************************************************************************
      * @param sqlDateType the sqlDateType to set
      * @author Rocex Wang
@@ -447,7 +456,7 @@ public class PropertyVO extends MetaVO
     {
         strDataTypeSql = sqlDateType;
     }
-
+    
     /***************************************************************************
      * @param dataTypeStyle the dataTypeStyle to set
      * @author Rocex Wang
@@ -457,7 +466,7 @@ public class PropertyVO extends MetaVO
     {
         iDataTypeStyle = dataTypeStyle;
     }
-
+    
     /***************************************************************************
      * @param defaultValue the defaultValue to set
      * @author Rocex Wang
@@ -467,7 +476,7 @@ public class PropertyVO extends MetaVO
     {
         strDefaultValue = defaultValue;
     }
-
+    
     /***************************************************************************
      * @param dynamicAttr the dynamicAttr to set
      * @author Rocex Wang
@@ -477,7 +486,7 @@ public class PropertyVO extends MetaVO
     {
         blDynamicAttr = dynamicAttr;
     }
-
+    
     /***************************************************************************
      * @param dynamicTable the dynamicTable to set
      * @author Rocex Wang
@@ -487,7 +496,7 @@ public class PropertyVO extends MetaVO
     {
         strDynamicTable = dynamicTable;
     }
-
+    
     /***************************************************************************
      * @param fixedLength the fixedLength to set
      * @author Rocex Wang
@@ -497,7 +506,7 @@ public class PropertyVO extends MetaVO
     {
         blFixedLength = fixedLength;
     }
-
+    
     /***************************************************************************
      * @param hidden the hidden to set
      * @author Rocex Wang
@@ -507,7 +516,7 @@ public class PropertyVO extends MetaVO
     {
         blHidden = hidden;
     }
-
+    
     /***************************************************************************
      * @param keyProp the keyProp to set
      * @author Rocex Wang
@@ -517,7 +526,7 @@ public class PropertyVO extends MetaVO
     {
         blKeyProp = keyProp;
     }
-
+    
     /***************************************************************************
      * @param notSerialize the notSerialize to set
      * @author Rocex Wang
@@ -527,7 +536,7 @@ public class PropertyVO extends MetaVO
     {
         blNotSerialize = notSerialize;
     }
-
+    
     /***************************************************************************
      * @param nullable the nullable to set
      * @author Rocex Wang
@@ -537,7 +546,7 @@ public class PropertyVO extends MetaVO
     {
         blNullable = nullable;
     }
-
+    
     /***************************************************************************
      * @param originalId the originalId to set
      * @author Rocex Wang
@@ -547,7 +556,7 @@ public class PropertyVO extends MetaVO
     {
         strOriginalId = originalId;
     }
-
+    
     /***************************************************************************
      * @param precise the precise to set
      * @author Rocex Wang
@@ -557,7 +566,7 @@ public class PropertyVO extends MetaVO
     {
         iPrecise = precise;
     }
-
+    
     /***************************************************************************
      * @param readOnly the readOnly to set
      * @author Rocex Wang
@@ -567,7 +576,7 @@ public class PropertyVO extends MetaVO
     {
         blReadOnly = readOnly;
     }
-
+    
     /***************************************************************************
      * @param refClassPathHref the refClassPathHref to set
      * @author Rocex Wang
@@ -577,7 +586,7 @@ public class PropertyVO extends MetaVO
     {
         strRefClassPathHref = refClassPathHref;
     }
-
+    
     /***************************************************************************
      * @param refModelName the refModelName to set
      * @author Rocex Wang

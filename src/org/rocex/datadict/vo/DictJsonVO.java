@@ -13,6 +13,7 @@ import javax.persistence.Table;
 public class DictJsonVO extends MetaVO
 {
     private String strClassId;
+
     private Object strDictJson;
 
     /***************************************************************************
@@ -20,6 +21,7 @@ public class DictJsonVO extends MetaVO
      * @author Rocex Wang
      * @since 2022-08-02 01:30:37
      ***************************************************************************/
+    @Column(length = 50)
     public String getClassId()
     {
         return strClassId;

@@ -583,7 +583,7 @@ public class SQLExecutor
             
             Column annoColumn = method.getAnnotation(Column.class);
             
-            int iLength = 256;
+            int iLength = 255;
             int iPrecision = 0;
             boolean blNullable = true;
             
@@ -610,7 +610,12 @@ public class SQLExecutor
             StringBuilder strField = new StringBuilder(strFieldName);
             
             Class<?> returnType = method.getReturnType();
-            if (returnType == Integer.class)
+
+            if (returnType == Boolean.class)
+            {
+                strField.append(" char(1)");
+            }
+            else if (returnType == Integer.class)
             {
                 strField.append(" int");
             }

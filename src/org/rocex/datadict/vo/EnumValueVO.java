@@ -14,20 +14,34 @@ import javax.persistence.Table;
 public class EnumValueVO extends MetaVO
 {
     private Integer iEnumSequence;
-
+    
     private String strClassId;
     private String strEnumValue;
-
+    
     /***************************************************************************
      * @return the classId
      * @author Rocex Wang
      * @since 2021-11-09 03:20:46
      ***************************************************************************/
+    @Column(length = 50)
     public String getClassId()
     {
         return strClassId;
     }
-
+    
+    /****************************************************************************
+     * {@inheritDoc}<br>
+     * @see org.rocex.datadict.vo.MetaVO#getDisplayName()
+     * @author Rocex Wang
+     * @since 2022-08-03 11:06:16
+     ****************************************************************************/
+    @Override
+    @Column(insertable = false, updatable = false)
+    public String getDisplayName()
+    {
+        return super.getDisplayName();
+    }
+    
     /***************************************************************************
      * @return the enumSequence
      * @author Rocex Wang
@@ -37,7 +51,7 @@ public class EnumValueVO extends MetaVO
     {
         return iEnumSequence;
     }
-
+    
     /***************************************************************************
      * @return the value
      * @author Rocex Wang
@@ -47,7 +61,7 @@ public class EnumValueVO extends MetaVO
     {
         return strEnumValue;
     }
-
+    
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datadict.vo.MetaVO#getHelp()
@@ -60,7 +74,7 @@ public class EnumValueVO extends MetaVO
     {
         return super.getHelp();
     }
-
+    
     /***************************************************************************
      * @param classId the classId to set
      * @author Rocex Wang
@@ -70,7 +84,7 @@ public class EnumValueVO extends MetaVO
     {
         strClassId = classId;
     }
-
+    
     /***************************************************************************
      * @param enumSequence the enumSequence to set
      * @author Rocex Wang
@@ -80,7 +94,7 @@ public class EnumValueVO extends MetaVO
     {
         iEnumSequence = enumSequence;
     }
-
+    
     /***************************************************************************
      * @param value the value to set
      * @author Rocex Wang

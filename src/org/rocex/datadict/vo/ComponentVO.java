@@ -16,13 +16,13 @@ public class ComponentVO extends MetaVO
 {
     private Boolean blBizModel;
     
+    private List<ClassVO> classVO;
+    
     private Integer iVersion;
     
     private String strNamespace;
     private String strOriginalId;
     private String strOwnModule;
-    
-    private List<ClassVO> classVO;
     
     /***************************************************************************
      * @return the classVO
@@ -50,6 +50,7 @@ public class ComponentVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-12 07:07:59
      ***************************************************************************/
+    @Column(length = 50)
     public String getOriginalId()
     {
         return strOriginalId;

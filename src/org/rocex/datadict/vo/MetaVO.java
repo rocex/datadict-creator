@@ -26,6 +26,7 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @since 2022-08-01 01:42:04
      ***************************************************************************/
+    @Column(length = 4)
     public String getDdcVersion()
     {
         return strDdcVersion;
@@ -46,6 +47,7 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @since 2022-08-02 02:08:30
      ***************************************************************************/
+    @Column(length = 80)
     public String getHelp()
     {
         return strHelp;
@@ -57,7 +59,7 @@ public class MetaVO extends SuperVO
      * @version 2020-4-21 13:45:33
      ***************************************************************************/
     @Id
-    @Column(nullable = false, length = 128)
+    @Column(nullable = false, length = 50)
     public String getId()
     {
         return strId;
@@ -68,6 +70,7 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @version 2020-4-21 13:45:33
      ***************************************************************************/
+    @Column(nullable = false)
     public String getName()
     {
         return strName;
@@ -78,6 +81,7 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @since 2022-08-02 02:08:30
      ***************************************************************************/
+    @Column(length = 19)
     public String getTs()
     {
         return strTs;
@@ -142,7 +146,7 @@ public class MetaVO extends SuperVO
     {
         strName = name;
     }
-    
+
     /***************************************************************************
      * @param ts the ts to set
      * @author Rocex Wang
@@ -152,7 +156,7 @@ public class MetaVO extends SuperVO
     {
         strTs = ts;
     }
-    
+
     /***************************************************************************
      * @param versionType the versionType to set
      * @author Rocex Wang
