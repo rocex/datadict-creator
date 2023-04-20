@@ -220,7 +220,7 @@ public class SQLExecutor
         }
         catch (Exception ex)
         {
-            Logger.getLogger().error(ex.getMessage(), ex);
+            Logger.getLogger().error(ex.getMessage());
             
             throw ex;
         }
@@ -903,7 +903,7 @@ public class SQLExecutor
         }
         catch (Exception ex)
         {
-            Logger.getLogger().error(ex.getMessage(), ex);
+            Logger.getLogger().error(ex.getMessage());
             
             return false;
         }
