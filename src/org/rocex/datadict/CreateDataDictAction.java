@@ -354,9 +354,11 @@ public class CreateDataDictAction implements IAction
             ModuleVO moduleVO = getModuleVO(classVO);
 
             String strUrl = getClassUrl(classVO);
+            String strClassname = classVO.getFullClassname();
+            strClassname = strClassname.contains(".") ? strClassname.substring(strClassname.lastIndexOf(".")) : strClassname;
 
             strClassRows.append(MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO),
-                    classVO.getDefaultTableName(), classVO.getDisplayName() + " " + classVO.getFullClassname(), strUrl, "ddc"));
+                    classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname, strUrl, "ddc"));
 
             String strModuleId = getModuleId(classVO);
 
