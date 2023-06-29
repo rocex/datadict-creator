@@ -143,7 +143,7 @@ function filterData(searchVal, dictIndexData) {
             item.open = true;
             return true;
         }
-        if (!!item.name && item.name.includes(searchVal)) {
+        if (!!item.name && item.name.toLowerCase().includes(searchVal)) {
             if (!childrenArr.includes(item.pId)) childrenArr.push(item.pId);
             return true;
         }
@@ -168,7 +168,7 @@ function searchUse() {
         return;
     }
 
-    let searchData = filterData(searchDomVal, dataDictIndexData);
+    let searchData = filterData(searchDomVal.toLowerCase(), dataDictIndexData);
 
     setTreeData(searchData);
 }
