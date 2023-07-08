@@ -610,7 +610,7 @@ public class SQLExecutor
             StringBuilder strField = new StringBuilder(strFieldName);
             
             Class<?> returnType = method.getReturnType();
-
+            
             if (returnType == Boolean.class)
             {
                 strField.append(" char(1)");

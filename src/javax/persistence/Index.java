@@ -37,12 +37,12 @@ public @interface Index
      * in order.
      */
     String columnList();
-
+    
     /**
      * (Optional) The name of the index; defaults to a provider-generated name.
      */
     String name() default "";
-
+    
     /**
      * (Optional) Whether the index is unique.
      */

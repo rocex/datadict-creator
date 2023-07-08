@@ -105,7 +105,7 @@ public class ComponentVO extends MetaVO
     {
         this.classVO = classVO;
     }
-
+    
     /***************************************************************************
      * @param namespace the namespace to set
      * @author Rocex Wang
@@ -115,7 +115,7 @@ public class ComponentVO extends MetaVO
     {
         strNamespace = namespace;
     }
-
+    
     /***************************************************************************
      * @param originalId the originalId to set
      * @author Rocex Wang
@@ -125,7 +125,7 @@ public class ComponentVO extends MetaVO
     {
         strOriginalId = originalId;
     }
-
+    
     /***************************************************************************
      * @param ownModule the ownModule to set
      * @author Rocex Wang
@@ -135,7 +135,7 @@ public class ComponentVO extends MetaVO
     {
         strOwnModule = ownModule;
     }
-
+    
     /***************************************************************************
      * @param version the version to set
      * @author Rocex Wang

@@ -27,9 +27,9 @@ public class SQLParameter implements Serializable
         {
             throw new IllegalArgumentException("SQLParameter cannot be null!!!");
         }
-
+        
         statement.clearParameters();
-
+        
         for (int i = 1, iParamCount = param.getCountParams(); i <= iParamCount; i++)
         {
             Object objParam = param.get(i - 1);

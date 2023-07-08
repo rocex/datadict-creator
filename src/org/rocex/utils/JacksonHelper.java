@@ -17,9 +17,9 @@ import com.fasterxml.jackson.databind.util.StdDateFormat;
 public class JacksonHelper
 {
     private ObjectMapper mapper;
-
+    
     private JacksonPropertyFilterProvider filterProvider;
-
+    
     /***************************************************************************
      * @author Rocex Wang
      * @since 2021-11-24 02:25:01
@@ -27,11 +27,11 @@ public class JacksonHelper
     public JacksonHelper()
     {
         super();
-
+        
         mapper = new ObjectMapper();
         filterProvider = new JacksonPropertyFilterProvider(mapper);
     }
-
+    
     /***************************************************************************
      * @param clazz 要序列化的实体类
      * @param strFields 要排除序列化的属性名
@@ -42,10 +42,10 @@ public class JacksonHelper
     public JacksonHelper exclude(Class<?> clazz, String... strFields)
     {
         filterProvider.exclude(clazz, strFields);
-
+        
         return this;
     }
-
+    
     /***************************************************************************
      * @param clazz 要序列化的实体类
      * @param strFields 要排除序列化的属性名
@@ -56,10 +56,10 @@ public class JacksonHelper
     public JacksonHelper include(Class<?> clazz, String... strFields)
     {
         filterProvider.include(clazz, strFields);
-
+        
         return this;
     }
-
+    
     /***************************************************************************
      * 序列化
      * @param obj
@@ -72,14 +72,14 @@ public class JacksonHelper
         mapper.setDateFormat(StdDateFormat.getDateTimeInstance());
         mapper.setSerializationInclusion(JsonInclude.Include.NON_EMPTY);
         mapper.configure(DeserializationFeature.FAIL_ON_UNKNOWN_PROPERTIES, false);
-
+        
         try
         {
             if (Files.notExists(pathFile.getParent()))
             {
                 Files.createDirectories(pathFile.getParent());
             }
-
+            
             mapper.writeValue(pathFile.toFile(), obj);
             // mapper.writerWithDefaultPrettyPrinter().writeValue(pathFile.toFile(), obj);
         }
@@ -88,7 +88,7 @@ public class JacksonHelper
             Logger.getLogger().error(ex.getMessage(), ex);
         }
     }
-
+    
     /***************************************************************************
      * 在新线程下序列化
      * @param obj

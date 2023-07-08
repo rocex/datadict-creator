@@ -306,7 +306,7 @@ public class SyncDBSchemaAction implements IAction
     public boolean isNeedSyncData()
     {
         String strSQL = "select count(1) from md_module where ddc_version='" + strVersion + "'";
-
+        
         try
         {
             int iRecordCount = (int) sqlExecutorTarget.executeQuery(strSQL, new ResultSetProcessor()
@@ -322,7 +322,7 @@ public class SyncDBSchemaAction implements IAction
                     return 0;
                 }
             });
-
+            
             if (iRecordCount > 0)
             {
                 return false;

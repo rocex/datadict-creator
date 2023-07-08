@@ -13,14 +13,14 @@ import org.rocex.vo.SuperVO;
 public class MetaVO extends SuperVO
 {
     private Integer iVersionType;
-
+    
     private String strDdcVersion;
     private String strDisplayName;
     private String strHelp;
     private String strId;
     private String strName;
     private String strTs;
-
+    
     /***************************************************************************
      * @return the dDCVersion
      * @author Rocex Wang
@@ -31,7 +31,7 @@ public class MetaVO extends SuperVO
     {
         return strDdcVersion;
     }
-
+    
     /***************************************************************************
      * @return the displayName
      * @author Rocex Wang
@@ -41,7 +41,7 @@ public class MetaVO extends SuperVO
     {
         return strDisplayName;
     }
-
+    
     /***************************************************************************
      * @return the help
      * @author Rocex Wang
@@ -52,7 +52,7 @@ public class MetaVO extends SuperVO
     {
         return strHelp;
     }
-
+    
     /***************************************************************************
      * @return the id
      * @author Rocex Wang
@@ -64,7 +64,7 @@ public class MetaVO extends SuperVO
     {
         return strId;
     }
-
+    
     /***************************************************************************
      * @return the name
      * @author Rocex Wang
@@ -75,7 +75,7 @@ public class MetaVO extends SuperVO
     {
         return strName;
     }
-
+    
     /***************************************************************************
      * @return the ts
      * @author Rocex Wang
@@ -86,7 +86,7 @@ public class MetaVO extends SuperVO
     {
         return strTs;
     }
-
+    
     /***************************************************************************
      * @return the versionType
      * @author Rocex Wang
@@ -96,7 +96,7 @@ public class MetaVO extends SuperVO
     {
         return iVersionType;
     }
-
+    
     /***************************************************************************
      * @param dDCVersion the dDCVersion to set
      * @author Rocex Wang
@@ -106,7 +106,7 @@ public class MetaVO extends SuperVO
     {
         strDdcVersion = dDCVersion;
     }
-
+    
     /***************************************************************************
      * @param displayName the displayName to set
      * @author Rocex Wang
@@ -116,7 +116,7 @@ public class MetaVO extends SuperVO
     {
         strDisplayName = displayName;
     }
-
+    
     /***************************************************************************
      * @param help the help to set
      * @author Rocex Wang
@@ -126,7 +126,7 @@ public class MetaVO extends SuperVO
     {
         strHelp = help;
     }
-
+    
     /***************************************************************************
      * @param id the id to set
      * @author Rocex Wang
@@ -136,7 +136,7 @@ public class MetaVO extends SuperVO
     {
         strId = id;
     }
-
+    
     /***************************************************************************
      * @param name the name to set
      * @author Rocex Wang
@@ -146,7 +146,7 @@ public class MetaVO extends SuperVO
     {
         strName = name;
     }
-
+    
     /***************************************************************************
      * @param ts the ts to set
      * @author Rocex Wang
@@ -156,7 +156,7 @@ public class MetaVO extends SuperVO
     {
         strTs = ts;
     }
-
+    
     /***************************************************************************
      * @param versionType the versionType to set
      * @author Rocex Wang

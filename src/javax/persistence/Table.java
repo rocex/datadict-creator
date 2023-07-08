@@ -34,7 +34,7 @@ public @interface Table
      * Defaults to the default catalog.
      */
     String catalog() default "";
-
+    
     /**
      * (Optional) Indexes for the table. These are only used if
      * table generation is in effect. Note that it is not necessary
@@ -43,21 +43,21 @@ public @interface Table
      * @since Java Persistence 2.1
      */
     Index[] indexes() default {};
-
+    
     /**
      * (Optional) The name of the table.
      * <p>
      * Defaults to the entity name.
      */
     String name() default "";
-
+    
     /**
      * (Optional) The schema of the table.
      * <p>
      * Defaults to the default schema for user.
      */
     String schema() default "";
-
+    
     /**
      * (Optional) Unique constraints that are to be placed on
      * the table. These are only used if table generation is in

@@ -77,7 +77,7 @@ public class JacksonPropertyFilterProvider extends FilterProvider
     public JacksonPropertyFilterProvider exclude(Class<?> clazz, String... strFields)
     {
         addToMap(mapExclude, clazz, strFields);
-
+        
         mapper.addMixIn(clazz, getClass());
         
         return this;
@@ -112,9 +112,9 @@ public class JacksonPropertyFilterProvider extends FilterProvider
     public JacksonPropertyFilterProvider include(Class<?> clazz, String... strFields)
     {
         addToMap(mapInclude, clazz, strFields);
-
+        
         mapper.addMixIn(clazz, getClass());
-
+        
         return this;
     }
 }

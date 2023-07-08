@@ -15,7 +15,7 @@ public class NaturalComparator<T> implements Comparator<T>
     {
         return i >= s.length() ? 0 : s.charAt(i);
     }
-
+    
     @Override
     public int compare(T obj1, T obj2)
     {
