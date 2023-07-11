@@ -179,9 +179,26 @@ $(document).ready(function () {
     setTreeData(dataDictIndexData);
 
     searchKey.focus();
-
     searchKey.addEventListener("keyup", debounce(searchUse, 500));
+
+    let strSearchValue = getSearchValue("keyword");
+    if (strSearchValue) {
+        searchKey.value = strSearchValue;
+        searchUse();
+    }
 });
+
+/**********************************************************************
+ * 如果url中带keyword参数值对，就默认在左侧搜索
+ **********************************************************************/
+function getSearchValue(strKey) {
+    var search = window.location.search;
+    var reg = new RegExp("" + strKey + "=([^&?]*)", "ig");
+
+    var search2 = decodeURI(search);
+
+    return search2.match(reg) ? search2.match(reg)[0].substring(strKey.length + 1) : null;
+}
 
 /**********************************************************************
  *  baidu trance
