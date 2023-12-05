@@ -14,7 +14,6 @@ import org.rocex.db.processor.BeanListProcessor;
 import org.rocex.db.processor.ResultSetProcessor;
 import org.rocex.utils.Logger;
 import org.rocex.utils.StringHelper;
-import org.rocex.utils.TimerLogger;
 import org.rocex.vo.IAction;
 
 import java.sql.DatabaseMetaData;
@@ -119,7 +118,7 @@ public class SyncDBSchemaAction implements IAction
      ***************************************************************************/
     protected void adjustData()
     {
-        TimerLogger.getLogger().begin("fix data");
+        Logger.getLogger().begin("fix data");
 
         // @formatter:off
         String[] strSQLs = { "update md_class set name='Memo' where id='BS000010000100001030' and name='MEMO'",
@@ -147,7 +146,7 @@ public class SyncDBSchemaAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        TimerLogger.getLogger().end("fix data");
+        Logger.getLogger().end("fix data");
     }
 
     /****************************************************************************
@@ -159,7 +158,7 @@ public class SyncDBSchemaAction implements IAction
     @Override
     public void doAction(EventObject evt)
     {
-        TimerLogger.getLogger().begin("sync db schema and meta data");
+        Logger.getLogger().begin("sync db schema and meta data");
 
         if (!isNeedSyncData())
         {
@@ -173,7 +172,7 @@ public class SyncDBSchemaAction implements IAction
 
         adjustData();
 
-        TimerLogger.getLogger().end("sync db schema and meta data");
+        Logger.getLogger().end("sync db schema and meta data");
     }
 
     /***************************************************************************
@@ -224,7 +223,7 @@ public class SyncDBSchemaAction implements IAction
         {
             if (mapTableNamePrimaryKeys.isEmpty())
             {
-                TimerLogger.getLogger().begin("oracle query all primary keys");
+                Logger.getLogger().begin("oracle query all primary keys");
 
                 String strSQL = "select column_name id,table_name classid from user_cons_columns where constraint_name in(select constraint_name from user_constraints where constraint_type='P')";
 
@@ -242,7 +241,7 @@ public class SyncDBSchemaAction implements IAction
                     return false;
                 }));
 
-                TimerLogger.getLogger().end("oracle query all primary keys");
+                Logger.getLogger().end("oracle query all primary keys");
             }
 
             strPks = mapTableNamePrimaryKeys.get(strTableName.toLowerCase());
@@ -273,7 +272,7 @@ public class SyncDBSchemaAction implements IAction
     {
         if (sqlExecutorSource.getConnection().getMetaData().getDatabaseProductName().toLowerCase().contains("oracle"))
         {
-            TimerLogger.getLogger().begin("oracle query all temporary tables");
+            Logger.getLogger().begin("oracle query all temporary tables");
 
             String strSQL = "select lower(table_name) from user_tables where temporary='Y' order by table_name";
 
@@ -296,7 +295,7 @@ public class SyncDBSchemaAction implements IAction
             listTempTableName.addAll(Arrays.asList(strTableFilters));
             strTableFilters = listTempTableName.toArray(new String[0]);
 
-            TimerLogger.getLogger().end("oracle query all temporary tables");
+            Logger.getLogger().end("oracle query all temporary tables");
         }
     }
 
@@ -376,7 +375,7 @@ public class SyncDBSchemaAction implements IAction
      ***************************************************************************/
     protected List<? extends MetaVO> queryMetaVO(Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param, IAction pagingAction)
     {
-        TimerLogger.getLogger().begin("query " + metaVOClass.getSimpleName());
+        Logger.getLogger().begin("query " + metaVOClass.getSimpleName());
 
         List<? extends MetaVO> listMetaVO = null;
 
@@ -392,7 +391,7 @@ public class SyncDBSchemaAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        TimerLogger.getLogger().end("query " + metaVOClass.getSimpleName());
+        Logger.getLogger().end("query " + metaVOClass.getSimpleName());
 
         return listMetaVO;
     }
@@ -404,7 +403,7 @@ public class SyncDBSchemaAction implements IAction
      ***************************************************************************/
     protected void syncDBField() throws SQLException
     {
-        TimerLogger.getLogger().begin("sync all fields");
+        Logger.getLogger().begin("sync all fields");
 
         // 表名和属性最大顺序号
         Map<String, Integer> mapSequence = new HashMap<>();
@@ -466,7 +465,7 @@ public class SyncDBSchemaAction implements IAction
 
         processor.doAction(rsColumns);
 
-        TimerLogger.getLogger().end("sync all fields");
+        Logger.getLogger().end("sync all fields");
     }
 
     /***************************************************************************
@@ -475,7 +474,7 @@ public class SyncDBSchemaAction implements IAction
      ***************************************************************************/
     protected void syncDBMeta()
     {
-        TimerLogger.getLogger().begin("sync database meta");
+        Logger.getLogger().begin("sync database meta");
 
         try
         {
@@ -490,7 +489,7 @@ public class SyncDBSchemaAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        TimerLogger.getLogger().end("sync database meta");
+        Logger.getLogger().end("sync database meta");
     }
 
     /***************************************************************************
@@ -501,7 +500,7 @@ public class SyncDBSchemaAction implements IAction
      ***************************************************************************/
     protected void syncDBTable() throws Exception
     {
-        TimerLogger.getLogger().begin("sync all table");
+        Logger.getLogger().begin("sync all table");
 
         ResultSet rsTable = sqlExecutorSource.getConnection().getMetaData().getTables(null, strDBSchema, "%", new String[]{"TABLE"});
 
@@ -559,7 +558,7 @@ public class SyncDBSchemaAction implements IAction
         processor.setPagingAction(pagingAction);
         processor.doAction(rsTable);
 
-        TimerLogger.getLogger().end("sync all table");
+        Logger.getLogger().end("sync all table");
     }
 
     /***************************************************************************
@@ -639,7 +638,7 @@ public class SyncDBSchemaAction implements IAction
             }
         };
 
-        TimerLogger.getLogger().begin("sync PropertyVO by class");
+        Logger.getLogger().begin("sync PropertyVO by class");
         Logger.getLogger().setEnableLevel(Logger.iLoggerLevelError);
 
         for (ClassVO classVO : listClassVO)
@@ -653,6 +652,6 @@ public class SyncDBSchemaAction implements IAction
 
         Logger.getLogger().setEnableLevel(iEnableLevel);
 
-        TimerLogger.getLogger().end("sync PropertyVO by class");
+        Logger.getLogger().end("sync PropertyVO by class");
     }
 }

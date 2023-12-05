@@ -15,7 +15,6 @@ import org.rocex.utils.FileHelper;
 import org.rocex.utils.JacksonHelper;
 import org.rocex.utils.Logger;
 import org.rocex.utils.StringHelper;
-import org.rocex.utils.TimerLogger;
 import org.rocex.vo.IAction;
 
 import java.io.File;
@@ -126,7 +125,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void buildClassVOMapByComponentId(List<ClassVO> listClassVO)
     {
-        TimerLogger.getLogger().begin("build ClassVO map by componentId");
+        Logger.getLogger().begin("build ClassVO map by componentId");
 
         for (ClassVO classVO : listClassVO)
         {
@@ -154,7 +153,7 @@ public class CreateDataDictAction implements IAction
             mapClassVOByComponent.put(classVO.getComponentId(), listClassVO2);
         }
 
-        TimerLogger.getLogger().end("build ClassVO map by componentId");
+        Logger.getLogger().end("build ClassVO map by componentId");
     }
 
     /***************************************************************************
@@ -164,7 +163,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void buildEnumMap()
     {
-        TimerLogger.getLogger().begin("query and build enum map");
+        Logger.getLogger().begin("query and build enum map");
 
         String strEnumValueSQL = "select class_id as id,name,enum_value,ddc_version from md_enumvalue where ddc_version=? order by class_id,enum_sequence";
 
@@ -201,7 +200,7 @@ public class CreateDataDictAction implements IAction
             mapEnumString.put(enumValueVO.getId(), strEnum);
         }
 
-        TimerLogger.getLogger().end("query and build enum map");
+        Logger.getLogger().end("query and build enum map");
     }
 
     /***************************************************************************
@@ -213,13 +212,13 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected Map<String, ? extends MetaVO> buildMap(List<? extends MetaVO> listMetaVO)
     {
-        TimerLogger.getLogger().begin("build map: " + listMetaVO.get(0).getClass().getSimpleName());
+        Logger.getLogger().begin("build map: " + listMetaVO.get(0).getClass().getSimpleName());
 
         Map<String, MetaVO> mapMetaVO = new HashMap<>();
 
         mapMetaVO = listMetaVO.stream().collect(Collectors.toMap(MetaVO::getId, Function.identity(), (key1, key2) -> key2));
 
-        TimerLogger.getLogger().end("build map: " + listMetaVO.get(0).getClass().getSimpleName());
+        Logger.getLogger().end("build map: " + listMetaVO.get(0).getClass().getSimpleName());
 
         return mapMetaVO;
     }
@@ -231,7 +230,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void copyStaticHtmlFiles()
     {
-        TimerLogger.getLogger().begin("copy html files");
+        Logger.getLogger().begin("copy html files");
 
         try
         {
@@ -243,7 +242,7 @@ public class CreateDataDictAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        TimerLogger.getLogger().end("copy html files");
+        Logger.getLogger().end("copy html files");
     }
 
     /***************************************************************************
@@ -339,7 +338,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void createDataDictTree(List<ModuleVO> listModuleVO, List<ClassVO> listClassVO, List<ClassVO> listAllTableVO)
     {
-        TimerLogger.getLogger().begin("create data dict tree: " + (listClassVO.size() + listAllTableVO.size()));
+        Logger.getLogger().begin("create data dict tree: " + (listClassVO.size() + listAllTableVO.size()));
 
         StringBuilder strModuleRows = new StringBuilder(); // 所有模块
         StringBuilder strClassRows = new StringBuilder();  // 所有实体
@@ -421,7 +420,7 @@ public class CreateDataDictAction implements IAction
         FileHelper.writeFileThread(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js"),
             "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
 
-        TimerLogger.getLogger().end("create data dict tree: " + (listClassVO.size() + listAllTableVO.size()));
+        Logger.getLogger().end("create data dict tree: " + (listClassVO.size() + listAllTableVO.size()));
     }
 
     /***************************************************************************
@@ -430,14 +429,14 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void createIndexHtmlFile()
     {
-        TimerLogger.getLogger().begin("create index html file");
+        Logger.getLogger().begin("create index html file");
 
         String strHtml = MessageFormat.format(Context.getInstance().getSetting("HtmlIndexFile"),
             Context.getInstance().getSetting(strVersion + ".DataDictVersion"), strCreateTime);
 
         FileHelper.writeFileThread(Paths.get(strOutputRootDir, "index.html"), strHtml);
 
-        TimerLogger.getLogger().end("create index html file");
+        Logger.getLogger().end("create index html file");
     }
 
     /****************************************************************************
@@ -482,30 +481,30 @@ public class CreateDataDictAction implements IAction
 
             createDataDictTree(listModuleVO, listClassVO, listAllTableVO);
 
-            TimerLogger.getLogger().begin("create data dict file: " + listClassVO.size());
+            Logger.getLogger().begin("create data dict file: " + listClassVO.size());
 
             for (ClassVO classVO : listClassVO)
             {
                 createDataDictFile(classVO);
             }
 
-            TimerLogger.getLogger().end("create data dict file: " + listClassVO.size());
+            Logger.getLogger().end("create data dict file: " + listClassVO.size());
 
-            TimerLogger.getLogger().begin("create db data dict file: " + listAllTableVO.size());
+            Logger.getLogger().begin("create db data dict file: " + listAllTableVO.size());
 
             for (ClassVO classVO : listAllTableVO)
             {
                 createDataDictFile(classVO);
             }
 
-            TimerLogger.getLogger().end("create db data dict file: " + listAllTableVO.size());
+            Logger.getLogger().end("create db data dict file: " + listAllTableVO.size());
 
-            TimerLogger.getLogger().begin("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
+            Logger.getLogger().begin("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
 
             saveToDictJson(listClassVO);
             saveToDictJson(listAllTableVO);
 
-            TimerLogger.getLogger().end("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
+            Logger.getLogger().end("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
         }
         catch (Exception ex)
         {
@@ -524,7 +523,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void emptyTargetDir()
     {
-        TimerLogger.getLogger().begin("empty target folder " + strOutputRootDir);
+        Logger.getLogger().begin("empty target folder " + strOutputRootDir);
 
         try
         {
@@ -535,7 +534,7 @@ public class CreateDataDictAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        TimerLogger.getLogger().end("empty target folder " + strOutputRootDir);
+        Logger.getLogger().end("empty target folder " + strOutputRootDir);
     }
 
     /***************************************************************************
@@ -805,7 +804,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected List<? extends MetaVO> queryMetaVO(Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param, IAction pagingAction)
     {
-        TimerLogger.getLogger().begin("query " + metaVOClass.getSimpleName());
+        Logger.getLogger().begin("query " + metaVOClass.getSimpleName());
 
         List<? extends MetaVO> listMetaVO = null;
 
@@ -821,7 +820,7 @@ public class CreateDataDictAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        TimerLogger.getLogger().end("query " + metaVOClass.getSimpleName());
+        Logger.getLogger().end("query " + metaVOClass.getSimpleName());
 
         return listMetaVO;
     }

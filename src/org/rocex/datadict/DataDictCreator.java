@@ -5,7 +5,6 @@ import org.rocex.datadict.action.CreateHtmlDataDictAction;
 import org.rocex.datadict.action.SyncDBSchemaAction;
 import org.rocex.datadict.vo.Context;
 import org.rocex.utils.Logger;
-import org.rocex.utils.TimerLogger;
 import org.rocex.vo.IAction;
 
 /***************************************************************************
@@ -22,7 +21,7 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        TimerLogger.getLogger().begin("create all data dictionary");
+        Logger.getLogger().begin("create all data dictionary");
 
         String strCreateType = Context.getInstance().getSetting("createType", "json");
 
@@ -36,17 +35,17 @@ public class DataDictCreator
 
             new SyncDBSchemaAction(strVersion).doAction(null);
 
-            TimerLogger.getLogger().begin("create data dictionary " + strDataDictVersion);
+            Logger.getLogger().begin("create data dictionary " + strDataDictVersion);
 
             IAction action = "html".equalsIgnoreCase(strCreateType) ? new CreateHtmlDataDictAction(strVersion) : new CreateDataDictAction(strVersion);
 
             action.doAction(null);
 
-            TimerLogger.getLogger().end("create data dictionary " + strDataDictVersion);
+            Logger.getLogger().end("create data dictionary " + strDataDictVersion);
 
             Logger.getLogger().debug("\n");
         }
 
-        TimerLogger.getLogger().end("create all data dictionary");
+        Logger.getLogger().end("create all data dictionary");
     }
 }
