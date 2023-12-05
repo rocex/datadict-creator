@@ -1,4 +1,10 @@
-package org.rocex.datadict;
+package org.rocex.datadict.action;
+
+import org.rocex.datadict.vo.ClassVO;
+import org.rocex.datadict.vo.Context;
+import org.rocex.datadict.vo.PropertyVO;
+import org.rocex.utils.FileHelper;
+import org.rocex.utils.Logger;
 
 import java.io.IOException;
 import java.nio.file.Files;
@@ -8,11 +14,6 @@ import java.text.MessageFormat;
 import java.util.Arrays;
 import java.util.List;
 
-import org.rocex.datadict.vo.ClassVO;
-import org.rocex.datadict.vo.PropertyVO;
-import org.rocex.utils.FileHelper;
-import org.rocex.utils.Logger;
-
 /***************************************************************************
  * html格式数据字典<br>
  * @author Rocex Wang
@@ -21,9 +22,9 @@ import org.rocex.utils.Logger;
 public class CreateHtmlDataDictAction extends CreateDataDictAction
 {
     protected String strHtmlDataDictRow = "";
-    
+
     protected StringBuilder strHtmlRows = new StringBuilder();
-    
+
     /***************************************************************************
      * @author Rocex Wang
      * @version 2020-4-26 14:52:18
@@ -31,29 +32,29 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
     public CreateHtmlDataDictAction(String strVersion)
     {
         super(strVersion);
-        
+
         strRefClassPathHrefTemplate = "<a href=\"{0}\">{1}</a>";               // 引用模型 链接模板
         strClassListHrefTemplate = "<a href=\"{0}\" class=\"{1}\">{2}</a>";    // 左上角实体列表链接
         strTreeDataClassTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",url:\"{4}\",target:\"{5}\"'}',";    // 左树实体 链接模板
-        
+
         try
         {
-            DataDictCreator.settings.setProperty("HtmlIndexFile", new String(Files.readAllBytes(Paths.get("settings", "html", "template", "index.html"))));
-            DataDictCreator.settings.setProperty("HtmlDataDictFile",
-                    new String(Files.readAllBytes(Paths.get("settings", "html", "template", "DataDictFile.html"))));
-            DataDictCreator.settings.setProperty("HtmlDataDictRow",
-                    new String(Files.readAllBytes(Paths.get("settings", "html", "template", "DataDictRow.html"))));
-            DataDictCreator.settings.setProperty("HtmlDataDictFooterFile",
-                    new String(Files.readAllBytes(Paths.get("settings", "html", "template", "DataDictFooterFile.html"))));
+            Context.getInstance().setSetting("HtmlIndexFile", new String(Files.readAllBytes(Paths.get("settings", "html", "template", "index.html"))));
+            Context.getInstance().setSetting("HtmlDataDictFile",
+                new String(Files.readAllBytes(Paths.get("settings", "html", "template", "DataDictFile.html"))));
+            Context.getInstance().setSetting("HtmlDataDictRow",
+                new String(Files.readAllBytes(Paths.get("settings", "html", "template", "DataDictRow.html"))));
+            Context.getInstance().setSetting("HtmlDataDictFooterFile",
+                new String(Files.readAllBytes(Paths.get("settings", "html", "template", "DataDictFooterFile.html"))));
         }
         catch (IOException ex)
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }
-        
-        strHtmlDataDictRow = DataDictCreator.settings.getProperty("HtmlDataDictRow");
+
+        strHtmlDataDictRow = Context.getInstance().getSetting("HtmlDataDictRow");
     }
-    
+
     @Override
     protected void createDataDictFile(ClassVO classVO, List<PropertyVO> listPropertyVO)
     {
@@ -61,33 +62,33 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
         {
             return;
         }
-        
+
         strHtmlRows.setLength(0);
-        
+
         super.createDataDictFile(classVO, listPropertyVO);
     }
-    
+
     @Override
     protected void createDataDictFileRow(ClassVO classVO, PropertyVO propertyVO, int iRowIndex)
     {
         super.createDataDictFileRow(classVO, propertyVO, iRowIndex);
-        
+
         // 数据库类型
         String strDbType = propertyVO.getDataTypeSql();
-        
+
         // 是否必输
         String strMustInput = propertyVO.isNullable() ? "" : "√";
-        
+
         // 每行的css，主键行字体红色，其它行正常黑色
         List<String> listPk = Arrays.asList(classVO.getKeyAttribute().split(";"));
         String strRowStyle = listPk.contains(propertyVO.getOriginalId()) ? "pk-row" : "";
-        
+
         String strHtmlRow = MessageFormat.format(strHtmlDataDictRow, strRowStyle, iRowIndex + 1, propertyVO.getName(), propertyVO.getDisplayName(),
-                propertyVO.getName(), strDbType, strMustInput, propertyVO.getRefClassPathHref(), propertyVO.getDefaultValue(), propertyVO.getDataScope());
-        
+            propertyVO.getName(), strDbType, strMustInput, propertyVO.getRefClassPathHref(), propertyVO.getDefaultValue(), propertyVO.getDataScope());
+
         strHtmlRows.append(strHtmlRow);
     }
-    
+
     /***************************************************************************
      * 实体文件全路径的绝对路径
      * @param classVO
@@ -100,7 +101,7 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
     {
         return Paths.get(strOutputDictDir, getMappedClassId(classVO) + ".html");
     }
-    
+
     /***************************************************************************
      * 实体的访问url，相对于根目录
      * @param classVO
@@ -113,7 +114,7 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
     {
         return "./dict/" + getMappedClassId(classVO) + ".html";
     }
-    
+
     /***************************************************************************
      * 实体的访问url，相对于当前目录
      * @param classVO
@@ -126,7 +127,7 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
     {
         return "./" + getMappedClassId(classVO) + ".html";
     }
-    
+
     /***************************************************************************
      * 页脚版权信息
      * @return String
@@ -135,16 +136,16 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
      ***************************************************************************/
     protected String getFooter()
     {
-        String strFooter = DataDictCreator.settings.getProperty("HtmlDataDictFooterFile");
-        
+        String strFooter = Context.getInstance().getSetting("HtmlDataDictFooterFile");
+
         strFooter = MessageFormat.format(strFooter, strCreateTime);
-        
+
         return strFooter;
     }
-    
+
     /****************************************************************************
      * {@inheritDoc}<br>
-     * @see org.rocex.datadict.CreateDataDictAction#writeDataDictFile(org.rocex.datadict.vo.ClassVO)
+     * @see CreateDataDictAction#writeDataDictFile(org.rocex.datadict.vo.ClassVO)
      * @author Rocex Wang
      * @since 2021-11-24 10:24:01
      ****************************************************************************/
@@ -153,17 +154,17 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
     {
         // 组件内实体列表链接
         String strClassList = classVO.getClassListUrl();
-        
+
         if (strClassList.startsWith("/")) // 截掉最前面的斜杠
         {
             strClassList = strClassList.substring(1);
         }
-        
+
         String strFullClassname = classVO.getFullClassname() == null ? "" : " / " + classVO.getFullClassname();
-        
-        String strHtml = MessageFormat.format(DataDictCreator.settings.getProperty("HtmlDataDictFile"), classVO.getDisplayName(), classVO.getDefaultTableName(),
-                strFullClassname, DataDictCreator.settings.get(strVersion + ".DataDictVersion"), strClassList, strHtmlRows, getFooter());
-        
+
+        String strHtml = MessageFormat.format(Context.getInstance().getSetting("HtmlDataDictFile"), classVO.getDisplayName(), classVO.getDefaultTableName(),
+            strFullClassname, Context.getInstance().getSetting(strVersion + ".DataDictVersion"), strClassList, strHtmlRows, getFooter());
+
         FileHelper.writeFileThread(getClassFilePath(classVO), strHtml);
     }
 }
