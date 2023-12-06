@@ -17,17 +17,17 @@ import java.util.List;
 /***************************************************************************
  * html格式数据字典<br>
  * @author Rocex Wang
- * @version 2020-4-22 14:10:00
+ * @since 2020-4-22 14:10:00
  ***************************************************************************/
 public class CreateHtmlDataDictAction extends CreateDataDictAction
 {
-    protected String strHtmlDataDictRow = "";
+    protected String strHtmlDataDictRow;
 
     protected StringBuilder strHtmlRows = new StringBuilder();
 
     /***************************************************************************
      * @author Rocex Wang
-     * @version 2020-4-26 14:52:18
+     * @since 2020-4-26 14:52:18
      ***************************************************************************/
     public CreateHtmlDataDictAction(String strVersion)
     {
@@ -94,7 +94,7 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
      * @param classVO
      * @return Path
      * @author Rocex Wang
-     * @version 2020-4-26 10:21:59
+     * @since 2020-4-26 10:21:59
      ***************************************************************************/
     @Override
     protected Path getClassFilePath(ClassVO classVO)
@@ -107,7 +107,7 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
      * @param classVO
      * @return String
      * @author Rocex Wang
-     * @version 2020-5-2 14:26:12
+     * @since 2020-5-2 14:26:12
      ***************************************************************************/
     @Override
     protected String getClassUrl(ClassVO classVO)
@@ -120,7 +120,7 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
      * @param classVO
      * @return String
      * @author Rocex Wang
-     * @version 2020-5-2 14:30:53
+     * @since 2020-5-2 14:30:53
      ***************************************************************************/
     @Override
     protected String getClassUrl2(ClassVO classVO)
@@ -132,7 +132,7 @@ public class CreateHtmlDataDictAction extends CreateDataDictAction
      * 页脚版权信息
      * @return String
      * @author Rocex Wang
-     * @version 2020-5-2 15:24:39
+     * @since 2020-5-2 15:24:39
      ***************************************************************************/
     protected String getFooter()
     {

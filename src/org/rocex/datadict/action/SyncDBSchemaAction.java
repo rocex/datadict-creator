@@ -43,8 +43,8 @@ public class SyncDBSchemaAction implements IAction
 
     protected Set<String> setSyncTableName = new HashSet<>();                   // 要同步的表名
 
-    protected SQLExecutor sqlExecutorSource = null;
-    protected SQLExecutor sqlExecutorTarget = null;
+    protected SQLExecutor sqlExecutorSource;
+    protected SQLExecutor sqlExecutorTarget;
 
     protected String strDBSchema;           // 数据库schema
 
@@ -114,7 +114,7 @@ public class SyncDBSchemaAction implements IAction
     /***************************************************************************
      * 修复一些数据库数据问题
      * @author Rocex Wang
-     * @version 2020-5-9 14:05:43
+     * @since 2020-5-9 14:05:43
      ***************************************************************************/
     protected void adjustData()
     {
@@ -151,7 +151,7 @@ public class SyncDBSchemaAction implements IAction
 
     /****************************************************************************
      * {@inheritDoc}<br>
-     * @see org.rocex.datadict.IAction#doAction(EventObject)
+     * @see org.rocex.vo.IAction#doAction(EventObject)
      * @author Rocex Wang
      * @since 2021-10-28 14:17:51
      ****************************************************************************/
@@ -180,7 +180,7 @@ public class SyncDBSchemaAction implements IAction
      * @param propertyVO
      * @return String
      * @author Rocex Wang
-     * @version 2020-4-28 10:14:34
+     * @since 2020-4-28 10:14:34
      ***************************************************************************/
     protected String getDataTypeSql(PropertyVO propertyVO)
     {
@@ -207,13 +207,12 @@ public class SyncDBSchemaAction implements IAction
 
     /***************************************************************************
      * 根据数据库特性一次性读取所有表的主键，如果不能确定数据库，还是按照jdbc的api每次只取一个表的主键
-     * @param dbMetaData
      * @param strTableName
      * @param mapColumn
      * @return String
      * @throws Exception
      * @author Rocex Wang
-     * @version 2020-5-22 14:03:59
+     * @since 2020-5-22 14:03:59
      ***************************************************************************/
     protected String getPrimaryKeys(String strTableName, Map<String, String> mapColumn) throws Exception
     {
@@ -266,7 +265,7 @@ public class SyncDBSchemaAction implements IAction
      * 获取数据库临时表并加到strTableFilters里
      * @throws Exception
      * @author Rocex Wang
-     * @version 2020-5-22 14:03:59
+     * @since 2020-5-22 14:03:59
      ***************************************************************************/
     protected void initTempTableNames() throws Exception
     {
@@ -371,7 +370,7 @@ public class SyncDBSchemaAction implements IAction
      * @param pagingAction
      * @return List<? extends MetaVO>
      * @author Rocex Wang
-     * @version 2020-5-9 11:20:25
+     * @since 2020-5-9 11:20:25
      ***************************************************************************/
     protected List<? extends MetaVO> queryMetaVO(Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param, IAction pagingAction)
     {
@@ -495,7 +494,7 @@ public class SyncDBSchemaAction implements IAction
     /***************************************************************************
      * 查询所有表
      * @author Rocex Wang
-     * @version 2020-5-11 11:19:19
+     * @since 2020-5-11 11:19:19
      * @throws Exception
      ***************************************************************************/
     protected void syncDBTable() throws Exception

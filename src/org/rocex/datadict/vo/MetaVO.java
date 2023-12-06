@@ -8,7 +8,7 @@ import javax.persistence.Id;
 /***************************************************************************
  * <br>
  * @author Rocex Wang
- * @version 2020-4-21 13:43:18
+ * @since 2020-4-21 13:43:18
  ***************************************************************************/
 public class MetaVO extends SuperVO
 {
@@ -45,7 +45,7 @@ public class MetaVO extends SuperVO
     /***************************************************************************
      * @return the displayName
      * @author Rocex Wang
-     * @version 2020-4-21 13:45:48
+     * @since 2020-4-21 13:45:48
      ***************************************************************************/
     public String getDisplayName()
     {
@@ -55,7 +55,7 @@ public class MetaVO extends SuperVO
     /***************************************************************************
      * @param displayName the displayName to set
      * @author Rocex Wang
-     * @version 2020-4-21 13:45:48
+     * @since 2020-4-21 13:45:48
      ***************************************************************************/
     public void setDisplayName(String displayName)
     {
@@ -86,7 +86,7 @@ public class MetaVO extends SuperVO
     /***************************************************************************
      * @return the id
      * @author Rocex Wang
-     * @version 2020-4-21 13:45:33
+     * @since 2020-4-21 13:45:33
      ***************************************************************************/
     @Id
     @Column(nullable = false, length = 50)
@@ -98,7 +98,7 @@ public class MetaVO extends SuperVO
     /***************************************************************************
      * @param id the id to set
      * @author Rocex Wang
-     * @version 2020-4-21 13:45:33
+     * @since 2020-4-21 13:45:33
      ***************************************************************************/
     public void setId(String id)
     {
@@ -108,7 +108,7 @@ public class MetaVO extends SuperVO
     /***************************************************************************
      * @return the name
      * @author Rocex Wang
-     * @version 2020-4-21 13:45:33
+     * @since 2020-4-21 13:45:33
      ***************************************************************************/
     @Column(nullable = false)
     public String getName()
@@ -119,7 +119,7 @@ public class MetaVO extends SuperVO
     /***************************************************************************
      * @param name the name to set
      * @author Rocex Wang
-     * @version 2020-4-21 13:45:34
+     * @since 2020-4-21 13:45:34
      ***************************************************************************/
     public void setName(String name)
     {

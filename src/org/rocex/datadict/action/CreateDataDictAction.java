@@ -40,7 +40,7 @@ import java.util.stream.Collectors;
 /***************************************************************************
  * 生成数据字典类，支持json和html格式，默认json格式<br>
  * @author Rocex Wang
- * @version 2020-4-22 14:10:00
+ * @since 2020-4-22 14:10:00
  ***************************************************************************/
 public class CreateDataDictAction implements IAction
 {
@@ -53,7 +53,7 @@ public class CreateDataDictAction implements IAction
     protected Map<String, String> mapId = new HashMap<>();                            // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();           // module id 和 module 的对应关系
 
-    protected SQLExecutor sqlExecutor = null;
+    protected SQLExecutor sqlExecutor;
 
     // 以下默认都是html格式数据字典的
     protected String strClassListHrefTemplate = "<a href=\"javascript:void(0);\" onClick=loadDataDict(\"{0}\"); class=\"{1}\">{2}</a>";    // 左上角实体列表链接
@@ -74,7 +74,7 @@ public class CreateDataDictAction implements IAction
 
     /***************************************************************************
      * @author Rocex Wang
-     * @version 2020-4-26 14:52:18
+     * @since 2020-4-26 14:52:18
      ***************************************************************************/
     public CreateDataDictAction(String strVersion)
     {
@@ -121,7 +121,7 @@ public class CreateDataDictAction implements IAction
      * component id 和 component 内所有 class 链接的对应关系，用于数据字典左上角实体列表
      * @param listClassVO
      * @author Rocex Wang
-     * @version 2020-4-24 15:41:49
+     * @since 2020-4-24 15:41:49
      ***************************************************************************/
     protected void buildClassVOMapByComponentId(List<ClassVO> listClassVO)
     {
@@ -159,7 +159,7 @@ public class CreateDataDictAction implements IAction
     /***************************************************************************
      * enum id 和 enum name and value 的对应关系
      * @author Rocex Wang
-     * @version 2020-4-26 10:18:30
+     * @since 2020-4-26 10:18:30
      ***************************************************************************/
     protected void buildEnumMap()
     {
@@ -181,7 +181,7 @@ public class CreateDataDictAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        if (listEnumValueVO == null || listEnumValueVO.size() == 0)
+        if (listEnumValueVO == null || listEnumValueVO.isEmpty())
         {
             return;
         }
@@ -195,7 +195,7 @@ public class CreateDataDictAction implements IAction
                 strEnum = "";
             }
 
-            strEnum = new StringBuilder(strEnum).append(enumValueVO.getEnumValue()).append("=").append(enumValueVO.getName()).append(";<br>").toString();
+            strEnum = strEnum + enumValueVO.getEnumValue() + "=" + enumValueVO.getName() + ";<br>";
 
             mapEnumString.put(enumValueVO.getId(), strEnum);
         }
@@ -208,15 +208,13 @@ public class CreateDataDictAction implements IAction
      * @param listMetaVO
      * @return Map
      * @author Rocex Wang
-     * @version 2020-4-26 10:18:51
+     * @since 2020-4-26 10:18:51
      ***************************************************************************/
     protected Map<String, ? extends MetaVO> buildMap(List<? extends MetaVO> listMetaVO)
     {
         Logger.getLogger().begin("build map: " + listMetaVO.get(0).getClass().getSimpleName());
 
-        Map<String, MetaVO> mapMetaVO = new HashMap<>();
-
-        mapMetaVO = listMetaVO.stream().collect(Collectors.toMap(MetaVO::getId, Function.identity(), (key1, key2) -> key2));
+        Map<String, MetaVO> mapMetaVO = listMetaVO.stream().collect(Collectors.toMap(MetaVO::getId, Function.identity(), (key1, key2) -> key2));
 
         Logger.getLogger().end("build map: " + listMetaVO.get(0).getClass().getSimpleName());
 
@@ -226,7 +224,7 @@ public class CreateDataDictAction implements IAction
     /***************************************************************************
      * 拷贝静态文件、css、js 等
      * @author Rocex Wang
-     * @version 2020-4-29 10:33:18
+     * @since 2020-4-29 10:33:18
      ***************************************************************************/
     protected void copyStaticHtmlFiles()
     {
@@ -249,7 +247,7 @@ public class CreateDataDictAction implements IAction
      * 生成数据字典文件
      * @param classVO
      * @author Rocex Wang
-     * @version 2020-4-26 10:19:45
+     * @since 2020-4-26 10:19:45
      ***************************************************************************/
     protected void createDataDictFile(ClassVO classVO)
     {
@@ -283,7 +281,7 @@ public class CreateDataDictAction implements IAction
      * @param classVO
      * @param listPropertyVO
      * @author Rocex Wang
-     * @version 2020-5-13 15:27:35
+     * @since 2020-5-13 15:27:35
      ***************************************************************************/
     protected void createDataDictFile(ClassVO classVO, List<PropertyVO> listPropertyVO)
     {
@@ -334,7 +332,7 @@ public class CreateDataDictAction implements IAction
      * @param listClassVO
      * @param listAllTableVO
      * @author Rocex Wang
-     * @version 2020-4-29 11:21:07
+     * @since 2020-4-29 11:21:07
      ***************************************************************************/
     protected void createDataDictTree(List<ModuleVO> listModuleVO, List<ClassVO> listClassVO, List<ClassVO> listAllTableVO)
     {
@@ -402,10 +400,8 @@ public class CreateDataDictAction implements IAction
                     classVO.getDisplayName(), strUrl, "ddc"));
             }
 
-            for (int i = 0; i < chars.length; i++)
+            for (char charAt : chars)
             {
-                char charAt = chars[i];
-
                 if (charAt == 0)
                 {
                     continue;
@@ -425,7 +421,7 @@ public class CreateDataDictAction implements IAction
 
     /***************************************************************************
      * @author Rocex Wang
-     * @version 2020-5-18 9:42:59
+     * @since 2020-5-18 9:42:59
      ***************************************************************************/
     protected void createIndexHtmlFile()
     {
@@ -510,16 +506,11 @@ public class CreateDataDictAction implements IAction
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }
-        finally
-        {
-//todo            sqlExecutor.closeConnection();
-        }
     }
 
     /***************************************************************************
-     * @throws IOException
      * @author Rocex Wang
-     * @version 2020-5-16 9:44:24
+     * @since 2020-5-16 9:44:24
      ***************************************************************************/
     protected void emptyTargetDir()
     {
@@ -542,7 +533,7 @@ public class CreateDataDictAction implements IAction
      * @param classVO
      * @return Path
      * @author Rocex Wang
-     * @version 2020-4-26 10:21:59
+     * @since 2020-4-26 10:21:59
      ***************************************************************************/
     protected Path getClassFilePath(ClassVO classVO)
     {
@@ -553,7 +544,7 @@ public class CreateDataDictAction implements IAction
      * @param currentClassVO
      * @return String
      * @author Rocex Wang
-     * @version 2020-5-6 14:42:20
+     * @since 2020-5-6 14:42:20
      ***************************************************************************/
     protected String getClassListUrl(ClassVO currentClassVO)
     {
@@ -609,7 +600,7 @@ public class CreateDataDictAction implements IAction
      * @param classVO
      * @return String
      * @author Rocex Wang
-     * @version 2020-5-2 14:26:12
+     * @since 2020-5-2 14:26:12
      ***************************************************************************/
     protected String getClassUrl(ClassVO classVO)
     {
@@ -621,7 +612,7 @@ public class CreateDataDictAction implements IAction
      * @param classVO
      * @return String
      * @author Rocex Wang
-     * @version 2020-5-2 14:30:53
+     * @since 2020-5-2 14:30:53
      ***************************************************************************/
     protected String getClassUrl2(ClassVO classVO)
     {
@@ -631,13 +622,14 @@ public class CreateDataDictAction implements IAction
     /***************************************************************************
      * 枚举/取值范围
      * @param propertyVO
-     * @return
+     * @return String
      * @author Rocex Wang
      * @since 2021-10-25 10:52:50
      ***************************************************************************/
     protected String getDataScope(PropertyVO propertyVO)
     {
-        String strDataScope = "";
+        String strDataScope;
+
         if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300
             && mapEnumString.containsKey(propertyVO.getDataType()))
         {
@@ -661,7 +653,7 @@ public class CreateDataDictAction implements IAction
      * @param classVO
      * @return mappedId
      * @author Rocex Wang
-     * @version 2020-4-30 13:47:11
+     * @since 2020-4-30 13:47:11
      ***************************************************************************/
     protected synchronized String getMappedClassId(ClassVO classVO)
     {
@@ -673,7 +665,7 @@ public class CreateDataDictAction implements IAction
      * @param strId
      * @return mappedId
      * @author Rocex Wang
-     * @version 2020-4-30 13:47:06
+     * @since 2020-4-30 13:47:06
      ***************************************************************************/
     protected synchronized String getMappedId(String strType, String strId)
     {
@@ -695,7 +687,7 @@ public class CreateDataDictAction implements IAction
      * @param moduleVO
      * @return mappedId
      * @author Rocex Wang
-     * @version 2020-4-30 13:46:54
+     * @since 2020-4-30 13:46:54
      ***************************************************************************/
     protected synchronized String getMappedModuleId(ModuleVO moduleVO)
     {
@@ -707,7 +699,7 @@ public class CreateDataDictAction implements IAction
      * @param classVO
      * @return String
      * @author Rocex Wang
-     * @version 2020-4-26 10:23:41
+     * @since 2020-4-26 10:23:41
      ***************************************************************************/
     protected String getModuleId(ClassVO classVO)
     {
@@ -722,7 +714,7 @@ public class CreateDataDictAction implements IAction
      * @param classVO
      * @return ModuleVO
      * @author Rocex Wang
-     * @version 2020-4-29 11:46:50
+     * @since 2020-4-29 11:46:50
      ***************************************************************************/
     protected ModuleVO getModuleVO(ClassVO classVO)
     {
@@ -773,11 +765,11 @@ public class CreateDataDictAction implements IAction
      * @param strFieldCode
      * @return 从字段名判断是否自定义项
      * @author Rocex Wang
-     * @version 2020-10-22 17:31:02
+     * @since 2020-10-22 17:31:02
      ***************************************************************************/
     protected boolean isCustomProperty(String strFieldCode)
     {
-        if (strFieldCode == null || strFieldCode.trim().length() == 0)
+        if (strFieldCode == null || strFieldCode.trim().isEmpty())
         {
             return false;
         }
@@ -800,7 +792,7 @@ public class CreateDataDictAction implements IAction
      * @param pagingAction
      * @return List<? extends MetaVO>
      * @author Rocex Wang
-     * @version 2020-5-9 11:20:25
+     * @since 2020-5-9 11:20:25
      ***************************************************************************/
     protected List<? extends MetaVO> queryMetaVO(Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param, IAction pagingAction)
     {
@@ -832,7 +824,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void saveToDictJson(List<ClassVO> listClassVO)
     {
-        if (listClassVO == null || listClassVO.size() == 0)
+        if (listClassVO == null || listClassVO.isEmpty())
         {
             return;
         }
@@ -888,7 +880,7 @@ public class CreateDataDictAction implements IAction
             }
         }
 
-        if (listDictJsonVO.size() > 0)
+        if (!listDictJsonVO.isEmpty())
         {
             try
             {
@@ -908,7 +900,7 @@ public class CreateDataDictAction implements IAction
      * @param classVO
      * @param listPropertyVO
      * @author Rocex Wang
-     * @version 2020-11-3 17:21:23
+     * @since 2020-11-3 17:21:23
      ***************************************************************************/
     protected List<PropertyVO> sortPropertyVO(ClassVO classVO, List<PropertyVO> listPropertyVO)
     {
