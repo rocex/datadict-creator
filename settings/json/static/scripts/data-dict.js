@@ -52,8 +52,11 @@ function onClick(e, treeId, treeNode) {
     var zTree = $.fn.zTree.getZTreeObj("dataDictTree");
     zTree.expandNode(treeNode);
 
-    if (treeNode.children !== undefined && treeNode.children.length > 0) {
-        return;
+    //if (treeNode.children !== undefined && treeNode.children.length > 0) {
+    //    return;
+    //}
+    if(treeNode.isDdcClass !== undefined && !treeNode.isDdcClass){
+	    return;
     }
 
     loadDataDict(treeNode.id);

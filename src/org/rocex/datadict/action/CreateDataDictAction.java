@@ -47,10 +47,11 @@ public class CreateDataDictAction implements IAction
     protected static int iIdLength = 8; // 主键长度
 
     protected Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();            // class id 和 class 的对应关系
-    protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();     // component id 和 component 内所有 class 链接的对应关系
+    protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();    // component id 和 component 内所有 class 链接的对应关系
     protected Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();        // component id 和 component 的对应关系
-    protected Map<String, String> mapEnumString = new HashMap<>();                    // enum id 和 enum name and value 的对应关系
-    protected Map<String, String> mapId = new HashMap<>();                            // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
+    protected Map<String, String> mapComonentIdPrimaryClassId = new HashMap<>();     // component id 和 主实体 id 的对应关系
+    protected Map<String, String> mapEnumString = new HashMap<>();                   // enum id 和 enum name and value 的对应关系
+    protected Map<String, String> mapId = new HashMap<>();                           // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();           // module id 和 module 的对应关系
 
     protected SQLExecutor sqlExecutor;
@@ -69,7 +70,7 @@ public class CreateDataDictAction implements IAction
     protected String strOutputRootDir;      // 输出文件根目录
     protected String strRefClassPathHrefTemplate = "<a href=\"javascript:void(0);\" onClick=loadDataDict(\"{0}\");>{1}</a>";              // 引用模型 链接模板
     protected String strTreeDataClassTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\"'}',";       // 左树实体 链接模板
-    protected String strTreeDataModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\"'}',";                  // 左树模块 链接模板
+    protected String strTreeDataModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\",isDdcClass:false'}',";                  // 左树模块 链接模板
     protected String strVersion;            // 数据字典版本
 
     /***************************************************************************
@@ -144,6 +145,8 @@ public class CreateDataDictAction implements IAction
             if (classVO.getIsPrimary())
             {
                 listClassVO2.add(0, classVO);
+
+                mapComonentIdPrimaryClassId.put(classVO.getComponentId(), classVO.getId());
             }
             else
             {
@@ -356,8 +359,31 @@ public class CreateDataDictAction implements IAction
             String strClassname = classVO.getFullClassname();
             strClassname = strClassname.contains(".") ? strClassname.substring(strClassname.lastIndexOf(".") + 1) : strClassname;
 
-            strClassRows.append(MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO),
-                classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname, strUrl, "ddc"));
+            if (classVO.getIsPrimary())
+            {
+                boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
+
+                String strDdc = MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO),
+                    classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname, strUrl, "ddc");
+
+                if (blHasChildren)
+                {
+                    strClassRows.insert(0, strDdc);
+                }
+                else
+                {
+                    strClassRows.append(strDdc);
+                }
+            }
+            else
+            {
+                String strPrimaryClassId = mapComonentIdPrimaryClassId.get(classVO.getComponentId());
+                ClassVO primaryClassVO = strPrimaryClassId == null ? null : (ClassVO) mapClassVO.get(strPrimaryClassId);
+                String strPid = primaryClassVO == null ? getMappedModuleId(moduleVO) : getMappedClassId(primaryClassVO);
+
+                strClassRows.append(MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), strPid,
+                    classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname, strUrl, "ddc"));
+            }
 
             String strModuleId = getModuleId(classVO);
 
@@ -451,11 +477,13 @@ public class CreateDataDictAction implements IAction
         copyStaticHtmlFiles();
 
         String strVersionSQL = "ddc_version='" + strVersion + "'";
+        String strWhere = " and component_id in(select original_id from md_component where own_module='hrhi') and default_table_name<>'bd_defdoc2'";
+        strWhere = "";
 
         String strModuleSQL = "select id,display_name,name,parent_module_id,ddc_version from md_module where " + strVersionSQL + " order by lower(name)";
         String strComponentSQL = "select original_id as id,display_name,name,own_module,ddc_version from md_component where " + strVersionSQL;
         String strClassSQL = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where "
-            + strVersionSQL + " and class_type<>999 order by default_table_name";
+            + strVersionSQL + " and class_type<>999 " + strWhere + "order by is_primary desc,default_table_name";
         String strClassSQL2 = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where "
             + strVersionSQL + " and class_type=999 order by default_table_name";
 
