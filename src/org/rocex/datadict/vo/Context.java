@@ -29,9 +29,9 @@ public class Context
         return settings.getProperty(strKey, strDefaultValue);
     }
 
-    public String setSetting(String strKey, String strValue)
+    public void setSetting(String strKey, String strValue)
     {
-        return settings.getProperty(strKey, strValue);
+        settings.setProperty(strKey, strValue);
     }
 
     public String getSetting(String strKey)

@@ -16,6 +16,7 @@ import org.rocex.utils.Logger;
 import org.rocex.utils.StringHelper;
 import org.rocex.vo.IAction;
 
+import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
@@ -168,7 +169,14 @@ public class SyncDBSchemaAction implements IAction
         sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, DictJsonVO.class);
 
         syncMetaData();
-        syncDBMeta();
+
+        String strCreateDbDdc = Context.getInstance().getSetting("createDbDdc");
+        boolean blCreateDbDdc = Boolean.valueOf(strCreateDbDdc);
+
+        if (blCreateDbDdc)
+        {
+            syncDBMeta();
+        }
 
         adjustData();
 
@@ -218,7 +226,7 @@ public class SyncDBSchemaAction implements IAction
     {
         String strPks = "";
 
-        if (sqlExecutorSource.getConnection().getMetaData().getDatabaseProductName().toLowerCase().contains("oracle"))
+        if (sqlExecutorSource.getDBType() == SQLExecutor.DBType.oracle)
         {
             if (mapTableNamePrimaryKeys.isEmpty())
             {
@@ -249,13 +257,15 @@ public class SyncDBSchemaAction implements IAction
         }
 
         // 找到表的主键
-        ResultSet rsPkColumns = sqlExecutorSource.getConnection().getMetaData().getPrimaryKeys(null, strDBSchema, strTableName);
-
-        List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
-
-        for (PropertyVO propertyVO : listPkPropertyVO)
+        try (Connection connection = sqlExecutorSource.getConnection();
+             ResultSet rsPkColumns = connection.getMetaData().getPrimaryKeys(null, strDBSchema, strTableName);)
         {
-            strPks += propertyVO.getId().toLowerCase() + ";";
+            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
+
+            for (PropertyVO propertyVO : listPkPropertyVO)
+            {
+                strPks += propertyVO.getId().toLowerCase() + ";";
+            }
         }
 
         return strPks;

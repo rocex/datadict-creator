@@ -4,8 +4,12 @@ import org.rocex.datadict.action.CreateDataDictAction;
 import org.rocex.datadict.action.CreateHtmlDataDictAction;
 import org.rocex.datadict.action.SyncDBSchemaAction;
 import org.rocex.datadict.vo.Context;
+import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
 import org.rocex.vo.IAction;
+
+import java.io.IOException;
+import java.nio.file.Path;
 
 /***************************************************************************
  * 根据数据库中元数据生成NC数据字典<br>
@@ -32,6 +36,16 @@ public class DataDictCreator
         for (String strVersion : strDataDictVersions)
         {
             String strDataDictVersion = Context.getInstance().getSetting(strVersion + ".DataDictVersion");
+            String strOutputRootDir = Context.getInstance().getSetting(strVersion + ".OutputDir");
+
+            try
+            {
+                FileHelper.checkAndCreatePath(Path.of(strOutputRootDir));
+            }
+            catch (IOException ex)
+            {
+                throw new RuntimeException(ex);
+            }
 
             new SyncDBSchemaAction(strVersion).doAction(null);
 
