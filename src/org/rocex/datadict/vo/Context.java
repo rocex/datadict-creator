@@ -13,7 +13,7 @@ public class Context
 
     private Context()
     {
-        settings = FileHelper.load("settings" + File.separator + "settings.properties");
+        settings = FileHelper.load("data" + File.separator + "settings.properties");
     }
 
     public static Context getInstance()

@@ -39,10 +39,11 @@ public class PropertyVO extends MetaVO
     private String strDataScope;
     private String strDataType;
     private String strDataTypeSql;
+    private String strDataTypeName;
+    private String strDataTypeDisplayName;
     private String strDefaultValue;
     private String strDynamicTable;
     private String strOriginalId;
-    private String strRefClassPathHref;
     private String strRefModelName;
 
     /***************************************************************************
@@ -356,27 +357,6 @@ public class PropertyVO extends MetaVO
     }
 
     /***************************************************************************
-     * @return the refClassPathHref
-     * @author Rocex Wang
-     * @since 2021-10-18 05:16:45
-     ***************************************************************************/
-    @Column(insertable = false, updatable = false)
-    public String getRefClassPathHref()
-    {
-        return strRefClassPathHref;
-    }
-
-    /***************************************************************************
-     * @param refClassPathHref the refClassPathHref to set
-     * @author Rocex Wang
-     * @since 2021-10-18 05:16:45
-     ***************************************************************************/
-    public void setRefClassPathHref(String refClassPathHref)
-    {
-        strRefClassPathHref = refClassPathHref;
-    }
-
-    /***************************************************************************
      * @return the refModelName
      * @author Rocex Wang
      * @since 2020-4-22 15:00:08
@@ -595,5 +575,27 @@ public class PropertyVO extends MetaVO
     public void setReadOnly(Boolean readOnly)
     {
         blReadOnly = readOnly;
+    }
+
+    @Column(insertable = false, updatable = false)
+    public String getDataTypeDisplayName()
+    {
+        return strDataTypeDisplayName;
+    }
+
+    public void setDataTypeDisplayName(String dataTypeDisplayName)
+    {
+        strDataTypeDisplayName = dataTypeDisplayName;
+    }
+
+    @Column(insertable = false, updatable = false)
+    public String getDataTypeName()
+    {
+        return strDataTypeName;
+    }
+
+    public void setDataTypeName(String dataTypeName)
+    {
+        strDataTypeName = dataTypeName;
     }
 }

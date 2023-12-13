@@ -88,6 +88,14 @@ function loadDataDict(classId) {
             let index = 1;
             data.propertyVO.forEach((propertyVO) => {
                 let trClass = propertyVO.keyProp ? "pk-row" : "";
+                let dataTypeShowName = propertyVO.dataTypeDisplayName +" (" + propertyVO.dataTypeName + ")";
+
+                if(propertyVO.dataTypeStyle == 305)
+                {
+                    dataTypeShowName = `
+                        <a href="javascript:void(0);" onclick="loadDataDict('${propertyVO.dataType}');">${propertyVO.dataTypeDisplayName} (${propertyVO.dataTypeName})</a>
+                        <a href="./index.html?${propertyVO.dataType}" target="_blank" title="新窗口查看 (${propertyVO.dataTypeDisplayName}) 实体"> <img src="./scripts/img/refer.gif" ></a>`;
+                }
 
                 ddcBody += `<tr class="${trClass}">
                         <td>${index++}</td>
@@ -96,7 +104,7 @@ function loadDataDict(classId) {
                         <td>${propertyVO.name}</td>
                         <td>${propertyVO.dataTypeSql}</td>
                         <td style="text-align: center">${propertyVO.nullable ? "" : "√"}</td>
-                        <td>${propertyVO.refClassPathHref ? propertyVO.refClassPathHref : ""}</td>
+                        <td>${dataTypeShowName}</td>
                         <td>${propertyVO.defaultValue ? propertyVO.defaultValue : ""}</td>
                         <td>${propertyVO.dataScope ? propertyVO.dataScope : ""}</td>
                         <td>${propertyVO.help ? propertyVO.help : ""}</td>

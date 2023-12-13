@@ -24,8 +24,8 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
-import java.text.DateFormat;
 import java.text.MessageFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -58,7 +58,7 @@ public class CreateDataDictAction implements IAction
 
     // 以下默认都是html格式数据字典的
     protected String strClassListHrefTemplate = "<a href=\"javascript:void(0);\" onClick=loadDataDict(\"{0}\"); class=\"{1}\">{2}</a>";    // 左上角实体列表链接
-    protected String strCreateTime = DateFormat.getDateTimeInstance().format(new Date());
+    protected String strCreateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 
     // 自定义项字段名前缀
     protected String[] strCustomPatterns = {"def", "vdef", "vfree", "vbdef", "vsndef", "vbfree", "vbcdef", "defitem", "vpfree", "zyx", "vuserdef", "obmdef",
@@ -68,9 +68,8 @@ public class CreateDataDictAction implements IAction
 
     protected String strOutputDictDir;      // 输出数据字典文件目录
     protected String strOutputRootDir;      // 输出文件根目录
-    protected String strRefClassPathHrefTemplate = "<a href=\"javascript:void(0);\" onClick=loadDataDict(\"{0}\");>{1}</a>";              // 引用模型 链接模板
-    protected String strTreeDataClassTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\"'}',";       // 左树实体 链接模板
-    protected String strTreeDataModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\",isDdcClass:false'}',";                  // 左树模块 链接模板
+    protected String strTreeDataClassTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\"'}',";           // 左树实体 链接模板
+    protected String strTreeDataModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\",isDdcClass:false'}',";     // 左树模块 链接模板
     protected String strVersion;            // 数据字典版本
 
     /***************************************************************************
@@ -110,7 +109,7 @@ public class CreateDataDictAction implements IAction
 
         try
         {
-            Context.getInstance().setSetting("HtmlIndexFile", new String(Files.readAllBytes(Paths.get("settings", "json", "template", "index.html"))));
+            Context.getInstance().setSetting("HtmlIndexFile", new String(Files.readAllBytes(Paths.get("data", "json", "template", "index.html"))));
         }
         catch (IOException ex)
         {
@@ -235,7 +234,7 @@ public class CreateDataDictAction implements IAction
 
         try
         {
-            FileHelper.copyFolderThread(Paths.get("settings", Context.getInstance().getSetting("createType", "json"), "static"),
+            FileHelper.copyFolderThread(Paths.get("data", Context.getInstance().getSetting("createType", "json"), "static"),
                 Paths.get(strOutputRootDir), StandardCopyOption.REPLACE_EXISTING);
         }
         catch (IOException ex)
@@ -304,7 +303,15 @@ public class CreateDataDictAction implements IAction
             PropertyVO propertyVO = listPropertyVO.get(i);
 
             // 引用实体模型
-            propertyVO.setRefClassPathHref(getRefClassPathHref(propertyVO));
+//            propertyVO.setRefClassPathHref(getRefClassPathHref(propertyVO));
+            ClassVO refClassVO = (ClassVO) mapClassVO.get(propertyVO.getDataType());
+
+            if (refClassVO != null)
+            {
+                propertyVO.setDataTypeName(refClassVO.getName());
+                propertyVO.setDataType(getMappedClassId(refClassVO));
+                propertyVO.setDataTypeDisplayName(refClassVO.getDisplayName());
+            }
 
             // 枚举/取值范围
             propertyVO.setDataScope(getDataScope(propertyVO));
@@ -547,8 +554,10 @@ public class CreateDataDictAction implements IAction
         try
         {
             FileHelper.deleteFolder(Paths.get(strOutputRootDir));
+
+            sqlExecutor.executeUpdate("delete from ddc_dict_json where ddc_version=?", new SQLParameter().addParam(strVersion));
         }
-        catch (IOException ex)
+        catch (IOException | SQLException ex)
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }
@@ -762,34 +771,6 @@ public class CreateDataDictAction implements IAction
     }
 
     /***************************************************************************
-     * @param propertyVO
-     * @return 引用实体模型
-     * @author Rocex Wang
-     * @since 2021-10-25 10:54:10
-     ***************************************************************************/
-    protected String getRefClassPathHref(PropertyVO propertyVO)
-    {
-        String strRefClassPathHref = "";
-        ClassVO refClassVO = (ClassVO) mapClassVO.get(propertyVO.getDataType());
-
-        if (refClassVO != null)
-        {
-            strRefClassPathHref = refClassVO.getDisplayName();
-
-            if (refClassVO.getClassType() == 201)
-            {
-                String strRefClassPath = getClassUrl2(refClassVO);
-
-                strRefClassPathHref = MessageFormat.format(strRefClassPathHrefTemplate, strRefClassPath, refClassVO.getDisplayName());
-            }
-
-            strRefClassPathHref = strRefClassPathHref + " (" + refClassVO.getName() + ")";
-        }
-
-        return strRefClassPathHref;
-    }
-
-    /***************************************************************************
      * @param strFieldCode
      * @return 从字段名判断是否自定义项
      * @author Rocex Wang
@@ -980,9 +961,9 @@ public class CreateDataDictAction implements IAction
         new JacksonHelper()
             .exclude(ClassVO.class, "accessorClassname", "bizItfImpClassname", "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute",
                 "name", "refModelName", "returnType", "ts", "versionType")
-            .exclude(PropertyVO.class, "accessorClassname", "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence",
-                "calculation", "classId", "customAttr", "dataType", "dataTypeStyle", "ddcVersion", "dynamicAttr", "dynamicTable", "fixedLength",
-                "hidden", "notSerialize", "id", "originalId", "precise", "readOnly", "refModelName", "ts", "versionType")
+            .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence",
+                "calculation", "classId", "customAttr", "ddcVersion", "dynamicAttr", "dynamicTable", "fixedLength",
+                "hidden", "notSerialize", "id", "originalId", "precise", "readOnly", "refModelName", "ts", "versionType", "refClassPathHref")
             .serializeThread(classVO, getClassFilePath(classVO));
     }
 }

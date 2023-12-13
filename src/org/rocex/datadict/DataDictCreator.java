@@ -1,12 +1,10 @@
 package org.rocex.datadict;
 
 import org.rocex.datadict.action.CreateDataDictAction;
-import org.rocex.datadict.action.CreateHtmlDataDictAction;
 import org.rocex.datadict.action.SyncDBSchemaAction;
 import org.rocex.datadict.vo.Context;
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
-import org.rocex.vo.IAction;
 
 import java.io.IOException;
 import java.nio.file.Path;
@@ -26,8 +24,6 @@ public class DataDictCreator
     public static void main(String[] args)
     {
         Logger.getLogger().begin("create all data dictionary");
-
-        String strCreateType = Context.getInstance().getSetting("createType", "json");
 
         String strDataDictVersionList = Context.getInstance().getSetting("DataDictVersionList");
 
@@ -51,9 +47,7 @@ public class DataDictCreator
 
             Logger.getLogger().begin("create data dictionary " + strDataDictVersion);
 
-            IAction action = "html".equalsIgnoreCase(strCreateType) ? new CreateHtmlDataDictAction(strVersion) : new CreateDataDictAction(strVersion);
-
-            action.doAction(null);
+            new CreateDataDictAction(strVersion).doAction(null);
 
             Logger.getLogger().end("create data dictionary " + strDataDictVersion);
 

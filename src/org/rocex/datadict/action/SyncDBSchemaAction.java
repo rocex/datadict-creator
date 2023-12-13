@@ -20,7 +20,7 @@ import java.sql.Connection;
 import java.sql.DatabaseMetaData;
 import java.sql.ResultSet;
 import java.sql.SQLException;
-import java.text.DateFormat;
+import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -49,7 +49,7 @@ public class SyncDBSchemaAction implements IAction
 
     protected String strDBSchema;           // 数据库schema
 
-    protected String strTs = DateFormat.getDateTimeInstance().format(new Date());
+    protected String strTs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ").format(new Date());
 
     // 排除的一些表名前缀
     protected String[] strTableFilters = {"aqua_explain_", "gltmp_verdtlbal", "gl_tmp_table", "hr_temptable", "ic_temp_", "iufo_measpub_",
@@ -226,7 +226,7 @@ public class SyncDBSchemaAction implements IAction
     {
         String strPks = "";
 
-        if (sqlExecutorSource.getDBType() == SQLExecutor.DBType.oracle)
+        if (sqlExecutorSource.getDBType() == SQLExecutor.DBType.Oracle)
         {
             if (mapTableNamePrimaryKeys.isEmpty())
             {
