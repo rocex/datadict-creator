@@ -60,7 +60,6 @@ function onClick(e, treeId, treeNode) {
     }
 
     loadDataDict(treeNode.id);
-    sendBaidu(window.location.href);
 }
 
 function loadDataDict(classId) {
@@ -94,7 +93,7 @@ function loadDataDict(classId) {
                 {
                     dataTypeShowName = `
                         <a href="javascript:void(0);" onclick="loadDataDict('${propertyVO.dataType}');">${propertyVO.dataTypeDisplayName} (${propertyVO.dataTypeName})</a>
-                        <a href="./index.html?${propertyVO.dataType}" target="_blank" title="新窗口查看 (${propertyVO.dataTypeDisplayName}) 实体"> <img src="./scripts/img/refer.gif" ></a>`;
+                        <a href="./index.html?dataType=${propertyVO.dataType}&keyword=${propertyVO.dataTypeDisplayName}" target="_blank" title="新窗口查看 (${propertyVO.dataTypeDisplayName}) 实体"> <img src="./scripts/img/refer.gif" ></a>`;
                 }
 
                 ddcBody += `<tr class="${trClass}">
@@ -114,6 +113,8 @@ function loadDataDict(classId) {
             $("#dataDictTableBody").html(ddcBody);
 
             document.getElementById("dataDictArea").scrollTop = 0;
+
+            sendBaidu(window.location.href);
         },
     });
 }
@@ -192,17 +193,22 @@ $(document).ready(function () {
     searchKey.focus();
     searchKey.addEventListener("keyup", debounce(searchUse, 500));
 
-    let strSearchValue = getSearchValue("keyword");
+    let strSearchValue = getUrlSearchParam("keyword");
     if (strSearchValue) {
         searchKey.value = strSearchValue;
         searchUse();
+    }
+
+    var strDataType = getUrlSearchParam("dataType");
+    if (strDataType) {
+        loadDataDict(strDataType);
     }
 });
 
 /**********************************************************************
  * 如果url中带keyword参数值对，就默认在左侧搜索
  **********************************************************************/
-function getSearchValue(strKey) {
+function getUrlSearchParam(strKey) {
     var search = window.location.search;
     var reg = new RegExp("" + strKey + "=([^&?]*)", "ig");
 

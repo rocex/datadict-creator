@@ -302,8 +302,13 @@ public class CreateDataDictAction implements IAction
         {
             PropertyVO propertyVO = listPropertyVO.get(i);
 
-            // 引用实体模型
-//            propertyVO.setRefClassPathHref(getRefClassPathHref(propertyVO));
+            // 枚举/取值范围
+            propertyVO.setDataScope(getDataScope(propertyVO));
+
+            // 默认值
+            propertyVO.setDefaultValue(propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue());
+
+            // 引用实体模型，这个放到最后，因为会改变dataType的值
             ClassVO refClassVO = (ClassVO) mapClassVO.get(propertyVO.getDataType());
 
             if (refClassVO != null)
@@ -312,12 +317,6 @@ public class CreateDataDictAction implements IAction
                 propertyVO.setDataType(getMappedClassId(refClassVO));
                 propertyVO.setDataTypeDisplayName(refClassVO.getDisplayName());
             }
-
-            // 枚举/取值范围
-            propertyVO.setDataScope(getDataScope(propertyVO));
-
-            // 默认值
-            propertyVO.setDefaultValue(propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue());
 
             createDataDictFileRow(classVO, propertyVO, i);
         }
