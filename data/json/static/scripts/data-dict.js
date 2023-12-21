@@ -89,6 +89,11 @@ function loadDataDict(classId) {
                 let trClass = propertyVO.keyProp ? "pk-row" : "";
                 let dataTypeShowName = propertyVO.dataTypeDisplayName +" (" + propertyVO.dataTypeName + ")";
 
+                let help = propertyVO.help;
+                let dynamicTable = propertyVO.dynamicTable;
+
+                help = help && dynamicTable ? help + "<br />" + dynamicTable : help ? help : dynamicTable ? dynamicTable : "";
+
                 if(propertyVO.dataTypeStyle == 305)
                 {
                     dataTypeShowName = `
@@ -106,13 +111,14 @@ function loadDataDict(classId) {
                         <td>${dataTypeShowName}</td>
                         <td>${propertyVO.defaultValue ? propertyVO.defaultValue : ""}</td>
                         <td>${propertyVO.dataScope ? propertyVO.dataScope : ""}</td>
-                        <td>${propertyVO.help ? propertyVO.help : ""}</td>
+                        <td>${help}</td>
                     </tr>`;
             });
 
             $("#dataDictTableBody").html(ddcBody);
 
             document.getElementById("dataDictArea").scrollTop = 0;
+            document.getElementById("dataDictContainer").scrollTop = 0;
 
             sendBaidu(window.location.href);
         },

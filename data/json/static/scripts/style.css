@@ -27,7 +27,7 @@ body {
 }
 
 .dataDictArea {
-    height: 94%;
+    height: calc(100% - 2em);
     max-height: 100%;
     overflow-x: auto;
     overflow-y: auto;

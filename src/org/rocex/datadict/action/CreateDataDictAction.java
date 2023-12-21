@@ -49,7 +49,7 @@ public class CreateDataDictAction implements IAction
     protected Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();            // class id 和 class 的对应关系
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();    // component id 和 component 内所有 class 链接的对应关系
     protected Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();        // component id 和 component 的对应关系
-    protected Map<String, String> mapComonentIdPrimaryClassId = new HashMap<>();     // component id 和 主实体 id 的对应关系
+    protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();     // component id 和 主实体 id 的对应关系
     protected Map<String, String> mapEnumString = new HashMap<>();                   // enum id 和 enum name and value 的对应关系
     protected Map<String, String> mapId = new HashMap<>();                           // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();           // module id 和 module 的对应关系
@@ -119,7 +119,7 @@ public class CreateDataDictAction implements IAction
 
     /***************************************************************************
      * component id 和 component 内所有 class 链接的对应关系，用于数据字典左上角实体列表
-     * @param listClassVO
+     * @param listClassVO List<ClassVO>
      * @author Rocex Wang
      * @since 2020-4-24 15:41:49
      ***************************************************************************/
@@ -145,7 +145,7 @@ public class CreateDataDictAction implements IAction
             {
                 listClassVO2.add(0, classVO);
 
-                mapComonentIdPrimaryClassId.put(classVO.getComponentId(), classVO.getId());
+                mapComponentIdPrimaryClassId.put(classVO.getComponentId(), classVO.getId());
             }
             else
             {
@@ -383,7 +383,7 @@ public class CreateDataDictAction implements IAction
             }
             else
             {
-                String strPrimaryClassId = mapComonentIdPrimaryClassId.get(classVO.getComponentId());
+                String strPrimaryClassId = mapComponentIdPrimaryClassId.get(classVO.getComponentId());
                 ClassVO primaryClassVO = strPrimaryClassId == null ? null : (ClassVO) mapClassVO.get(strPrimaryClassId);
                 String strPid = primaryClassVO == null ? getMappedModuleId(moduleVO) : getMappedClassId(primaryClassVO);
 
@@ -489,9 +489,9 @@ public class CreateDataDictAction implements IAction
         String strModuleSQL = "select id,display_name,name,parent_module_id,ddc_version from md_module where " + strVersionSQL + " order by lower(name)";
         String strComponentSQL = "select original_id as id,display_name,name,own_module,ddc_version from md_component where " + strVersionSQL;
         String strClassSQL = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where "
-            + strVersionSQL + " and class_type<>999 " + strWhere + "order by is_primary desc,default_table_name";
+                             + strVersionSQL + " and class_type<>999 " + strWhere + "order by is_primary desc,default_table_name";
         String strClassSQL2 = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where "
-            + strVersionSQL + " and class_type=999 order by default_table_name";
+                              + strVersionSQL + " and class_type=999 order by default_table_name";
 
         try
         {
@@ -674,7 +674,7 @@ public class CreateDataDictAction implements IAction
         else
         {
             strDataScope = "[" + (propertyVO.getAttrMinValue() == null ? "" : propertyVO.getAttrMinValue()) + " , "
-                + (propertyVO.getAttrMaxValue() == null ? "" : propertyVO.getAttrMaxValue()) + "]";
+                           + (propertyVO.getAttrMaxValue() == null ? "" : propertyVO.getAttrMaxValue()) + "]";
 
             if ("[ , ]".equals(strDataScope))
             {
@@ -794,17 +794,19 @@ public class CreateDataDictAction implements IAction
     }
 
     /***************************************************************************
-     * @param metaVOClass
-     * @param strSQL
-     * @param param
-     * @param pagingAction
+     * @param metaVOClass Class<? extends MetaVO>
+     * @param strSQL String
+     * @param param SQLParameter
+     * @param pagingAction IAction
      * @return List<? extends MetaVO>
      * @author Rocex Wang
      * @since 2020-5-9 11:20:25
      ***************************************************************************/
     protected List<? extends MetaVO> queryMetaVO(Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param, IAction pagingAction)
     {
-        Logger.getLogger().begin("query " + metaVOClass.getSimpleName());
+        String strMessage = "query " + metaVOClass.getSimpleName();
+
+        Logger.getLogger().begin(strMessage);
 
         List<? extends MetaVO> listMetaVO = null;
 
@@ -820,7 +822,7 @@ public class CreateDataDictAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end("query " + metaVOClass.getSimpleName());
+        Logger.getLogger().end(strMessage);
 
         return listMetaVO;
     }
@@ -932,8 +934,9 @@ public class CreateDataDictAction implements IAction
             {
                 listCustomPropertyVO.add(propertyVO);
             }
-            else if ("dr".equalsIgnoreCase(strPropKey) || "ts".equalsIgnoreCase(strPropKey) || "creator".equalsIgnoreCase(strPropKey)
-                || "creationtime".equalsIgnoreCase(strPropKey) || "modifier".equalsIgnoreCase(strPropKey) || "modifiedtime".equalsIgnoreCase(strPropKey))
+            else if ("dr".equalsIgnoreCase(strPropKey) || "ts".equalsIgnoreCase(strPropKey)
+                     || "creator".equalsIgnoreCase(strPropKey) || "creationtime".equalsIgnoreCase(strPropKey)
+                     || "modifier".equalsIgnoreCase(strPropKey) || "modifiedtime".equalsIgnoreCase(strPropKey))
             {
                 listPropertyFinalVO.add(propertyVO);
             }
@@ -961,7 +964,7 @@ public class CreateDataDictAction implements IAction
             .exclude(ClassVO.class, "accessorClassname", "bizItfImpClassname", "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute",
                 "name", "refModelName", "returnType", "ts", "versionType")
             .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence",
-                "calculation", "classId", "customAttr", "ddcVersion", "dynamicAttr", "dynamicTable", "fixedLength",
+                "calculation", "classId", "customAttr", "ddcVersion", "dynamicAttr", "fixedLength",
                 "hidden", "notSerialize", "id", "originalId", "precise", "readOnly", "refModelName", "ts", "versionType", "refClassPathHref")
             .serializeThread(classVO, getClassFilePath(classVO));
     }
