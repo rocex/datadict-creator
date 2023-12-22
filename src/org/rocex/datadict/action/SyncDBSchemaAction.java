@@ -52,13 +52,13 @@ public class SyncDBSchemaAction implements IAction
     protected String strTs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ").format(new Date());
 
     // 排除的一些表名前缀
-    protected String[] strTableFilters = {"aqua_explain_", "gltmp_verdtlbal", "gl_tmp_table", "hr_temptable", "ic_temp_", "iufo_measpub_",
-        "iufo_measure_data_", "iufo_tmp_pub_", "ntb_tmp_formual_", "obsclass", "pitemid", "pkjkbx", "sm_securitylog_", "sm_securitylog_",
-        "ssccm_adjustlog_b_", "ssccm_adjust_log_", "szxmid", "tb_cell_wbk", "tb_fd_sht", "tb_fd_sht", "tb_tmp_", "tb_tmp_tcheck", "tb_tmp_tcheck_",
-        "tb_tt_", "tb_tt_gh_budgetmodle", "temp000", "temppkts", "temptable_", "temp_", "temp_bd_", "temp_fa_", "temp_ia_", "temp_ic_", "temp_pam_",
-        "temp_scacosts_", "temp_scas", "temq_", "temq_", "tmpbd_", "tmpin", "tmpina", "tmpinb", "tmpinpk_", "tmpins", "tmpinsrc_", "tmpintop_",
-        "tmpub_calog_temp", "tmp_", "tmp_arap_", "tmp_gl_", "tmp_po_", "tmp_scmf", "tmp_so_", "tm_mqsend_success_", "transf2pcm", "t_ationid", "t_emplate",
-        "t_laterow", "t_laterow", "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_"};
+    protected String[] strTableFilters = {
+        "aqua_explain_", "gltmp_verdtlbal", "gl_tmp_table", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_", "iufo_tmp_pub_", "ntb_tmp_formual_", "obsclass",
+        "pitemid", "pkjkbx", "sm_securitylog_", "sm_securitylog_", "ssccm_adjustlog_b_", "ssccm_adjust_log_", "szxmid", "tb_cell_wbk", "tb_fd_sht", "tb_fd_sht", "tb_tmp_",
+        "tb_tmp_tcheck", "tb_tmp_tcheck_", "tb_tt_", "tb_tt_gh_budgetmodle", "temp000", "temppkts", "temptable_", "temp_", "temp_bd_", "temp_fa_", "temp_ia_", "temp_ic_",
+        "temp_pam_", "temp_scacosts_", "temp_scas", "temq_", "temq_", "tmpbd_", "tmpin", "tmpina", "tmpinb", "tmpinpk_", "tmpins", "tmpinsrc_", "tmpintop_", "tmpub_calog_temp",
+        "tmp_", "tmp_arap_", "tmp_gl_", "tmp_po_", "tmp_scmf", "tmp_so_", "tm_mqsend_success_", "transf2pcm", "t_ationid", "t_emplate", "t_laterow", "t_laterow", "uidbcache_temp_",
+        "uidbcache_temp_", "wa_temp_", "zdp_"};
 
     protected String strVersion;            // 数据字典版本
 
@@ -90,10 +90,8 @@ public class SyncDBSchemaAction implements IAction
 
         String strTargetUrl = Context.getInstance().getSetting(strVersion + ".target.jdbc.url", Context.getInstance().getSetting("target.jdbc.url"));
         String strTargetUser = Context.getInstance().getSetting(strVersion + ".target.jdbc.user", Context.getInstance().getSetting("target.jdbc.user"));
-        String strTargetDriver = Context.getInstance().getSetting(strVersion + ".target.jdbc.driver",
-            Context.getInstance().getSetting("target.jdbc.driver"));
-        String strTargetPassword = Context.getInstance().getSetting(strVersion + ".target.jdbc.password",
-            Context.getInstance().getSetting("target.jdbc.password"));
+        String strTargetDriver = Context.getInstance().getSetting(strVersion + ".target.jdbc.driver", Context.getInstance().getSetting("target.jdbc.driver"));
+        String strTargetPassword = Context.getInstance().getSetting(strVersion + ".target.jdbc.password", Context.getInstance().getSetting("target.jdbc.password"));
 
         dbPropTarget.setProperty("jdbc.url", strTargetUrl);
         dbPropTarget.setProperty("jdbc.user", strTargetUser);
@@ -232,7 +230,8 @@ public class SyncDBSchemaAction implements IAction
             {
                 Logger.getLogger().begin("oracle query all primary keys");
 
-                String strSQL = "select column_name id,table_name classid from user_cons_columns where constraint_name in(select constraint_name from user_constraints where constraint_type='P')";
+                String strSQL
+                    = "select column_name id,table_name classid from user_cons_columns where constraint_name in(select constraint_name from user_constraints where constraint_type='P')";
 
                 sqlExecutorSource.executeQuery(strSQL, new BeanListProcessor<>(PropertyVO.class, null, propertyVO ->
                 {
@@ -258,7 +257,7 @@ public class SyncDBSchemaAction implements IAction
 
         // 找到表的主键
         try (Connection connection = sqlExecutorSource.getConnection();
-             ResultSet rsPkColumns = connection.getMetaData().getPrimaryKeys(null, strDBSchema, strTableName);)
+             ResultSet rsPkColumns = connection.getMetaData().getPrimaryKeys(null, strDBSchema, strTableName))
         {
             List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapColumn, "id").doAction(rsPkColumns);
 
@@ -584,8 +583,7 @@ public class SyncDBSchemaAction implements IAction
             + " from md_component";
 
         String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary,help"
-            + ",accessorclassname,bizitfimpclassname,refmodelname,returntype,isauthen,versiontype," + strOtherSQL
-            + " from md_class order by defaulttablename";
+            + ",accessorclassname,bizitfimpclassname,refmodelname,returntype,isauthen,versiontype," + strOtherSQL + " from md_class order by defaulttablename";
 
         String strEnumValueSQL = "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherSQL
             + " from md_enumvalue order by id,enumsequence";

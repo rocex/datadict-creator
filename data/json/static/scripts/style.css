@@ -154,9 +154,13 @@ a:visited {
 }
 
 a:hover {
-    text-decoration: none;
+    text-decoration: underline;
 }
 
 a:active {
-    text-decoration: none;
+    text-decoration: underline;
+}
+
+.blankLink{
+    color: #00c3ff !important;
 }
