@@ -20,7 +20,6 @@ import org.rocex.vo.IAction;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
-import java.nio.file.Paths;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
 import java.text.MessageFormat;
@@ -81,7 +80,7 @@ public class CreateDataDictAction implements IAction
         this.strVersion = strVersion;
 
         strOutputRootDir = Context.getInstance().getSetting(strVersion + ".OutputDir");
-        strOutputDictDir = Paths.get(strOutputRootDir, "dict").toString();
+        strOutputDictDir = Path.of(strOutputRootDir, "dict").toString();
 
         Properties dbProp = new Properties();
 
@@ -221,7 +220,7 @@ public class CreateDataDictAction implements IAction
 
         try
         {
-            FileHelper.copyFolderThread(Paths.get("data", "template", "static"), Paths.get(strOutputRootDir), StandardCopyOption.REPLACE_EXISTING);
+            FileHelper.copyFolderThread(Path.of("data", "template", "static"), Path.of(strOutputRootDir), StandardCopyOption.REPLACE_EXISTING);
         }
         catch (IOException ex)
         {
@@ -432,7 +431,7 @@ public class CreateDataDictAction implements IAction
             }
         }
 
-        FileHelper.writeFileThread(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
+        FileHelper.writeFileThread(Path.of(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
 
         Logger.getLogger().end("create data dict tree: " + (listClassVO.size() + listAllTableVO.size()));
     }
@@ -447,11 +446,11 @@ public class CreateDataDictAction implements IAction
 
         try
         {
-            String strHtmlIndexFile = Files.readString(Paths.get("data", "template", "index.html"));
+            String strHtmlIndexFile = Files.readString(Path.of("data", "template", "index.html"));
 
             String strHtml = MessageFormat.format(strHtmlIndexFile, Context.getInstance().getSetting(strVersion + ".DataDictVersion"), strCreateTime);
 
-            FileHelper.writeFileThread(Paths.get(strOutputRootDir, "index.html"), strHtml);
+            FileHelper.writeFileThread(Path.of(strOutputRootDir, "index.html"), strHtml);
         }
         catch (IOException ex)
         {
@@ -548,7 +547,7 @@ public class CreateDataDictAction implements IAction
 
         try
         {
-            FileHelper.deleteFolder(Paths.get(strOutputRootDir));
+            FileHelper.deleteFolder(Path.of(strOutputRootDir));
 
             sqlExecutor.executeUpdate("delete from ddc_dict_json where ddc_version=?", new SQLParameter().addParam(strVersion));
         }
@@ -569,7 +568,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected Path getClassFilePath(ClassVO classVO)
     {
-        return Paths.get(strOutputDictDir, getMappedClassId(classVO) + ".json");
+        return Path.of(strOutputDictDir, getMappedClassId(classVO) + ".json");
     }
 
     /***************************************************************************
