@@ -17,7 +17,6 @@ import org.rocex.utils.Logger;
 import org.rocex.utils.StringHelper;
 import org.rocex.vo.IAction;
 
-import java.io.File;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -49,7 +48,7 @@ public class CreateDataDictAction implements IAction
     protected Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();            // class id 和 class 的对应关系
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();    // component id 和 component 内所有 class 链接的对应关系
     protected Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();        // component id 和 component 的对应关系
-    protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();     // component id 和 主实体 id 的对应关系
+    protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();    // component id 和 主实体 id 的对应关系
     protected Map<String, String> mapEnumString = new HashMap<>();                   // enum id 和 enum name and value 的对应关系
     protected Map<String, String> mapId = new HashMap<>();                           // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();           // module id 和 module 的对应关系
@@ -61,10 +60,9 @@ public class CreateDataDictAction implements IAction
     protected String strCreateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
 
     // 自定义项字段名前缀
-    protected String[] strCustomPatterns = {"def", "vdef", "vfree", "vbdef", "vsndef", "vbfree", "vbcdef", "defitem", "vpfree", "zyx", "vuserdef", "obmdef",
-        "hvdef", "vbodyuserdef", "vhdef", "vgdef", "hdef", "vstbdef", "vpdef", "vbprodbatdef", "vheaduserdef", "bc_vdef", "vsdef", "vhodef", "vstdef",
-        "vbatchdef", "bdef", "freevalue", "h_def", "vrcdef", "des_freedef", "src_freedef", "vprodbatdef", "factor", "free", "nfactor", "glbdef",
-        "jobglbdef", "vcostfree"};
+    protected String[] strCustomPatterns = {"def", "vdef", "vfree", "vbdef", "vsndef", "vbfree", "vbcdef", "defitem", "vpfree", "zyx", "vuserdef", "obmdef", "hvdef",
+        "vbodyuserdef", "vhdef", "vgdef", "hdef", "vstbdef", "vpdef", "vbprodbatdef", "vheaduserdef", "bc_vdef", "vsdef", "vhodef", "vstdef", "vbatchdef", "bdef", "freevalue",
+        "h_def", "vrcdef", "des_freedef", "src_freedef", "vprodbatdef", "factor", "free", "nfactor", "glbdef", "jobglbdef", "vcostfree"};
 
     protected String strOutputDictDir;      // 输出数据字典文件目录
     protected String strOutputRootDir;      // 输出文件根目录
@@ -83,16 +81,14 @@ public class CreateDataDictAction implements IAction
         this.strVersion = strVersion;
 
         strOutputRootDir = Context.getInstance().getSetting(strVersion + ".OutputDir");
-        strOutputDictDir = strOutputRootDir + File.separator + "dict";
+        strOutputDictDir = Paths.get(strOutputRootDir, "dict").toString();
 
         Properties dbProp = new Properties();
 
         String strTargetUrl = Context.getInstance().getSetting(strVersion + ".target.jdbc.url", Context.getInstance().getSetting("target.jdbc.url"));
         String strTargetUser = Context.getInstance().getSetting(strVersion + ".target.jdbc.user", Context.getInstance().getSetting("target.jdbc.user"));
-        String strTargetDriver = Context.getInstance().getSetting(strVersion + ".target.jdbc.driver",
-            Context.getInstance().getSetting("target.jdbc.driver"));
-        String strTargetPassword = Context.getInstance().getSetting(strVersion + ".target.jdbc.password",
-            Context.getInstance().getSetting("target.jdbc.password"));
+        String strTargetDriver = Context.getInstance().getSetting(strVersion + ".target.jdbc.driver", Context.getInstance().getSetting("target.jdbc.driver"));
+        String strTargetPassword = Context.getInstance().getSetting(strVersion + ".target.jdbc.password", Context.getInstance().getSetting("target.jdbc.password"));
 
         dbProp.setProperty("jdbc.url", strTargetUrl);
         dbProp.setProperty("jdbc.user", strTargetUser);
@@ -105,15 +101,6 @@ public class CreateDataDictAction implements IAction
         for (int i = 0; i < strCustomPatterns.length; i++)
         {
             strCustomPatterns[i] = "(" + strCustomPatterns[i] + ")[0-9]+";
-        }
-
-        try
-        {
-            Context.getInstance().setSetting("HtmlIndexFile", new String(Files.readAllBytes(Paths.get("data", "json", "template", "index.html"))));
-        }
-        catch (IOException ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
         }
     }
 
@@ -234,8 +221,7 @@ public class CreateDataDictAction implements IAction
 
         try
         {
-            FileHelper.copyFolderThread(Paths.get("data", Context.getInstance().getSetting("createType", "json"), "static"),
-                Paths.get(strOutputRootDir), StandardCopyOption.REPLACE_EXISTING);
+            FileHelper.copyFolderThread(Paths.get("data", "template", "static"), Paths.get(strOutputRootDir), StandardCopyOption.REPLACE_EXISTING);
         }
         catch (IOException ex)
         {
@@ -369,8 +355,8 @@ public class CreateDataDictAction implements IAction
             {
                 boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
 
-                String strDdc = MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO),
-                    classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname, strUrl, "ddc");
+                String strDdc = MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
+                                                     classVO.getDisplayName() + " " + strClassname, strUrl, "ddc");
 
                 if (blHasChildren)
                 {
@@ -387,8 +373,9 @@ public class CreateDataDictAction implements IAction
                 ClassVO primaryClassVO = strPrimaryClassId == null ? null : (ClassVO) mapClassVO.get(strPrimaryClassId);
                 String strPid = primaryClassVO == null ? getMappedModuleId(moduleVO) : getMappedClassId(primaryClassVO);
 
-                strClassRows.append(MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), strPid,
-                    classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname, strUrl, "ddc"));
+                strClassRows.append(
+                    MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), strPid, classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname,
+                                         strUrl, "ddc"));
             }
 
             String strModuleId = getModuleId(classVO);
@@ -428,8 +415,8 @@ public class CreateDataDictAction implements IAction
 
                 chars[char0 - 'a'] = char0;
 
-                strClassRows.append(MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), "char_" + char0, strTableName,
-                    classVO.getDisplayName(), strUrl, "ddc"));
+                strClassRows.append(
+                    MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), "char_" + char0, strTableName, classVO.getDisplayName(), strUrl, "ddc"));
             }
 
             for (char charAt : chars)
@@ -445,8 +432,7 @@ public class CreateDataDictAction implements IAction
             }
         }
 
-        FileHelper.writeFileThread(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js"),
-            "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
+        FileHelper.writeFileThread(Paths.get(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
 
         Logger.getLogger().end("create data dict tree: " + (listClassVO.size() + listAllTableVO.size()));
     }
@@ -459,10 +445,18 @@ public class CreateDataDictAction implements IAction
     {
         Logger.getLogger().begin("create index html file");
 
-        String strHtml = MessageFormat.format(Context.getInstance().getSetting("HtmlIndexFile"),
-            Context.getInstance().getSetting(strVersion + ".DataDictVersion"), strCreateTime);
+        try
+        {
+            String strHtmlIndexFile = Files.readString(Paths.get("data", "template", "index.html"));
 
-        FileHelper.writeFileThread(Paths.get(strOutputRootDir, "index.html"), strHtml);
+            String strHtml = MessageFormat.format(strHtmlIndexFile, Context.getInstance().getSetting(strVersion + ".DataDictVersion"), strCreateTime);
+
+            FileHelper.writeFileThread(Paths.get(strOutputRootDir, "index.html"), strHtml);
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
 
         Logger.getLogger().end("create index html file");
     }
@@ -488,10 +482,12 @@ public class CreateDataDictAction implements IAction
 
         String strModuleSQL = "select id,display_name,name,parent_module_id,ddc_version from md_module where " + strVersionSQL + " order by lower(name)";
         String strComponentSQL = "select original_id as id,display_name,name,own_module,ddc_version from md_component where " + strVersionSQL;
-        String strClassSQL = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where "
-                             + strVersionSQL + " and class_type<>999 " + strWhere + "order by is_primary desc,default_table_name";
-        String strClassSQL2 = "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where "
-                              + strVersionSQL + " and class_type=999 order by default_table_name";
+        String strClassSQL =
+            "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where " + strVersionSQL
+                + " and class_type<>999 " + strWhere + "order by is_primary desc,default_table_name";
+        String strClassSQL2 =
+            "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where " + strVersionSQL
+                + " and class_type=999 order by default_table_name";
 
         try
         {
@@ -666,15 +662,15 @@ public class CreateDataDictAction implements IAction
     {
         String strDataScope;
 
-        if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300
-            && mapEnumString.containsKey(propertyVO.getDataType()))
+        if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300 && mapEnumString.containsKey(
+            propertyVO.getDataType()))
         {
             strDataScope = mapEnumString.get(propertyVO.getDataType());
         }
         else
         {
-            strDataScope = "[" + (propertyVO.getAttrMinValue() == null ? "" : propertyVO.getAttrMinValue()) + " , "
-                           + (propertyVO.getAttrMaxValue() == null ? "" : propertyVO.getAttrMaxValue()) + "]";
+            strDataScope = "[" + (propertyVO.getAttrMinValue() == null ? "" : propertyVO.getAttrMinValue()) + " , " + (
+                propertyVO.getAttrMaxValue() == null ? "" : propertyVO.getAttrMaxValue()) + "]";
 
             if ("[ , ]".equals(strDataScope))
             {
@@ -934,9 +930,8 @@ public class CreateDataDictAction implements IAction
             {
                 listCustomPropertyVO.add(propertyVO);
             }
-            else if ("dr".equalsIgnoreCase(strPropKey) || "ts".equalsIgnoreCase(strPropKey)
-                     || "creator".equalsIgnoreCase(strPropKey) || "creationtime".equalsIgnoreCase(strPropKey)
-                     || "modifier".equalsIgnoreCase(strPropKey) || "modifiedtime".equalsIgnoreCase(strPropKey))
+            else if ("dr".equalsIgnoreCase(strPropKey) || "ts".equalsIgnoreCase(strPropKey) || "creator".equalsIgnoreCase(strPropKey) || "creationtime".equalsIgnoreCase(strPropKey)
+                || "modifier".equalsIgnoreCase(strPropKey) || "modifiedtime".equalsIgnoreCase(strPropKey))
             {
                 listPropertyFinalVO.add(propertyVO);
             }
@@ -961,11 +956,10 @@ public class CreateDataDictAction implements IAction
     protected void writeDataDictFile(ClassVO classVO)
     {
         new JacksonHelper()
-            .exclude(ClassVO.class, "accessorClassname", "bizItfImpClassname", "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute",
-                "name", "refModelName", "returnType", "ts", "versionType")
-            .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence",
-                "calculation", "classId", "customAttr", "ddcVersion", "dynamicAttr", "fixedLength",
-                "hidden", "notSerialize", "id", "originalId", "precise", "readOnly", "refModelName", "ts", "versionType", "refClassPathHref")
+            .exclude(ClassVO.class, "accessorClassname", "bizItfImpClassname", "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute", "name", "refModelName",
+                     "returnType", "ts", "versionType")
+            .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence", "calculation", "classId", "customAttr", "ddcVersion",
+                     "dynamicAttr", "fixedLength", "hidden", "notSerialize", "id", "originalId", "precise", "readOnly", "refModelName", "ts", "versionType", "refClassPathHref")
             .serializeThread(classVO, getClassFilePath(classVO));
     }
 }
