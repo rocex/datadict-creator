@@ -26,6 +26,17 @@ window.onload = function () {
     document.addEventListener("keyup", function (e) {
         hotkey(e);
     });
+
+    // 版本号切换
+    let ddcVersionSelect = document.getElementById("ddcVersion");
+    ddcVersionSelect.addEventListener('change', function(evt) {
+        var value = this.value;
+
+        // 跳转到对应的链接
+        window.open("/datadict/datadict-" + value + '/index.html');
+
+        ddcVersionSelect.value = ddcVersion;
+    });
 };
 
 /**********************************************************************
@@ -120,6 +131,9 @@ function loadDataDict(classId) {
             document.getElementById("dataDictArea").scrollTop = 0;
             document.getElementById("dataDictContainer").scrollTop = 0;
 
+            // 设置当前选中版本
+            document.getElementById("ddcVersion").value = ddcVersion;
+
             sendBaidu(window.location.href);
         },
     });
@@ -192,6 +206,9 @@ function searchUse() {
 }
 
 $(document).ready(function () {
+    // 设置当前选中版本
+    document.getElementById("ddcVersion").value = ddcVersion;
+
     let searchKey = document.getElementById("searchKey");
 
     setTreeData(dataDictIndexData);

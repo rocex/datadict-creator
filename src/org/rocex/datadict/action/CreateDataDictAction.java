@@ -448,7 +448,7 @@ public class CreateDataDictAction implements IAction
         {
             String strHtmlIndexFile = Files.readString(Path.of("data", "template", "index.html"));
 
-            String strHtml = MessageFormat.format(strHtmlIndexFile, Context.getInstance().getSetting(strVersion + ".DataDictVersion"), strCreateTime);
+            String strHtml = MessageFormat.format(strHtmlIndexFile, Context.getInstance().getSetting(strVersion + ".DataDictVersion"), strVersion, strCreateTime);
 
             FileHelper.writeFileThread(Path.of(strOutputRootDir, "index.html"), strHtml);
         }

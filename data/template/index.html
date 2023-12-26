@@ -8,6 +8,10 @@
     <link rel="stylesheet" type="text/css" href="./scripts/style.css" />
     <link rel="stylesheet" type="text/css" href="./scripts/zTreeStyle.css" />
 
+    <script type="text/javascript">
+        var ddcVersion = "{1}";
+    </script>
+
     <script type="text/javascript" src="./scripts/data-dict-tree.js"></script>
     <script type="text/javascript" src="./scripts/jquery.min.js"></script>
     <script type="text/javascript" src="./scripts/jquery.ztree.core.min.js"></script>
@@ -29,20 +33,33 @@
 
         <div id="right" class="right">
             <div id="title" class="title">
-                <a href="/" class="home" style="color: lime; opacity: 0.9;">首页</a>
+                <a href="/" class="home" style="color: lime; opacity: 0.9;">&lt;返回社区</a>
                 <span>
                     <span id="classDisplayName" style="font-size: xx-large; font-weight: bold">YonBIP 高级版 数据字典</span>
                     <span id="classDefaultTableName" style="font-size: large"></span>
                 </span>
-                <span id="rightVersion" class="rightVersion">{0}</span>
+                <span id="rightVersion" class="rightVersion">
+                    <select name="ddcVersion" id="ddcVersion">
+                        <option value="2312">YonBIP V3.0 (R5_2312_1) 高级版</option>
+                        <option value="2305">YonBIP V3.0 (R1_2207_1_sp20230530) 高级版</option>
+                        <option value="2207">YonBIP V3.0 (R1_2207_1) 高级版</option>
+                        <option value="2111">NC Cloud 2021.11</option>
+                        <option value="2105">NC Cloud 2021.05</option>
+                        <option value="2005">NC Cloud 2020.05</option>
+                        <option value="1909">NC Cloud 1909</option>
+                        <option value="1903">NC Cloud 1903</option>
+                        <option value="1811">NC Cloud 1811</option>
+                        <option value="0065">NC 65</option>
+                    </select>
+                </span>
             </div>
             <div id="intro" style="overflow-x:auto; overflow-y:auto;">
 
                 <div style="margin-left: 290px; margin-top: 30px;">
                     <br>
                     <b style="color: red;">
-                    依据公司安全规范，数据字典属于公司核心资产，不提供离线版。<br>
-                    高级版数据字典版权归属于 用友网络科技股份有限公司，盗取必究。<br>
+                        依据公司安全规范，数据字典属于公司核心资产，不提供离线版。<br>
+                        高级版数据字典版权归属于 用友网络科技股份有限公司，盗取必究。<br>
                     </b><br><br>
 
                     <b>说明：</b><br>
@@ -55,34 +72,39 @@
                 </div>
 
                 <table style="margin-left: 290px; margin-top: 30px;">
-                   <tbody>
+                    <tbody>
                         <tr>
                             <td><b>更新历史</b></td>
                             <td></td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>YonBIP V3.0 (R5_2312_1) 高级版</b></td>
+                            <td><b><a href="/datadict/datadict-2312">YonBIP V3.0 (R5_2312_1) 高级版</a></b></td>
                             <td>2023-12-31</td>
                         </tr>
                         <tr>
                             <td colspan=2>
                                 <div style="margin-left: 20px;">
+                                    + 增加右上角版本切换<br>
                                     + 增加数据字典固定表头<br>
                                     + 左树按元数据实体关系生成主子结构<br>
                                     + 参照类型的字段通过小括号里的英文名可以在新窗口打开实体<br>
                                     * 数据字典“标签”列改名“标签/扩展表名”，合并显示标签和扩展表信息<br>
-                                    - 取消表结构的数据字典
+                                    - 取消物理表结构的数据字典
                                 </div>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>YonBIP V3.0 (R1_2207_1_sp20230530) 高级版</b></td>
+                            <td><b><a href="/datadict/datadict-2305">YonBIP V3.0 (R1_2207_1_sp20230530) 高级版</a></b></td>
                             <td>2022-05-30</td>
                         </tr>
                         <tr>
@@ -93,10 +115,12 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>YonBIP V3.0 (R1_2207_1) 高级版</b></td>
+                            <td><b><a href="/datadict/datadict-2207">YonBIP V3.0 (R1_2207_1) 高级版</a></b></td>
                             <td>2022-07-31</td>
                         </tr>
                         <tr>
@@ -107,25 +131,29 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>NC Cloud 2021.11</b></td>
+                            <td><b><a href="/datadict/datadict-2111">NC Cloud 2021.11</a></b></td>
                             <td>2021-11-30</td>
                         </tr>
                         <tr>
                             <td colspan=2>
                                 <div style="margin-left: 20px;">
-                                   + 增加排除表：tmpbd_, tmpin, tmpina, tmpinb, tmpinpk_, tmpins, tmpinsrc_, tmpintop_, tmp_, tmp_arap_, <br>
-                                       tmpub_calog_temp, tmp_gl_, tmp_po_, tmp_scmf, tmp_so_, tm_mqsend_success_, transf2pcm, t_ationid
+                                    + 增加排除表：tmpbd_, tmpin, tmpina, tmpinb, tmpinpk_, tmpins, tmpinsrc_, tmpintop_, tmp_, tmp_arap_, <br>
+                                    tmpub_calog_temp, tmp_gl_, tmp_po_, tmp_scmf, tmp_so_, tm_mqsend_success_, transf2pcm, t_ationid
                                 </div>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>NC Cloud 2021.05</b></td>
+                            <td><b><a href="/datadict/datadict-2105">NC Cloud 2021.05</a></b></td>
                             <td>2021-05-30</td>
                         </tr>
                         <tr>
@@ -136,42 +164,48 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>NC Cloud 2020.05</b></td>
+                            <td><b><a href="/datadict/datadict-2005">NC Cloud 2020.05</a></b></td>
                             <td>2020-05-30</td>
                         </tr>
                         <tr>
                             <td colspan=2>
                                 <div style="margin-left: 20px;">
                                     + 增加排除表：tb_fd_sht, tb_fd_sht, tb_tmp_, tb_tmp_tcheck, tb_tmp_tcheck_,tb_tt_, tb_tt_gh_budgetmodle, <br>
-                                        temp000, temppkts, temptable_, temp_, temp_bd_, temp_fa_, temp_ia_, temp_ic_, temp_pam_,temp_scacosts_, <br>
-                                            temp_scas, temq_, temq_
+                                    temp000, temppkts, temptable_, temp_, temp_bd_, temp_fa_, temp_ia_, temp_ic_, temp_pam_,temp_scacosts_, <br>
+                                    temp_scas, temq_, temq_
                                 </div>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>NC Cloud 1909</b></td>
+                            <td><b><a href="/datadict/datadict-1909">NC Cloud 1909</a></b></td>
                             <td>2019-09-30</td>
                         </tr>
                         <tr>
                             <td colspan=2>
                                 <div style="margin-left: 20px;">
                                     + 生成数据字典时排除了一些临时表，以下开头的表已排除：aqua_explain_, gltmp_verdtlbal, gl_tmp_table, <br>
-                                        hr_temptable, ic_temp_, iufo_measpub_,iufo_measure_data_, iufo_tmp_pub_, ntb_tmp_formual_, obsclass, <br>
-                                        pitemid, pkjkbx, sm_securitylog_, sm_securitylog_, ssccm_adjustlog_b_, ssccm_adjust_log_, szxmid, tb_cell_wbk, <br>
+                                    hr_temptable, ic_temp_, iufo_measpub_,iufo_measure_data_, iufo_tmp_pub_, ntb_tmp_formual_, obsclass, <br>
+                                    pitemid, pkjkbx, sm_securitylog_, sm_securitylog_, ssccm_adjustlog_b_, ssccm_adjust_log_, szxmid, tb_cell_wbk, <br>
                                 </div>
                             </td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>NC Cloud 1903</b></td>
+                            <td><b><a href="/datadict/datadict-1903">NC Cloud 1903</a></b></td>
                             <td>2019-03-31</td>
                         </tr>
                         <tr>
@@ -182,10 +216,12 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>NC Cloud 1811</b></td>
+                            <td><b><a href="/datadict/datadict-1811">NC Cloud 1811</a></b></td>
                             <td>2018-11-30</td>
                         </tr>
                         <tr>
@@ -196,10 +232,12 @@
                             </td>
                         </tr>
                         <tr>
-                            <td colspan=2><hr style="color: azure;"/></td>
+                            <td colspan=2>
+                                <hr style="color: azure;" />
+                            </td>
                         </tr>
                         <tr>
-                            <td><b>NC 65</b></td>
+                            <td><b><a href="/datadict/datadict-0065">NC 65</a></b></td>
                             <td>2015-12-30</td>
                         </tr>
                         <tr>
@@ -215,31 +253,31 @@
             <div id="dataDictArea" class="dataDictArea" style="display: none;">
                 <div id="classList" class="classList"></div>
                 <div id="dataDictContainer" style="width: 100%; height: calc(100% - 2em); overflow: auto;">
-	                <table id="dataDictTable" class="js-sort-table">
+                    <table id="dataDictTable" class="js-sort-table">
                         <thead style="position: sticky; top: 0;">
-	                        <tr>
-	                            <th width="1%" id="number" class="js-sort-number">序号</th>
-	                            <th width="10%" id="propCode">属性编码</th>
-	                            <th width="10%" id="PropName">属性名称</th>
-	                            <th width="10%" id="fieldCode">字段编码</th>
-	                            <th width="10%" id="fieldType">字段类型</th>
-	                            <th width="1%" id="notNull">是否必输</th>
-	                            <th width="20%" id="refType">引用模型</th>
-	                            <th width="15%" id="defaultValue">默认值</th>
-	                            <th width="15%" id="enumValue">取值范围/枚举</th>
-	                            <th id="help">标签/扩展表名</th>
-	                        </tr>
-	                    </thead>
-	                    <tbody id="dataDictTableBody">
-	                    </tbody>
-	                </table>
+                            <tr>
+                                <th width="1%" id="number" class="js-sort-number">序号</th>
+                                <th width="10%" id="propCode">属性编码</th>
+                                <th width="10%" id="PropName">属性名称</th>
+                                <th width="10%" id="fieldCode">字段编码</th>
+                                <th width="10%" id="fieldType">字段类型</th>
+                                <th width="1%" id="notNull">是否必输</th>
+                                <th width="20%" id="refType">引用模型</th>
+                                <th width="15%" id="defaultValue">默认值</th>
+                                <th width="15%" id="enumValue">取值范围/枚举</th>
+                                <th id="help">标签/扩展表名</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataDictTableBody">
+                        </tbody>
+                    </table>
+                </div>
             </div>
-        </div>
         </div>
 
         <div id="footer" class="footer">
             <a href="https://www.yonyou.com" target="_blank" rel="noopener noreferrer">&copy;用友网络科技股份有限公司</a>
-            <span>高级版产品部 @wpz {1}</span>
+            <span>高级版产品部 @wpz {2}</span>
         </div>
     </div>
 </body>
