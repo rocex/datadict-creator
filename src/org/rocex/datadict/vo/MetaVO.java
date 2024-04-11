@@ -4,6 +4,8 @@ import org.rocex.vo.SuperVO;
 
 import javax.persistence.Column;
 import javax.persistence.Id;
+import java.text.SimpleDateFormat;
+import java.util.Date;
 
 /***************************************************************************
  * <br>
@@ -13,14 +15,21 @@ import javax.persistence.Id;
 public class MetaVO extends SuperVO
 {
     private Integer iVersionType;
-
+    
     private String strDdcVersion;
     private String strDisplayName;
     private String strHelp;
     private String strId;
+    private String strModelType = ModelType.md.name();
     private String strName;
-    private String strTs;
-
+    private String strPath;
+    private String strTs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ").format(new Date());
+    
+    public enum ModelType
+    {
+        db, md
+    }
+    
     /***************************************************************************
      * @return the dDCVersion
      * @author Rocex Wang
@@ -31,17 +40,7 @@ public class MetaVO extends SuperVO
     {
         return strDdcVersion;
     }
-
-    /***************************************************************************
-     * @param dDCVersion the dDCVersion to set
-     * @author Rocex Wang
-     * @since 2022-08-01 01:42:04
-     ***************************************************************************/
-    public void setDdcVersion(String dDCVersion)
-    {
-        strDdcVersion = dDCVersion;
-    }
-
+    
     /***************************************************************************
      * @return the displayName
      * @author Rocex Wang
@@ -51,17 +50,7 @@ public class MetaVO extends SuperVO
     {
         return strDisplayName;
     }
-
-    /***************************************************************************
-     * @param displayName the displayName to set
-     * @author Rocex Wang
-     * @since 2020-4-21 13:45:48
-     ***************************************************************************/
-    public void setDisplayName(String displayName)
-    {
-        strDisplayName = displayName;
-    }
-
+    
     /***************************************************************************
      * @return the help
      * @author Rocex Wang
@@ -72,17 +61,7 @@ public class MetaVO extends SuperVO
     {
         return strHelp;
     }
-
-    /***************************************************************************
-     * @param help the help to set
-     * @author Rocex Wang
-     * @since 2022-08-02 02:08:30
-     ***************************************************************************/
-    public void setHelp(String help)
-    {
-        strHelp = help;
-    }
-
+    
     /***************************************************************************
      * @return the id
      * @author Rocex Wang
@@ -94,17 +73,13 @@ public class MetaVO extends SuperVO
     {
         return strId;
     }
-
-    /***************************************************************************
-     * @param id the id to set
-     * @author Rocex Wang
-     * @since 2020-4-21 13:45:33
-     ***************************************************************************/
-    public void setId(String id)
+    
+    @Column(length = 2)
+    public String getModelType()
     {
-        strId = id;
+        return strModelType;
     }
-
+    
     /***************************************************************************
      * @return the name
      * @author Rocex Wang
@@ -115,17 +90,13 @@ public class MetaVO extends SuperVO
     {
         return strName;
     }
-
-    /***************************************************************************
-     * @param name the name to set
-     * @author Rocex Wang
-     * @since 2020-4-21 13:45:34
-     ***************************************************************************/
-    public void setName(String name)
+    
+    @Column(insertable = false, updatable = false)
+    public String getPath()
     {
-        strName = name;
+        return strPath;
     }
-
+    
     /***************************************************************************
      * @return the ts
      * @author Rocex Wang
@@ -136,17 +107,7 @@ public class MetaVO extends SuperVO
     {
         return strTs;
     }
-
-    /***************************************************************************
-     * @param ts the ts to set
-     * @author Rocex Wang
-     * @since 2022-08-02 02:08:30
-     ***************************************************************************/
-    public void setTs(String ts)
-    {
-        strTs = ts;
-    }
-
+    
     /***************************************************************************
      * @return the versionType
      * @author Rocex Wang
@@ -156,7 +117,77 @@ public class MetaVO extends SuperVO
     {
         return iVersionType;
     }
-
+    
+    /***************************************************************************
+     * @param dDCVersion the dDCVersion to set
+     * @author Rocex Wang
+     * @since 2022-08-01 01:42:04
+     ***************************************************************************/
+    public void setDdcVersion(String dDCVersion)
+    {
+        strDdcVersion = dDCVersion;
+    }
+    
+    /***************************************************************************
+     * @param displayName the displayName to set
+     * @author Rocex Wang
+     * @since 2020-4-21 13:45:48
+     ***************************************************************************/
+    public void setDisplayName(String displayName)
+    {
+        strDisplayName = displayName;
+    }
+    
+    /***************************************************************************
+     * @param help the help to set
+     * @author Rocex Wang
+     * @since 2022-08-02 02:08:30
+     ***************************************************************************/
+    public void setHelp(String help)
+    {
+        strHelp = help;
+    }
+    
+    /***************************************************************************
+     * @param id the id to set
+     * @author Rocex Wang
+     * @since 2020-4-21 13:45:33
+     ***************************************************************************/
+    public void setId(String id)
+    {
+        strId = id;
+    }
+    
+    public void setModelType(String modelType)
+    {
+        strModelType = modelType;
+    }
+    
+    /***************************************************************************
+     * @param name the name to set
+     * @author Rocex Wang
+     * @since 2020-4-21 13:45:34
+     ***************************************************************************/
+    public void setName(String name)
+    {
+        strName = name;
+    }
+    
+    public void setPath(String path)
+    {
+        strPath = path;
+    }
+    
+    /***************************************************************************
+     * @param ts the ts to set
+     * @author Rocex Wang
+     * @since 2022-08-02 02:08:30
+     ***************************************************************************/
+    public void setTs(String ts)
+    {
+        strTs = ts;
+    }
+    
     /***************************************************************************
      * @param versionType the versionType to set
      * @author Rocex Wang

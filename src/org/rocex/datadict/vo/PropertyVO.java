@@ -9,10 +9,10 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @since 2020-4-21 13:44:18
  ***************************************************************************/
-@Table(name = "md_property", indexes = {@Index(name = "i_md_property_class_id", columnList = "class_id"),
-    @Index(name = "i_md_property_data_type_style", columnList = "data_type_style"),
-    @Index(name = "i_md_property_class_id_sequence", columnList = "class_id,attr_sequence"),
-    @Index(name = "i_md_property_ddc_version", columnList = "ddc_version")})
+@Table(name = "md_property", indexes = { @Index(name = "i_md_property_class_id", columnList = "class_id"),
+        @Index(name = "i_md_property_data_type_style", columnList = "data_type_style"),
+        @Index(name = "i_md_property_class_id_sequence", columnList = "class_id,attr_sequence"),
+        @Index(name = "i_md_property_ddc_version", columnList = "ddc_version") })
 public class PropertyVO extends MetaVO
 {
     private Boolean blAccessPower = false;
@@ -25,12 +25,12 @@ public class PropertyVO extends MetaVO
     private Boolean blNotSerialize = false;
     private Boolean blNullable = false;
     private Boolean blReadOnly = false;
-
+    
     private Integer iAttrLength;
     private Integer iAttrSequence;
     private Integer iDataTypeStyle;     // 999 - 数据库字段
     private Integer iPrecise;
-
+    
     private String strAccessorClassname;
     private String strAccessPowerGroup;
     private String strAttrMaxValue;
@@ -38,14 +38,14 @@ public class PropertyVO extends MetaVO
     private String strClassId;
     private String strDataScope;
     private String strDataType;
-    private String strDataTypeSql;
-    private String strDataTypeName;
     private String strDataTypeDisplayName;
+    private String strDataTypeName;
+    private String strDataTypeSql;
     private String strDefaultValue;
     private String strDynamicTable;
-    private String strOriginalId;
     private String strRefModelName;
-
+    private String strRemarks;
+    
     /***************************************************************************
      * @return the accessorClassname
      * @author Rocex Wang
@@ -55,17 +55,7 @@ public class PropertyVO extends MetaVO
     {
         return strAccessorClassname;
     }
-
-    /***************************************************************************
-     * @param accessorClassname the accessorClassname to set
-     * @author Rocex Wang
-     * @since 2021-11-16 04:05:17
-     ***************************************************************************/
-    public void setAccessorClassname(String accessorClassname)
-    {
-        strAccessorClassname = accessorClassname;
-    }
-
+    
     /***************************************************************************
      * @return the accessPowerGroup
      * @author Rocex Wang
@@ -76,17 +66,7 @@ public class PropertyVO extends MetaVO
     {
         return strAccessPowerGroup;
     }
-
-    /***************************************************************************
-     * @param accessPowerGroup the accessPowerGroup to set
-     * @author Rocex Wang
-     * @since 2021-11-16 04:05:17
-     ***************************************************************************/
-    public void setAccessPowerGroup(String accessPowerGroup)
-    {
-        strAccessPowerGroup = accessPowerGroup;
-    }
-
+    
     /***************************************************************************
      * @return the attrLength
      * @author Rocex Wang
@@ -96,17 +76,7 @@ public class PropertyVO extends MetaVO
     {
         return iAttrLength;
     }
-
-    /***************************************************************************
-     * @param attrLength the attrLength to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setAttrLength(Integer attrLength)
-    {
-        iAttrLength = attrLength;
-    }
-
+    
     /***************************************************************************
      * @return the attrMaxValue
      * @author Rocex Wang
@@ -117,17 +87,7 @@ public class PropertyVO extends MetaVO
     {
         return strAttrMaxValue;
     }
-
-    /***************************************************************************
-     * @param attrMaxValue the attrMaxValue to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setAttrMaxValue(String attrMaxValue)
-    {
-        strAttrMaxValue = attrMaxValue;
-    }
-
+    
     /***************************************************************************
      * @return the attrMinValue
      * @author Rocex Wang
@@ -138,17 +98,7 @@ public class PropertyVO extends MetaVO
     {
         return strAttrMinValue;
     }
-
-    /***************************************************************************
-     * @param attrMinValue the attrMinValue to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setAttrMinValue(String attrMinValue)
-    {
-        strAttrMinValue = attrMinValue;
-    }
-
+    
     /***************************************************************************
      * @return the attrSequence
      * @author Rocex Wang
@@ -158,17 +108,7 @@ public class PropertyVO extends MetaVO
     {
         return iAttrSequence;
     }
-
-    /***************************************************************************
-     * @param attrSequence the attrSequence to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setAttrSequence(Integer attrSequence)
-    {
-        iAttrSequence = attrSequence;
-    }
-
+    
     /***************************************************************************
      * @return the classId
      * @author Rocex Wang
@@ -179,17 +119,7 @@ public class PropertyVO extends MetaVO
     {
         return strClassId;
     }
-
-    /***************************************************************************
-     * @param classId the classId to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setClassId(String classId)
-    {
-        strClassId = classId;
-    }
-
+    
     /***************************************************************************
      * @return the dataScope
      * @author Rocex Wang
@@ -200,17 +130,7 @@ public class PropertyVO extends MetaVO
     {
         return strDataScope;
     }
-
-    /***************************************************************************
-     * @param dataScope the dataScope to set
-     * @author Rocex Wang
-     * @since 2021-10-15 03:04:16
-     ***************************************************************************/
-    public void setDataScope(String dataScope)
-    {
-        strDataScope = dataScope;
-    }
-
+    
     /***************************************************************************
      * @return the dataType
      * @author Rocex Wang
@@ -221,17 +141,19 @@ public class PropertyVO extends MetaVO
     {
         return strDataType;
     }
-
-    /***************************************************************************
-     * @param dataType the dataType to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setDataType(String dataType)
+    
+    @Column(insertable = false, updatable = false)
+    public String getDataTypeDisplayName()
     {
-        strDataType = dataType;
+        return strDataTypeDisplayName;
     }
-
+    
+    @Column(insertable = false, updatable = false)
+    public String getDataTypeName()
+    {
+        return strDataTypeName;
+    }
+    
     /***************************************************************************
      * @return the sqlDateType
      * @author Rocex Wang
@@ -242,17 +164,7 @@ public class PropertyVO extends MetaVO
     {
         return strDataTypeSql;
     }
-
-    /***************************************************************************
-     * @param sqlDateType the sqlDateType to set
-     * @author Rocex Wang
-     * @since 2020-4-23 11:36:08
-     ***************************************************************************/
-    public void setDataTypeSql(String sqlDateType)
-    {
-        strDataTypeSql = sqlDateType;
-    }
-
+    
     /***************************************************************************
      * @return the dataTypeStyle
      * @author Rocex Wang
@@ -262,17 +174,7 @@ public class PropertyVO extends MetaVO
     {
         return iDataTypeStyle;
     }
-
-    /***************************************************************************
-     * @param dataTypeStyle the dataTypeStyle to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setDataTypeStyle(Integer dataTypeStyle)
-    {
-        iDataTypeStyle = dataTypeStyle;
-    }
-
+    
     /***************************************************************************
      * @return the defaultValue
      * @author Rocex Wang
@@ -283,17 +185,7 @@ public class PropertyVO extends MetaVO
     {
         return strDefaultValue;
     }
-
-    /***************************************************************************
-     * @param defaultValue the defaultValue to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setDefaultValue(String defaultValue)
-    {
-        strDefaultValue = defaultValue;
-    }
-
+    
     /***************************************************************************
      * @return the dynamicTable
      * @author Rocex Wang
@@ -304,38 +196,14 @@ public class PropertyVO extends MetaVO
     {
         return strDynamicTable;
     }
-
-    /***************************************************************************
-     * @param dynamicTable the dynamicTable to set
-     * @author Rocex Wang
-     * @since 2021-11-16 04:05:17
-     ***************************************************************************/
-    public void setDynamicTable(String dynamicTable)
+    
+    @Override
+    @Column(insertable = false, updatable = false)
+    public String getModelType()
     {
-        strDynamicTable = dynamicTable;
+        return super.getModelType();
     }
-
-    /***************************************************************************
-     * @return the originalId
-     * @author Rocex Wang
-     * @since 2021-11-11 11:09:34
-     ***************************************************************************/
-    @Column(length = 50)
-    public String getOriginalId()
-    {
-        return strOriginalId;
-    }
-
-    /***************************************************************************
-     * @param originalId the originalId to set
-     * @author Rocex Wang
-     * @since 2021-11-11 11:09:34
-     ***************************************************************************/
-    public void setOriginalId(String originalId)
-    {
-        strOriginalId = originalId;
-    }
-
+    
     /***************************************************************************
      * @return the precise
      * @author Rocex Wang
@@ -345,17 +213,7 @@ public class PropertyVO extends MetaVO
     {
         return iPrecise;
     }
-
-    /***************************************************************************
-     * @param precise the precise to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setPrecise(Integer precise)
-    {
-        iPrecise = precise;
-    }
-
+    
     /***************************************************************************
      * @return the refModelName
      * @author Rocex Wang
@@ -366,17 +224,13 @@ public class PropertyVO extends MetaVO
     {
         return strRefModelName;
     }
-
-    /***************************************************************************
-     * @param refModelName the refModelName to set
-     * @author Rocex Wang
-     * @since 2020-4-22 15:00:08
-     ***************************************************************************/
-    public void setRefModelName(String refModelName)
+    
+    @Column(insertable = false, updatable = false)
+    public String getRemarks()
     {
-        strRefModelName = refModelName;
+        return strRemarks;
     }
-
+    
     /***************************************************************************
      * @return the accessPower
      * @author Rocex Wang
@@ -386,7 +240,7 @@ public class PropertyVO extends MetaVO
     {
         return blAccessPower;
     }
-
+    
     /***************************************************************************
      * @return the calculation
      * @author Rocex Wang
@@ -396,7 +250,7 @@ public class PropertyVO extends MetaVO
     {
         return blCalculation;
     }
-
+    
     /***************************************************************************
      * @return the customAttr
      * @author Rocex Wang
@@ -406,7 +260,7 @@ public class PropertyVO extends MetaVO
     {
         return blCustomAttr;
     }
-
+    
     /***************************************************************************
      * @return the dynamicAttr
      * @author Rocex Wang
@@ -416,7 +270,7 @@ public class PropertyVO extends MetaVO
     {
         return blDynamicAttr;
     }
-
+    
     /***************************************************************************
      * @return the fixedLength
      * @author Rocex Wang
@@ -426,7 +280,7 @@ public class PropertyVO extends MetaVO
     {
         return blFixedLength;
     }
-
+    
     /***************************************************************************
      * @return the hidden
      * @author Rocex Wang
@@ -436,7 +290,7 @@ public class PropertyVO extends MetaVO
     {
         return blHidden;
     }
-
+    
     /***************************************************************************
      * @return the keyProp
      * @author Rocex Wang
@@ -446,7 +300,7 @@ public class PropertyVO extends MetaVO
     {
         return blKeyProp;
     }
-
+    
     /***************************************************************************
      * @return the notSerialize
      * @author Rocex Wang
@@ -456,7 +310,7 @@ public class PropertyVO extends MetaVO
     {
         return blNotSerialize;
     }
-
+    
     /***************************************************************************
      * @return the nullable
      * @author Rocex Wang
@@ -466,7 +320,7 @@ public class PropertyVO extends MetaVO
     {
         return blNullable;
     }
-
+    
     /***************************************************************************
      * @return the readOnly
      * @author Rocex Wang
@@ -476,7 +330,17 @@ public class PropertyVO extends MetaVO
     {
         return blReadOnly;
     }
-
+    
+    /***************************************************************************
+     * @param accessorClassname the accessorClassname to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setAccessorClassname(String accessorClassname)
+    {
+        strAccessorClassname = accessorClassname;
+    }
+    
     /***************************************************************************
      * @param accessPower the accessPower to set
      * @author Rocex Wang
@@ -486,7 +350,57 @@ public class PropertyVO extends MetaVO
     {
         blAccessPower = accessPower;
     }
-
+    
+    /***************************************************************************
+     * @param accessPowerGroup the accessPowerGroup to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setAccessPowerGroup(String accessPowerGroup)
+    {
+        strAccessPowerGroup = accessPowerGroup;
+    }
+    
+    /***************************************************************************
+     * @param attrLength the attrLength to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setAttrLength(Integer attrLength)
+    {
+        iAttrLength = attrLength;
+    }
+    
+    /***************************************************************************
+     * @param attrMaxValue the attrMaxValue to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setAttrMaxValue(String attrMaxValue)
+    {
+        strAttrMaxValue = attrMaxValue;
+    }
+    
+    /***************************************************************************
+     * @param attrMinValue the attrMinValue to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setAttrMinValue(String attrMinValue)
+    {
+        strAttrMinValue = attrMinValue;
+    }
+    
+    /***************************************************************************
+     * @param attrSequence the attrSequence to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setAttrSequence(Integer attrSequence)
+    {
+        iAttrSequence = attrSequence;
+    }
+    
     /***************************************************************************
      * @param calculation the calculation to set
      * @author Rocex Wang
@@ -496,7 +410,17 @@ public class PropertyVO extends MetaVO
     {
         blCalculation = calculation;
     }
-
+    
+    /***************************************************************************
+     * @param classId the classId to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setClassId(String classId)
+    {
+        strClassId = classId;
+    }
+    
     /***************************************************************************
      * @param customAttr the customAttr to set
      * @author Rocex Wang
@@ -506,7 +430,67 @@ public class PropertyVO extends MetaVO
     {
         blCustomAttr = customAttr;
     }
-
+    
+    /***************************************************************************
+     * @param dataScope the dataScope to set
+     * @author Rocex Wang
+     * @since 2021-10-15 03:04:16
+     ***************************************************************************/
+    public void setDataScope(String dataScope)
+    {
+        strDataScope = dataScope;
+    }
+    
+    /***************************************************************************
+     * @param dataType the dataType to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setDataType(String dataType)
+    {
+        strDataType = dataType;
+    }
+    
+    public void setDataTypeDisplayName(String dataTypeDisplayName)
+    {
+        strDataTypeDisplayName = dataTypeDisplayName;
+    }
+    
+    public void setDataTypeName(String dataTypeName)
+    {
+        strDataTypeName = dataTypeName;
+    }
+    
+    /***************************************************************************
+     * @param sqlDateType the sqlDateType to set
+     * @author Rocex Wang
+     * @since 2020-4-23 11:36:08
+     ***************************************************************************/
+    public void setDataTypeSql(String sqlDateType)
+    {
+        strDataTypeSql = sqlDateType;
+    }
+    
+    /***************************************************************************
+     * @param dataTypeStyle the dataTypeStyle to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setDataTypeStyle(Integer dataTypeStyle)
+    {
+        iDataTypeStyle = dataTypeStyle;
+    }
+    
+    /***************************************************************************
+     * @param defaultValue the defaultValue to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setDefaultValue(String defaultValue)
+    {
+        strDefaultValue = defaultValue;
+    }
+    
     /***************************************************************************
      * @param dynamicAttr the dynamicAttr to set
      * @author Rocex Wang
@@ -516,7 +500,17 @@ public class PropertyVO extends MetaVO
     {
         blDynamicAttr = dynamicAttr;
     }
-
+    
+    /***************************************************************************
+     * @param dynamicTable the dynamicTable to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setDynamicTable(String dynamicTable)
+    {
+        strDynamicTable = dynamicTable;
+    }
+    
     /***************************************************************************
      * @param fixedLength the fixedLength to set
      * @author Rocex Wang
@@ -526,7 +520,7 @@ public class PropertyVO extends MetaVO
     {
         blFixedLength = fixedLength;
     }
-
+    
     /***************************************************************************
      * @param hidden the hidden to set
      * @author Rocex Wang
@@ -536,7 +530,7 @@ public class PropertyVO extends MetaVO
     {
         blHidden = hidden;
     }
-
+    
     /***************************************************************************
      * @param keyProp the keyProp to set
      * @author Rocex Wang
@@ -546,7 +540,7 @@ public class PropertyVO extends MetaVO
     {
         blKeyProp = keyProp;
     }
-
+    
     /***************************************************************************
      * @param notSerialize the notSerialize to set
      * @author Rocex Wang
@@ -556,7 +550,7 @@ public class PropertyVO extends MetaVO
     {
         blNotSerialize = notSerialize;
     }
-
+    
     /***************************************************************************
      * @param nullable the nullable to set
      * @author Rocex Wang
@@ -566,7 +560,17 @@ public class PropertyVO extends MetaVO
     {
         blNullable = nullable;
     }
-
+    
+    /***************************************************************************
+     * @param precise the precise to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setPrecise(Integer precise)
+    {
+        iPrecise = precise;
+    }
+    
     /***************************************************************************
      * @param readOnly the readOnly to set
      * @author Rocex Wang
@@ -576,26 +580,19 @@ public class PropertyVO extends MetaVO
     {
         blReadOnly = readOnly;
     }
-
-    @Column(insertable = false, updatable = false)
-    public String getDataTypeDisplayName()
+    
+    /***************************************************************************
+     * @param refModelName the refModelName to set
+     * @author Rocex Wang
+     * @since 2020-4-22 15:00:08
+     ***************************************************************************/
+    public void setRefModelName(String refModelName)
     {
-        return strDataTypeDisplayName;
+        strRefModelName = refModelName;
     }
-
-    public void setDataTypeDisplayName(String dataTypeDisplayName)
+    
+    public void setRemarks(String strRemarks)
     {
-        strDataTypeDisplayName = dataTypeDisplayName;
-    }
-
-    @Column(insertable = false, updatable = false)
-    public String getDataTypeName()
-    {
-        return strDataTypeName;
-    }
-
-    public void setDataTypeName(String dataTypeName)
-    {
-        strDataTypeName = dataTypeName;
+        this.strRemarks = strRemarks;
     }
 }

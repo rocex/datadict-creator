@@ -1,6 +1,8 @@
 # Compiled class file
 *.class
 /out/
+/dist/
+/front-*
 
 # Log file
 *.log
@@ -29,3 +31,4 @@ settings.properties
 
 .idea/
 *.iml
+.settings/

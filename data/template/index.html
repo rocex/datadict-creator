@@ -24,7 +24,7 @@
     <div id="container" style="height: calc(100% - 1px);">
         <div id="left" class="left">
             <div style="width:100%; align-self: center">
-                <input id="searchKey" style="width: 98%" placeholder="请输入搜索内容，快捷键英文反斜杆(\)" />
+                <input id="searchKey" style="width: 98%" placeholder="请至少输入3个字符进行搜索，快捷键英文反斜杆(\)获取焦点" />
             </div>
 
             <button style="position:fixed; margin-top:38px; margin-left:16%" onclick="setTreeData(dataDictIndexData);">&gt;&lt;</button>
@@ -35,11 +35,12 @@
             <div id="title" class="title">
                 <a href="/" class="home" style="color: lime; opacity: 0.9;">&lt;返回社区</a>
                 <span>
-                    <span id="classDisplayName" style="font-size: xx-large; font-weight: bold">YonBIP 高级版 数据字典</span>
+                    <span id="classDisplayName" style="font-size: xx-large; font-weight: bold">YonBIP 数据字典</span>
                     <span id="classDefaultTableName" style="font-size: large"></span>
                 </span>
                 <span id="rightVersion" class="rightVersion">
                     <select name="ddcVersion" id="ddcVersion">
+                        <option value="2312-bip">YonBIP V3.0 (R5_2312_1) 旗舰版</option>
                         <option value="2312">YonBIP V3.0 (R5_2312_1) 高级版</option>
                         <option value="2305">YonBIP V3.0 (R1_2207_1_sp20230530) 高级版</option>
                         <option value="2207">YonBIP V3.0 (R1_2207_1) 高级版</option>
@@ -64,7 +65,7 @@
 
                     <b>说明：</b><br>
 
-                    1、数据字典数据来源于已发布的元数据，元数据上的字段名、数据类型、长度、引用实体、枚举等等都是组成数据字典的必要数据；<br>
+                    1、数据字典数据来源于已发布的元数据，元数据上的字段名、数据类型、长度、引用实体、枚举等都是组成数据字典的必要数据；<br>
                     2、数据字典上没有体现出来的信息，首先应该检查下元数据上是否有对应的属性设置；<br>
                     3、数据字典页面左上角有时会出现多个实体链接，表明这是一个聚合实体，第一个实体是主实体，其它都是子实体，这里体现不出来孙实体；<br>
                     4、数据字典左侧树上模块下显示的是主实体，展开后显示的是子实体。<br>

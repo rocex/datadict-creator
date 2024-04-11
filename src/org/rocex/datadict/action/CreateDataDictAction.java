@@ -14,6 +14,7 @@ import org.rocex.db.processor.BeanListProcessor;
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.JacksonHelper;
 import org.rocex.utils.Logger;
+import org.rocex.utils.ResHelper;
 import org.rocex.utils.StringHelper;
 import org.rocex.vo.IAction;
 
@@ -31,7 +32,10 @@ import java.util.EventObject;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
+import java.util.Objects;
 import java.util.Properties;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
 
@@ -42,12 +46,12 @@ import java.util.stream.Collectors;
  ***************************************************************************/
 public class CreateDataDictAction implements IAction
 {
-    protected static int iIdLength = 8; // 主键长度
+    protected Boolean isBIP = true;
 
     protected Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();            // class id 和 class 的对应关系
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();    // component id 和 component 内所有 class 链接的对应关系
-    protected Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();        // component id 和 component 的对应关系
     protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();    // component id 和 主实体 id 的对应关系
+    protected Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();        // component id 和 component 的对应关系
     protected Map<String, String> mapEnumString = new HashMap<>();                   // enum id 和 enum name and value 的对应关系
     protected Map<String, String> mapId = new HashMap<>();                           // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();           // module id 和 module 的对应关系
@@ -65,8 +69,10 @@ public class CreateDataDictAction implements IAction
 
     protected String strOutputDictDir;      // 输出数据字典文件目录
     protected String strOutputRootDir;      // 输出文件根目录
-    protected String strTreeDataClassTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\"'}',";           // 左树实体 链接模板
-    protected String strTreeDataModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\",isDdcClass:false'}',";     // 左树模块 链接模板
+    protected String strPropertySQL;
+    protected String strTreeDataClassTemplate = "'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",path:\"{4}\"'}',";           // 左树实体 链接实体
+    protected String strTreeDataModuleTemplate = "'{'id:\"{0}\",name:\"{1} {2}\",isDdcClass:false,path:\"{4}\"'}',";     // 左树模块 链接模板
+
     protected String strVersion;            // 数据字典版本
 
     /***************************************************************************
@@ -78,6 +84,8 @@ public class CreateDataDictAction implements IAction
         super();
 
         this.strVersion = strVersion;
+
+        isBIP = Boolean.valueOf(Context.getInstance().getSetting(strVersion + ".isBIP", Context.getInstance().getSetting("isBIP")));
 
         strOutputRootDir = Context.getInstance().getSetting(strVersion + ".OutputDir");
         strOutputDictDir = Path.of(strOutputRootDir, "dict").toString();
@@ -95,6 +103,8 @@ public class CreateDataDictAction implements IAction
         dbProp.setProperty("jdbc.password", strTargetPassword);
 
         sqlExecutor = new SQLExecutor(dbProp);
+
+        strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? and ddc_version=? order by key_prop desc,attr_sequence";
 
         // 补齐正则表达式
         for (int i = 0; i < strCustomPatterns.length; i++)
@@ -127,7 +137,7 @@ public class CreateDataDictAction implements IAction
                 listClassVO2 = new ArrayList<>();
             }
 
-            if (classVO.getIsPrimary())
+            if (classVO.isPrimaryClass())
             {
                 listClassVO2.add(0, classVO);
 
@@ -200,6 +210,9 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected Map<String, ? extends MetaVO> buildMap(List<? extends MetaVO> listMetaVO)
     {
+        if (listMetaVO == null || listMetaVO.isEmpty())
+            return new HashMap<String, MetaVO>();
+
         Logger.getLogger().begin("build map: " + listMetaVO.get(0).getClass().getSimpleName());
 
         Map<String, MetaVO> mapMetaVO = listMetaVO.stream().collect(Collectors.toMap(MetaVO::getId, Function.identity(), (key1, key2) -> key2));
@@ -243,8 +256,6 @@ public class CreateDataDictAction implements IAction
             return;
         }
 
-        String strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? and ddc_version=? order by key_prop desc,attr_sequence";
-
         // 取实体所有属性
         SQLParameter para = new SQLParameter();
         para.addParam(classVO.getId());
@@ -261,17 +272,6 @@ public class CreateDataDictAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        createDataDictFile(classVO, listPropertyVO);
-    }
-
-    /***************************************************************************
-     * @param classVO
-     * @param listPropertyVO
-     * @author Rocex Wang
-     * @since 2020-5-13 15:27:35
-     ***************************************************************************/
-    protected void createDataDictFile(ClassVO classVO, List<PropertyVO> listPropertyVO)
-    {
         if (listPropertyVO == null || listPropertyVO.isEmpty())
         {
             return;
@@ -280,7 +280,6 @@ public class CreateDataDictAction implements IAction
         listPropertyVO = sortPropertyVO(classVO, listPropertyVO);
 
         classVO.setPropertyVO(listPropertyVO);
-
         classVO.setClassListUrl(getClassListUrl(classVO));
 
         for (int i = 0; i < listPropertyVO.size(); i++)
@@ -302,22 +301,51 @@ public class CreateDataDictAction implements IAction
                 propertyVO.setDataType(getMappedClassId(refClassVO));
                 propertyVO.setDataTypeDisplayName(refClassVO.getDisplayName());
             }
-
-            createDataDictFileRow(classVO, propertyVO, i);
         }
 
         writeDataDictFile(classVO);
     }
 
     /***************************************************************************
-     * @param classVO
-     * @param propertyVO
-     * @param iRowIndex
+     * 生成数据字典文件
+     * @param listClassVO
      * @author Rocex Wang
-     * @since 2021-10-25 10:43:57
+     * @since 2024-04-07 10:53:10
      ***************************************************************************/
-    protected void createDataDictFileRow(ClassVO classVO, PropertyVO propertyVO, int iRowIndex)
+    protected void createDataDictFiles(List<ClassVO> listClassVO)
     {
+        if (listClassVO == null || listClassVO.isEmpty())
+        {
+            return;
+        }
+
+        Logger.getLogger().begin("create data dict file: " + listClassVO.size());
+
+        int[] iCount = {0, listClassVO.size()};
+
+        // ExecutorService executorService = Executors.newFixedThreadPool(ResHelper.getThreadCount());
+        ExecutorService executorService = Executors.newFixedThreadPool(1);
+
+        listClassVO.forEach(classVO ->
+        {
+            executorService.execute(() ->
+            {
+                createDataDictFile(classVO);
+
+                Logger.getLogger().log2(Logger.iLoggerLevelDebug, ++iCount[0] + "/" + iCount[1]);
+            });
+        });
+
+        executorService.shutdown();
+
+        while (!executorService.isTerminated())
+        {
+            ResHelper.sleep(100);
+        }
+
+        Logger.getLogger().log2(Logger.iLoggerLevelDebug, (iCount[0]) + "/" + iCount[1] + "  done!\n");
+
+        Logger.getLogger().end("create data dict file: " + listClassVO.size());
     }
 
     /***************************************************************************
@@ -328,14 +356,16 @@ public class CreateDataDictAction implements IAction
      * @author Rocex Wang
      * @since 2020-4-29 11:21:07
      ***************************************************************************/
-    protected void createDataDictTree(List<ModuleVO> listModuleVO, List<ClassVO> listClassVO, List<ClassVO> listAllTableVO)
+    protected void createDataDictTree(List<ModuleVO> listModuleVO, List<ComponentVO> listComponentVO, List<ClassVO> listClassVO, List<ClassVO> listAllTableVO)
     {
         Logger.getLogger().begin("create data dict tree: " + (listClassVO.size() + listAllTableVO.size()));
 
         StringBuilder strModuleRows = new StringBuilder(); // 所有模块
+        StringBuilder strComponentRows = new StringBuilder(); // 所有组件
         StringBuilder strClassRows = new StringBuilder();  // 所有实体
 
-        List<String> listUsedClassModule = new ArrayList<>();// 只生成含有实体的Module
+        List<String> listClassUsedModule = new ArrayList<>();// 只生成含有实体的Module
+        List<String> listClassUsedComponent = new ArrayList<>();// 只生成含有实体的Component
 
         for (ClassVO classVO : listClassVO)
         {
@@ -350,12 +380,12 @@ public class CreateDataDictAction implements IAction
             String strClassname = classVO.getFullClassname();
             strClassname = strClassname.contains(".") ? strClassname.substring(strClassname.lastIndexOf(".") + 1) : strClassname;
 
-            if (classVO.getIsPrimary())
+            if (classVO.isPrimaryClass())
             {
                 boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
 
                 String strDdc = MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
-                                                     classVO.getDisplayName() + " " + strClassname, strUrl, "ddc");
+                    classVO.getDisplayName() + " " + strClassname, strUrl, "ddc");
 
                 if (blHasChildren)
                 {
@@ -374,64 +404,108 @@ public class CreateDataDictAction implements IAction
 
                 strClassRows.append(
                     MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), strPid, classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname,
-                                         strUrl, "ddc"));
+                        strUrl, "ddc"));
             }
 
             String strModuleId = getModuleId(classVO);
 
-            if (!listUsedClassModule.contains(strModuleId))
+            if (!listClassUsedModule.contains(strModuleId))
             {
-                listUsedClassModule.add(strModuleId);
+                listClassUsedModule.add(strModuleId);
             }
         }
 
         for (ModuleVO moduleVO : listModuleVO)
         {
-            if (!listUsedClassModule.contains(moduleVO.getId()))
+            if (!listClassUsedModule.contains(moduleVO.getId()))
             {
                 continue;
             }
 
             strModuleRows.append(MessageFormat.format(strTreeDataModuleTemplate, getMappedModuleId(moduleVO), moduleVO.getName(), moduleVO.getDisplayName()));
 
-            listUsedClassModule.remove(moduleVO.getId());
+            listClassUsedModule.remove(moduleVO.getId());
         }
+
+        listClassUsedModule.clear();
 
         // 所有表都按字母顺序挂在一个节点下，不再分级
         if (!listAllTableVO.isEmpty())
         {
-            strModuleRows.append(MessageFormat.format(strTreeDataModuleTemplate, "all", "all", "所有表"));
-
-            char[] chars = new char[26];
+            strModuleRows.append(MessageFormat.format(strTreeDataModuleTemplate, ModuleVO.strDBTablesRootId, "Tables", "数据库字典"));
 
             for (ClassVO classVO : listAllTableVO)
             {
                 String strUrl = getClassUrl(classVO);
 
+                ModuleVO moduleVO = getModuleVO(classVO);
+
                 String strTableName = classVO.getDefaultTableName().toLowerCase();
 
                 char char0 = strTableName.charAt(0);
 
-                chars[char0 - 'a'] = char0;
+                if (moduleVO == null)
+                {
+                    String string0 = String.valueOf((char0 >= 'a' && char0 <= 'z') ? (char0 - 'a') : '0');
+
+                    moduleVO = new ModuleVO();
+                    moduleVO.setId("char_" + string0);
+                    moduleVO.setName(string0);
+                    moduleVO.setParentModuleId(ModuleVO.strDBTablesRootId);
+                    moduleVO.setDisplayName((char0 >= 'a' && char0 <= 'z') ? (string0.toUpperCase() + " 开头") : "其它");
+                }
+
+                moduleVO.setPath(ModuleVO.strDBTablesRootId + "," + moduleVO.getId());
+
+                ComponentVO componentVO = (ComponentVO) mapComponentVO.get(classVO.getComponentId());
+                if (!listClassUsedComponent.contains(componentVO.getId()))
+                {
+                    listClassUsedComponent.add(componentVO.getId());
+                }
+
+                String strModuleId = moduleVO.getId();
+
+                if (!listClassUsedModule.contains(strModuleId))
+                {
+                    listClassUsedModule.add(strModuleId);
+                }
 
                 strClassRows.append(
-                    MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), "char_" + char0, strTableName, classVO.getDisplayName(), strUrl, "ddc"));
+                    MessageFormat.format(strTreeDataClassTemplate, classVO.getId(), classVO.getComponentId(), strTableName, Objects.toString(classVO.getDisplayName(), ""),
+                        ModuleVO.strDBTablesRootId + "," + moduleVO.getId() + "," + componentVO.getId() + "," + classVO.getId()));
             }
 
-            for (char charAt : chars)
+            for (ModuleVO moduleVO : listModuleVO)
             {
-                if (charAt == 0)
+                if (!listClassUsedModule.contains(moduleVO.getId()))
                 {
                     continue;
                 }
 
-                String strDisplay = new String(new char[]{charAt, charAt, charAt}).toUpperCase();
+                strModuleRows.append(
+                    MessageFormat.format("'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",isDdcClass:false,path:\"{4}\"'}',", moduleVO.getId(), moduleVO.getParentModuleId(),
+                        moduleVO.getName(), Objects.toString(moduleVO.getDisplayName(), ""), ModuleVO.strDBTablesRootId + "," + moduleVO.getId()));
 
-                strModuleRows.append(MessageFormat.format("'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\"'}',", "char_" + charAt, "all", strDisplay, strDisplay));
+                listClassUsedModule.remove(moduleVO.getId());
+            }
+
+            listClassUsedModule.clear();
+
+            for (ComponentVO componentVO : listComponentVO)
+            {
+                if (!listClassUsedComponent.contains(componentVO.getId()))
+                {
+                    continue;
+                }
+
+                strComponentRows.append(
+                    MessageFormat.format("'{'id:\"{0}\",pId:\"{1}\",name:\"{2} {3}\",isDdcClass:false,path:\"{4}\"'}',", componentVO.getId(), componentVO.getOwnModule(),
+                        componentVO.getName(), Objects.toString(componentVO.getDisplayName(), ""),
+                        ModuleVO.strDBTablesRootId + "," + componentVO.getOwnModule() + "," + componentVO.getId()));
             }
         }
 
-        FileHelper.writeFileThread(Path.of(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRows + strClassRows + "];");
+        FileHelper.writeFileThread(Path.of(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRows + strComponentRows + strClassRows + "];");
 
         Logger.getLogger().end("create data dict tree: " + (listClassVO.size() + listAllTableVO.size()));
     }
@@ -476,65 +550,40 @@ public class CreateDataDictAction implements IAction
         copyStaticHtmlFiles();
 
         String strVersionSQL = "ddc_version='" + strVersion + "'";
-        String strWhere = " and component_id in(select original_id from md_component where own_module='hrhi') and default_table_name<>'bd_defdoc2'";
-        strWhere = "";
 
-        String strModuleSQL = "select id,display_name,name,parent_module_id,ddc_version from md_module where " + strVersionSQL + " order by lower(name)";
-        String strComponentSQL = "select original_id as id,display_name,name,own_module,ddc_version from md_component where " + strVersionSQL;
-        String strClassSQL =
-            "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where " + strVersionSQL
-                + " and class_type<>999 " + strWhere + "order by is_primary desc,default_table_name";
-        String strClassSQL2 =
-            "select id,class_type,component_id,default_table_name,display_name,full_classname,help,is_primary,key_attribute,name,ddc_version from md_class where " + strVersionSQL
-                + " and class_type=999 order by default_table_name";
+        String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " and name in(select own_module from md_component where " + strVersionSQL +
+            " and id in(select component_id from md_class where " + strVersionSQL + " and component_id is not null)) order by lower(display_name)";
+        String strComponentSQL = sqlExecutor.getSQLSelect(ComponentVO.class) + " where " + strVersionSQL + " and id in(select component_id from md_class where " + strVersionSQL +
+            " and component_id is not null)";
+        String strClassSQL1 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL +
+            " and component_id is not null and class_type<>999 order by primary_class desc,default_table_name";
+        String strClassSQL2 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and class_type=999 order by default_table_name";
 
-        try
-        {
-            List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL, null, null);
-            List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL, null, null);
-            List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL, null, null);
+        List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL, null, null);
+        List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL, null, null);
+        List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL1, null, null);
 
-            mapModuleVO = buildMap(listModuleVO);
-            mapComponentVO = buildMap(listComponentVO);
-            mapClassVO = buildMap(listClassVO);
+        mapModuleVO = buildMap(listModuleVO);
+        mapComponentVO = buildMap(listComponentVO);
+        mapClassVO = buildMap(listClassVO);
 
-            buildEnumMap();
+        buildEnumMap();
 
-            buildClassVOMapByComponentId(listClassVO);
+        buildClassVOMapByComponentId(listClassVO);
 
-            List<ClassVO> listAllTableVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL2, null, null);
+        List<ClassVO> listAllTableVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL2, null, null);
 
-            createDataDictTree(listModuleVO, listClassVO, listAllTableVO);
+        createDataDictTree(listModuleVO, listComponentVO, listClassVO, listAllTableVO);
 
-            Logger.getLogger().begin("create data dict file: " + listClassVO.size());
+        createDataDictFiles(listClassVO);
+        createDataDictFiles(listAllTableVO);
 
-            for (ClassVO classVO : listClassVO)
-            {
-                createDataDictFile(classVO);
-            }
+        Logger.getLogger().begin("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
 
-            Logger.getLogger().end("create data dict file: " + listClassVO.size());
+        saveToDictJson(listClassVO);
+        saveToDictJson(listAllTableVO);
 
-            Logger.getLogger().begin("create db data dict file: " + listAllTableVO.size());
-
-            for (ClassVO classVO : listAllTableVO)
-            {
-                createDataDictFile(classVO);
-            }
-
-            Logger.getLogger().end("create db data dict file: " + listAllTableVO.size());
-
-            Logger.getLogger().begin("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
-
-            saveToDictJson(listClassVO);
-            saveToDictJson(listAllTableVO);
-
-            Logger.getLogger().end("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
+        Logger.getLogger().end("save data dict json file to db: " + (listClassVO.size() + listAllTableVO.size()));
     }
 
     /***************************************************************************
@@ -597,7 +646,7 @@ public class CreateDataDictAction implements IAction
 
             String strClassStyle = "";
 
-            if (currentClassVO.getId().equals(classVO.getId()) && classVO.getIsPrimary())
+            if (currentClassVO.getId().equals(classVO.getId()) && classVO.isPrimaryClass())
             {
                 strClassStyle = "classList-master-current";
             }
@@ -605,7 +654,7 @@ public class CreateDataDictAction implements IAction
             {
                 strClassStyle = "classList-current";
             }
-            else if (classVO.getIsPrimary())
+            else if (classVO.isPrimaryClass())
             {
                 strClassStyle = "classList-master";
             }
@@ -613,7 +662,7 @@ public class CreateDataDictAction implements IAction
             String strClassLink = MessageFormat.format(strClassListHrefTemplate, getClassUrl2(classVO), strClassStyle, classVO.getDisplayName());
 
             // 主实体放在首位
-            strClassLinks = classVO.getIsPrimary() ? strClassLink + " / " + strClassLinks : strClassLinks + " / " + strClassLink;
+            strClassLinks = classVO.isPrimaryClass() ? strClassLink + " / " + strClassLinks : strClassLinks + " / " + strClassLink;
         }
 
         strClassLinks = strClassLinks.trim().replace("/  /", "/");
@@ -661,15 +710,14 @@ public class CreateDataDictAction implements IAction
     {
         String strDataScope;
 
-        if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300 && mapEnumString.containsKey(
-            propertyVO.getDataType()))
+        if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300 &&
+            mapEnumString.containsKey(propertyVO.getDataType()))
         {
             strDataScope = mapEnumString.get(propertyVO.getDataType());
         }
         else
         {
-            strDataScope = "[" + (propertyVO.getAttrMinValue() == null ? "" : propertyVO.getAttrMinValue()) + " , " + (
-                propertyVO.getAttrMaxValue() == null ? "" : propertyVO.getAttrMaxValue()) + "]";
+            strDataScope = "[" + StringHelper.getIfEmpty(propertyVO.getAttrMinValue(), "") + " , " + StringHelper.getIfEmpty(propertyVO.getAttrMaxValue(), "") + "]";
 
             if ("[ , ]".equals(strDataScope))
             {
@@ -860,7 +908,6 @@ public class CreateDataDictAction implements IAction
             }
 
             DictJsonVO dictJsonVO = new DictJsonVO();
-            dictJsonVO.setTs(strCreateTime);
             dictJsonVO.setName(classVO.getName());
             dictJsonVO.setDdcVersion(strVersion);
             dictJsonVO.setClassId(classVO.getId());
@@ -914,13 +961,13 @@ public class CreateDataDictAction implements IAction
         List<PropertyVO> listCustomPropertyVO = new ArrayList<>(); // 自定义项列
         List<PropertyVO> listPropertyFinalVO = new ArrayList<>();  // dr、ts列
 
-        List<String> listPk = Arrays.asList(classVO.getKeyAttribute().split(";"));
+        List<String> listPk = Arrays.asList(StringHelper.isEmpty(classVO.getKeyAttribute()) ? new String[]{} : classVO.getKeyAttribute().split(";"));
 
         for (PropertyVO propertyVO : listPropertyVO)
         {
             String strPropKey = propertyVO.getName();
 
-            if (listPk.contains(propertyVO.getOriginalId()))
+            if (listPk.contains(strPropKey))
             {
                 propertyVO.setKeyProp(true);
                 listPkPropertyVO.add(propertyVO);
@@ -929,8 +976,8 @@ public class CreateDataDictAction implements IAction
             {
                 listCustomPropertyVO.add(propertyVO);
             }
-            else if ("dr".equalsIgnoreCase(strPropKey) || "ts".equalsIgnoreCase(strPropKey) || "creator".equalsIgnoreCase(strPropKey) || "creationtime".equalsIgnoreCase(strPropKey)
-                || "modifier".equalsIgnoreCase(strPropKey) || "modifiedtime".equalsIgnoreCase(strPropKey))
+            else if ("dr".equalsIgnoreCase(strPropKey) || "ts".equalsIgnoreCase(strPropKey) || "creator".equalsIgnoreCase(strPropKey) ||
+                "creationtime".equalsIgnoreCase(strPropKey) || "modifier".equalsIgnoreCase(strPropKey) || "modifiedtime".equalsIgnoreCase(strPropKey))
             {
                 listPropertyFinalVO.add(propertyVO);
             }
@@ -956,9 +1003,9 @@ public class CreateDataDictAction implements IAction
     {
         new JacksonHelper()
             .exclude(ClassVO.class, "accessorClassname", "bizItfImpClassname", "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute", "name", "refModelName",
-                     "returnType", "ts", "versionType")
+                "returnType", "ts", "versionType")
             .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence", "calculation", "classId", "customAttr", "ddcVersion",
-                     "dynamicAttr", "fixedLength", "hidden", "notSerialize", "id", "originalId", "precise", "readOnly", "refModelName", "ts", "versionType", "refClassPathHref")
+                "dynamicAttr", "fixedLength", "hidden", "notSerialize", "id", "precise", "readOnly", "refModelName", "ts", "versionType", "refClassPathHref")
             .serializeThread(classVO, getClassFilePath(classVO));
     }
 }

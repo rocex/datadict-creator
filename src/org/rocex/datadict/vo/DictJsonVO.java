@@ -9,13 +9,13 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @since 2020-4-23 13:35:11
  ***************************************************************************/
-@Table(name = "ddc_dict_json", indexes = {@Index(name = "i_ddc_dict_json_ddc_version", columnList = "ddc_version")})
+@Table(name = "ddc_dict_json", indexes = { @Index(name = "i_ddc_dict_json_ddc_version", columnList = "ddc_version") })
 public class DictJsonVO extends MetaVO
 {
     private String strClassId;
-
+    
     private Object strDictJson;
-
+    
     /***************************************************************************
      * @return the classId
      * @author Rocex Wang
@@ -26,17 +26,7 @@ public class DictJsonVO extends MetaVO
     {
         return strClassId;
     }
-
-    /***************************************************************************
-     * @param classId the classId to set
-     * @author Rocex Wang
-     * @since 2022-08-02 01:30:37
-     ***************************************************************************/
-    public void setClassId(String classId)
-    {
-        strClassId = classId;
-    }
-
+    
     /***************************************************************************
      * @return the dictJson
      * @author Rocex Wang
@@ -47,17 +37,7 @@ public class DictJsonVO extends MetaVO
     {
         return strDictJson;
     }
-
-    /***************************************************************************
-     * @param dictJson the dictJson to set
-     * @author Rocex Wang
-     * @since 2022-08-01 05:37:02
-     ***************************************************************************/
-    public void setDictJson(Object dictJson)
-    {
-        strDictJson = dictJson;
-    }
-
+    
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datadict.vo.MetaVO#getHelp()
@@ -70,7 +50,14 @@ public class DictJsonVO extends MetaVO
     {
         return super.getHelp();
     }
-
+    
+    @Override
+    @Column(insertable = false, updatable = false)
+    public String getModelType()
+    {
+        return super.getModelType();
+    }
+    
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datadict.vo.MetaVO#getVersionType()
@@ -82,5 +69,25 @@ public class DictJsonVO extends MetaVO
     public Integer getVersionType()
     {
         return super.getVersionType();
+    }
+    
+    /***************************************************************************
+     * @param classId the classId to set
+     * @author Rocex Wang
+     * @since 2022-08-02 01:30:37
+     ***************************************************************************/
+    public void setClassId(String classId)
+    {
+        strClassId = classId;
+    }
+    
+    /***************************************************************************
+     * @param dictJson the dictJson to set
+     * @author Rocex Wang
+     * @since 2022-08-01 05:37:02
+     ***************************************************************************/
+    public void setDictJson(Object dictJson)
+    {
+        strDictJson = dictJson;
     }
 }

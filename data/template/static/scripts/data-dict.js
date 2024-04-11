@@ -29,11 +29,11 @@ window.onload = function () {
 
     // 版本号切换
     let ddcVersionSelect = document.getElementById("ddcVersion");
-    ddcVersionSelect.addEventListener('change', function(evt) {
+    ddcVersionSelect.addEventListener("change", function (evt) {
         var value = this.value;
 
         // 跳转到对应的链接
-        window.open("/datadict/datadict-" + value + '/index.html');
+        window.open("/datadict/datadict-" + value + "/index.html");
 
         ddcVersionSelect.value = ddcVersion;
     });
@@ -66,8 +66,8 @@ function onClick(e, treeId, treeNode) {
     //if (treeNode.children !== undefined && treeNode.children.length > 0) {
     //    return;
     //}
-    if(treeNode.isDdcClass !== undefined && !treeNode.isDdcClass){
-	    return;
+    if (treeNode.isDdcClass !== undefined && !treeNode.isDdcClass) {
+        return;
     }
 
     loadDataDict(treeNode.id);
@@ -89,8 +89,8 @@ function loadDataDict(classId) {
                 return false;
             }
 
-            $("#classDisplayName").html(data.displayName);
-            $("#classDefaultTableName").html(" (" + data.defaultTableName + (data.fullClassname ? "/" + data.fullClassname : "") + ")");
+            $("#classDisplayName").html(data.displayName ? data.displayName : "");
+            $("#classDefaultTableName").html((data.displayName ? " (" : "") + data.defaultTableName + (data.fullClassname ? "/" + data.fullClassname : "") + (data.displayName ? ")" : ""));
             $("#classList").html(data.classListUrl ? data.classListUrl : "");
 
             let ddcBody = "";
@@ -98,15 +98,14 @@ function loadDataDict(classId) {
             let index = 1;
             data.propertyVO.forEach((propertyVO) => {
                 let trClass = propertyVO.keyProp ? "pk-row" : "";
-                let dataTypeShowName = propertyVO.dataTypeDisplayName +" (" + propertyVO.dataTypeName + ")";
+                let dataTypeShowName = propertyVO.dataTypeDisplayName && propertyVO.dataTypeName ? propertyVO.dataTypeDisplayName + " (" + propertyVO.dataTypeName + ")" : "";
 
                 let help = propertyVO.help;
                 let dynamicTable = propertyVO.dynamicTable;
 
                 help = help && dynamicTable ? help + "<br />" + dynamicTable : help ? help : dynamicTable ? dynamicTable : "";
 
-                if(propertyVO.dataTypeStyle == 305)
-                {
+                if (propertyVO.dataTypeStyle == 305) {
                     dataTypeShowName = `
                         <a href="javascript:void(0);" onclick="loadDataDict('${propertyVO.dataType}');">${propertyVO.dataTypeDisplayName}</a> &nbsp;
                         <a href="./index.html?dataType=${propertyVO.dataType}&keyword=${propertyVO.dataTypeDisplayName}" target="_blank" title="新窗口查看 (${propertyVO.dataTypeDisplayName}) 实体" class="blankLink"> (${propertyVO.dataTypeName})</a>`;
@@ -165,28 +164,36 @@ function throttle(fn, timer) {
 
 function setTreeData(data) {
     $.fn.zTree.init($("#dataDictTree"), setting, data);
+
+    if (data && data.length < 500) {
+        var zTree = $.fn.zTree.getZTreeObj("dataDictTree");
+
+        zTree.expandAll(true);
+    }
 }
 
 function filterData(searchVal, dictIndexData) {
     let childrenArr = [];
 
-    let searchData = dictIndexData.filter(function (item) {
+    dictIndexData.filter(function (item) {
         if (!item.pId) {
             item.open = true;
             return true;
         }
         if (!!item.name && item.name.toLowerCase().includes(searchVal)) {
-            if (!childrenArr.includes(item.pId)) childrenArr.push(item.pId);
+            // if (!childrenArr.includes(item.pId)) childrenArr.push(item.pId);
+            if (childrenArr.includes(item.pId)) {
+                childrenArr = [...childrenArr, item.id];
+            } else if (item.path) {
+                childrenArr = [...new Set([...childrenArr, ...item.path.split(",")])];
+            }
             return true;
         }
         return false;
     });
 
-    return searchData.filter(function (item) {
-        if (!item.pId && !childrenArr.includes(item.id)) {
-            return false;
-        }
-        return true;
+    return dictIndexData.filter(function (item) {
+        return childrenArr.includes(item.id);
     });
 }
 
@@ -194,6 +201,15 @@ function searchUse() {
     let searchKey = document.getElementById("searchKey");
 
     var searchDomVal = searchKey.value;
+
+    if (searchDomVal.length < 3) {
+        if (searchDomVal.length == 0) {
+            setTreeData(oldTreeData);
+            return;
+        }
+
+        return;
+    }
 
     if (!searchDomVal) {
         setTreeData(oldTreeData);
