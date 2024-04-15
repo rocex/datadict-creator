@@ -108,6 +108,17 @@ public class SyncDBSchemaAction implements IAction
 
     protected void adjustDataBip()
     {
+        String[] strSQLs = {"update md_class set default_table_name='' where (default_table_name is null or default_table_name in ('null','NULL'))",
+            "update md_class set display_name='' where (display_name is null or display_name in ('null','NULL'))"};
+
+        try
+        {
+            sqlExecutorTarget.executeUpdate(strSQLs);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
     }
 
     /***************************************************************************
@@ -721,7 +732,7 @@ public class SyncDBSchemaAction implements IAction
 
                 String strPropLowerName = propertyVO.getName().toLowerCase();
 
-                propertyVO.setDataTypeStyle(999);
+                propertyVO.setDataTypeStyle(ClassVO.ClassType.db.value());
                 propertyVO.setName(strPropLowerName);
                 propertyVO.setDdcVersion(strVersion);
                 propertyVO.setId(StringHelper.getId());
@@ -879,7 +890,7 @@ public class SyncDBSchemaAction implements IAction
 
             listNeedSyncTableName.add(strDefaultTableName);
 
-            classVO.setClassType(999);
+            classVO.setClassType(ClassVO.ClassType.db.value());
             classVO.setDdcVersion(strVersion);
             classVO.setId(StringHelper.getId());
             classVO.setComponentId(strComponentId);
@@ -917,8 +928,11 @@ public class SyncDBSchemaAction implements IAction
         return mapTableNameAndId;
     }
 
-    protected void syncMetaData(SQLExecutor sqlExecutorSource, String strModuleSQL, String strComponentSQL, String strClassSQL, String strPropertySQL, String strEnumValueSQL)
+    protected void syncMetaData(SQLExecutor sqlExecutorSource, String strModuleSQL, String strComponentSQL, String strClassSQL, String strPropertySQL, String strEnumAsClass,
+        String strEnumValueSQL)
     {
+        Logger.getLogger().begin("sync bip metadata");
+
         IAction pagingAction = evt ->
         {
             List<MetaVO> listVO = (List<MetaVO>) evt.getSource();
@@ -928,6 +942,11 @@ public class SyncDBSchemaAction implements IAction
                 if (metaVO.getId() == null)
                 {
                     metaVO.setId(StringHelper.getId());
+                }
+
+                if (metaVO.getDisplayName() != null)
+                {
+                    metaVO.setDisplayName(metaVO.getDisplayName().replace("\r\n", "").replace("\n", ""));
                 }
             }
 
@@ -940,14 +959,6 @@ public class SyncDBSchemaAction implements IAction
                 Logger.getLogger().error(ex.getMessage(), ex);
             }
         };
-
-        queryMetaVO(sqlExecutorSource, ModuleVO.class, strModuleSQL, null, pagingAction);
-        queryMetaVO(sqlExecutorSource, ComponentVO.class, strComponentSQL, null, pagingAction);
-        queryMetaVO(sqlExecutorSource, EnumValueVO.class, strEnumValueSQL, null, pagingAction);
-
-        List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(sqlExecutorSource, ClassVO.class, strClassSQL, null, pagingAction);
-
-        int iEnableLevel = Logger.getLogger().getEnableLevel();
 
         IAction pagingPropertyAction = evt ->
         {
@@ -969,55 +980,70 @@ public class SyncDBSchemaAction implements IAction
             }
         };
 
-        Logger.getLogger().begin("sync PropertyVO by class");
-        Logger.getLogger().setEnableLevel(Logger.iLoggerLevelError);
+        queryMetaVO(sqlExecutorSource, ModuleVO.class, strModuleSQL, null, pagingAction);
+        queryMetaVO(sqlExecutorSource, ComponentVO.class, strComponentSQL, null, pagingAction);
+        queryMetaVO(sqlExecutorSource, ClassVO.class, strClassSQL, null, pagingAction);
+        queryMetaVO(sqlExecutorSource, PropertyVO.class, strPropertySQL, null, pagingPropertyAction);
 
-        for (ClassVO classVO : listClassVO)
+        if (StringHelper.isNotEmpty(strEnumAsClass))
         {
-            SQLParameter param = new SQLParameter();
-            param.addParam(classVO.getDefaultTableName());
-            param.addParam(classVO.getId());
-
-            queryMetaVO(sqlExecutorSource, PropertyVO.class, strPropertySQL, param, pagingPropertyAction);
+            queryMetaVO(sqlExecutorSource, ClassVO.class, strEnumAsClass, null, pagingAction);
         }
 
-        Logger.getLogger().setEnableLevel(iEnableLevel);
+        queryMetaVO(sqlExecutorSource, EnumValueVO.class, strEnumValueSQL, null, pagingAction);
 
-        Logger.getLogger().end("sync PropertyVO by class");
+        Logger.getLogger().end("sync bip metadata");
     }
 
     protected void syncMetaDataBip()
     {
-        String strOtherSQL = "'" + strVersion + "' as ddc_version,'" + strTs + "' as ts";
+        String strOtherSQL1 = ",'" + strVersion + "' as ddc_version,'" + strTs + "' as ts";
+        String strOtherSQL2 = ",'" + ModelType.md.name() + "' as model_type" + strOtherSQL1;
 
-        String strModuleSQL = "select distinct id,name,displayname,parentmoduleid,help,versiontype," + strOtherSQL + " from md_module order by name";
+        String strModuleSQL =
+            "select distinct own_module as id,own_module as display_name,null as help,own_module as name,null as parent_module_id,null as version_type" + strOtherSQL2 +
+                " from md_meta_component where ytenant_id='0' and own_module is not null and own_module<>'' order by own_module";
 
-        String strComponentSQL =
-            "select id as original_id,name,displayname,ownmodule,namespace,help,isbizmodel as biz_model,version,versiontype," + strOtherSQL + " from md_component";
+        String strComponentSQL = "select id,null as biz_model,display_name,null as help,name,null as namespace,own_module,null as version,null as version_type" + strOtherSQL2 +
+            " from md_meta_component where ytenant_id='0' and own_module is not null and own_module<>'' order by own_module";
 
-        String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary,help" +
-            ",accessorclassname,bizitfimpclassname,refmodelname,returntype,isauthen,versiontype," + strOtherSQL + " from md_class order by defaulttablename";
+        String strClassSQL =
+            "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.clazz.value() + " as class_type,b.id as component_id" +
+                ",table_name as default_table_name,a.display_name,'' as full_classname,null as help,null as key_attribute,a.name,null as own_module,null as primary_class" +
+                ",null as ref_model_name,null as return_type,null as version_type" + strOtherSQL2 +
+                " from md_meta_class a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri" +
+                " where a.ytenant_id='0' and a.meta_component_uri is not null and a.uri in (select object_uri from md_attribute where ytenant_id='0') order by meta_component_uri";
 
-        String strEnumValueSQL =
-            "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherSQL + " from md_enumvalue order by id,enumsequence";
+        String strEnumAsClass = "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.enumeration.value() +
+            " as class_type,b.id as component_id,null as default_table_name" +
+            ",a.display_name,null as full_classname,null as help,null as key_attribute,null as model_type,a.name,null as own_module,null as primary_class" +
+            ",null as ref_model_name,null as return_type,null as version_type" + strOtherSQL2 +
+            " from md_enumeration a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri" +
+            " where a.ytenant_id='0' and a.uri in (select enumeration_uri from md_enumeration_literal where ytenant_id='0')";
 
-        String strPropertySQL = "select a.id original_id,a.name as name,a.displayname as displayname,attrlength,attrminvalue" +
-            ",attrmaxvalue,attrsequence,customattr,datatype,datatypestyle,a.defaultvalue as defaultvalue" +
-            ",a.nullable as nullable,a.precise as precise,refmodelname,classid,accesspowergroup,accessorclassname,dynamictable" +
-            ",a.help,accesspower,calculation,dynamicattr,a.fixedlength,a.hided as hidden,a.notserialize,a.readonly,b.sqldatetype data_type_sql" +
-            ",b.pkey key_prop,a.versiontype," + strOtherSQL +
-            " from md_property a left join md_column b on a.name=b.name and b.tableid=? where classid=? order by b.pkey desc,a.attrsequence";
+        String strPropertySQL =
+            "select a.id,null as accessor_classname,0 as access_power,0 as access_power_group,length as attr_length,max_value as attr_max_value,min_value as attr_min_value" +
+                ",0 as attr_sequence,0 as calculation,b.id as class_id,0 as custom_attr,biz_type as data_type,'' as data_type_sql,0 as data_type_style" +
+                ",default_value,a.display_name,0 as dynamic_attr,null as dynamic_table,0 as fixed_length,null as help,0 as hidden,0 as key_prop,a.name,0 as not_serialize" +
+                ",is_nullable as nullable,precise,0 as read_only,ref_meta_class_uri as ref_model_name,null as version_type" + strOtherSQL1 +
+                " from md_attribute a left join md_meta_class b on a.object_uri=b.uri and b.ytenant_id='0'" +
+                " where a.ytenant_id='0' and a.biz_type is not null and object_uri in(select uri from md_meta_class where ytenant_id='0')";
 
-        String strSourceUrl = Context.getInstance().getSetting(strVersion + ".jdbc.url");
-
-        Properties dbPropSource2 = (Properties) dbPropSource.clone();
-        dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", "iuap_metadata_base"));
+        String strEnumValueSQL = "select a.id,b.id as class_id,0 as enum_sequence,code as enum_value,a.name as name,0 as version_type" + strOtherSQL1 +
+            " from md_enumeration_literal a left join md_enumeration b on a.enumeration_uri=b.uri and b.ytenant_id='0'" + " where a.ytenant_id='0' order by enumeration_uri,code";
 
         // todo
+        Properties dbPropSource2 = (Properties) dbPropSource.clone();
+        dbPropSource2.setProperty("jdbc.url", "jdbc:mysql://172.20.36.73:3306/iuap_metadata_base");
+        dbPropSource2.setProperty("jdbc.user", "ro_all_db");
+        dbPropSource2.setProperty("jdbc.password", "RMgfkzz48R!t");
+
+        // String strSourceUrl = Context.getInstance().getSetting(strVersion + ".jdbc.url");
+        // dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", "iuap_metadata_base"));
 
         try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);)
         {
-            syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strClassSQL, strPropertySQL, strEnumValueSQL);
+            syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strClassSQL, strPropertySQL, strEnumAsClass, strEnumValueSQL);
         }
     }
 
@@ -1037,9 +1063,6 @@ public class SyncDBSchemaAction implements IAction
         String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary,help" +
             ",accessorclassname,bizitfimpclassname,refmodelname,returntype,isauthen,versiontype," + strOtherSQL + " from md_class order by defaulttablename";
 
-        String strEnumValueSQL =
-            "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherSQL + " from md_enumvalue order by id,enumsequence";
-
         String strPropertySQL = "select a.id original_id,a.name as name,a.displayname as displayname,attrlength,attrminvalue" +
             ",attrmaxvalue,attrsequence,customattr,datatype,datatypestyle,a.defaultvalue as defaultvalue" +
             ",a.nullable as nullable,a.precise as precise,refmodelname,classid,accesspowergroup,accessorclassname,dynamictable" +
@@ -1047,11 +1070,14 @@ public class SyncDBSchemaAction implements IAction
             ",b.pkey key_prop,a.versiontype," + strOtherSQL +
             " from md_property a left join md_column b on a.name=b.name and b.tableid=? where classid=? order by b.pkey desc,a.attrsequence";
 
+        String strEnumValueSQL =
+            "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherSQL + " from md_enumvalue order by id,enumsequence";
+
         Properties dbPropSource2 = (Properties) dbPropSource.clone();
 
         try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);)
         {
-            syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strClassSQL, strPropertySQL, strEnumValueSQL);
+            syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strClassSQL, strPropertySQL, null, strEnumValueSQL);
         }
     }
 }
