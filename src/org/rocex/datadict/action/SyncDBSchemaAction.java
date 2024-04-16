@@ -1,5 +1,23 @@
 package org.rocex.datadict.action;
 
+import java.io.File;
+import java.sql.Connection;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.text.SimpleDateFormat;
+import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Date;
+import java.util.EventObject;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
+import java.util.Properties;
+import java.util.Vector;
+import java.util.concurrent.ExecutorService;
+import java.util.concurrent.Executors;
+import java.util.regex.Pattern;
+
 import org.rocex.datadict.vo.ClassVO;
 import org.rocex.datadict.vo.ComponentVO;
 import org.rocex.datadict.vo.Context;
@@ -19,24 +37,6 @@ import org.rocex.utils.Logger;
 import org.rocex.utils.ResHelper;
 import org.rocex.utils.StringHelper;
 import org.rocex.vo.IAction;
-
-import java.io.File;
-import java.sql.Connection;
-import java.sql.ResultSet;
-import java.sql.SQLException;
-import java.text.SimpleDateFormat;
-import java.util.ArrayList;
-import java.util.Arrays;
-import java.util.Date;
-import java.util.EventObject;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
-import java.util.Properties;
-import java.util.Vector;
-import java.util.concurrent.ExecutorService;
-import java.util.concurrent.Executors;
-import java.util.regex.Pattern;
 
 /***************************************************************************
  * 同步其它NC数据库的元数据和表结构到sqlite数据库<br>
@@ -780,7 +780,7 @@ public class SyncDBSchemaAction implements IAction
 
         // 一次性查出所有表的字段
         try (Connection connection = sqlExecutorSource.getConnection();
-             ResultSet rsColumns = connection.getMetaData().getColumns(strDBCatalog, strDBSchema, null, null);)
+             ResultSet rsColumns = connection.getMetaData().getColumns(strDBCatalog, strDBSchema, null, null))
         {
             processor.setPagingAction(pagingFieldAction);
 
@@ -814,7 +814,7 @@ public class SyncDBSchemaAction implements IAction
                 dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", strSrcDBSchema));
 
                 try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);
-                     Connection connection = sqlExecutorSource.getConnection();)
+                     Connection connection = sqlExecutorSource.getConnection())
                 {
                     String strSrcDBCatalog = connection.getCatalog();
 
@@ -917,7 +917,7 @@ public class SyncDBSchemaAction implements IAction
         }, "DefaultTableName", "ClassListUrl", "Remarks");
 
         try (Connection connection = sqlExecutorSource.getConnection();
-             ResultSet rsTable = connection.getMetaData().getTables(strDBCatalog, strDBSchema, "%", new String[]{"TABLE"});)
+             ResultSet rsTable = connection.getMetaData().getTables(strDBCatalog, strDBSchema, "%", new String[]{"TABLE"}))
         {
             processor.setPagingAction(pagingAction);
             processor.doAction(rsTable);
@@ -1041,7 +1041,7 @@ public class SyncDBSchemaAction implements IAction
         // String strSourceUrl = Context.getInstance().getSetting(strVersion + ".jdbc.url");
         // dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", "iuap_metadata_base"));
 
-        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);)
+        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2))
         {
             syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strClassSQL, strPropertySQL, strEnumAsClass, strEnumValueSQL);
         }
@@ -1075,7 +1075,7 @@ public class SyncDBSchemaAction implements IAction
 
         Properties dbPropSource2 = (Properties) dbPropSource.clone();
 
-        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);)
+        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2))
         {
             syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strClassSQL, strPropertySQL, null, strEnumValueSQL);
         }

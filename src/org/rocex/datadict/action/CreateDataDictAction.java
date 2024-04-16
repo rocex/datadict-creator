@@ -1,23 +1,5 @@
 package org.rocex.datadict.action;
 
-import org.rocex.datadict.vo.ClassVO;
-import org.rocex.datadict.vo.ComponentVO;
-import org.rocex.datadict.vo.Context;
-import org.rocex.datadict.vo.DictJsonVO;
-import org.rocex.datadict.vo.EnumValueVO;
-import org.rocex.datadict.vo.MetaVO;
-import org.rocex.datadict.vo.ModuleVO;
-import org.rocex.datadict.vo.PropertyVO;
-import org.rocex.db.SQLExecutor;
-import org.rocex.db.param.SQLParameter;
-import org.rocex.db.processor.BeanListProcessor;
-import org.rocex.utils.FileHelper;
-import org.rocex.utils.JacksonHelper;
-import org.rocex.utils.Logger;
-import org.rocex.utils.ResHelper;
-import org.rocex.utils.StringHelper;
-import org.rocex.vo.IAction;
-
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -38,6 +20,24 @@ import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
 import java.util.stream.Collectors;
+
+import org.rocex.datadict.vo.ClassVO;
+import org.rocex.datadict.vo.ComponentVO;
+import org.rocex.datadict.vo.Context;
+import org.rocex.datadict.vo.DictJsonVO;
+import org.rocex.datadict.vo.EnumValueVO;
+import org.rocex.datadict.vo.MetaVO;
+import org.rocex.datadict.vo.ModuleVO;
+import org.rocex.datadict.vo.PropertyVO;
+import org.rocex.db.SQLExecutor;
+import org.rocex.db.param.SQLParameter;
+import org.rocex.db.processor.BeanListProcessor;
+import org.rocex.utils.FileHelper;
+import org.rocex.utils.JacksonHelper;
+import org.rocex.utils.Logger;
+import org.rocex.utils.ResHelper;
+import org.rocex.utils.StringHelper;
+import org.rocex.vo.IAction;
 
 /***************************************************************************
  * 生成数据字典类，支持json和html格式，默认json格式<br>
@@ -212,7 +212,7 @@ public class CreateDataDictAction implements IAction
     {
         if (listMetaVO == null || listMetaVO.isEmpty())
         {
-            return new HashMap<String, MetaVO>();
+            return new HashMap<>();
         }
 
         Logger.getLogger().begin("build map: " + listMetaVO.get(0).getClass().getSimpleName());
