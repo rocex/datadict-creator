@@ -7,9 +7,13 @@ import org.rocex.utils.FileHelper;
 
 public class Context
 {
+    public static Properties settings;
     private static Context context;
 
-    public static Properties settings;
+    private Context()
+    {
+        settings = FileHelper.load("data" + File.separator + "settings.properties");
+    }
 
     public static Context getInstance()
     {
@@ -19,11 +23,6 @@ public class Context
         }
 
         return context;
-    }
-
-    private Context()
-    {
-        settings = FileHelper.load("data" + File.separator + "settings.properties");
     }
 
     public String getSetting(String strKey)
@@ -40,11 +39,11 @@ public class Context
     {
         return getSetting(strVersion + "." + strKey, getSetting(strKey));
     }
-    
-    // public String getVersionSetting(String strVersion, String strKey, String strDefaultValue)
-    // {
-    // return getSetting(strVersion + "." + strKey, getSetting(strKey, strDefaultValue));
-    // }
+
+    public String getVersionSetting(String strVersion, String strKey, String strDefaultValue)
+    {
+        return getSetting(strVersion + "." + strKey, getSetting(strKey, strDefaultValue));
+    }
 
     public void setSetting(String strKey, String strValue)
     {

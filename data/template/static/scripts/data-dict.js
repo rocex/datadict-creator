@@ -112,7 +112,7 @@ function loadDataDict(classId) {
                 }
 
                 ddcBody += `<tr class="${trClass}">
-                        <td>${index++}</td>
+                        <td style="text-align: right;">${index++}</td>
                         <td>${propertyVO.name}</td>
                         <td>${propertyVO.displayName}</td>
                         <td>${propertyVO.name}</td>

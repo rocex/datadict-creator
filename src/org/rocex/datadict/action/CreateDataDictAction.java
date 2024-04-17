@@ -46,14 +46,13 @@ import org.rocex.vo.IAction;
  ***************************************************************************/
 public class CreateDataDictAction implements IAction
 {
-    protected Boolean isBIP = true;
+    protected Boolean isBIP;
 
     protected Map<String, ? extends MetaVO> mapClassVO = new HashMap<>();            // class id 和 class 的对应关系
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();    // component id 和 component 内所有 class 链接的对应关系
     protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();    // component id 和 主实体 id 的对应关系
     protected Map<String, ? extends MetaVO> mapComponentVO = new HashMap<>();        // component id 和 component 的对应关系
     protected Map<String, String> mapEnumString = new HashMap<>();                   // enum id 和 enum name and value 的对应关系
-    protected Map<String, String> mapId = new HashMap<>();                           // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, ? extends MetaVO> mapModuleVO = new HashMap<>();           // module id 和 module 的对应关系
 
     protected SQLExecutor sqlExecutor;
@@ -85,7 +84,7 @@ public class CreateDataDictAction implements IAction
 
         this.strVersion = strVersion;
 
-        isBIP = Boolean.valueOf(Context.getInstance().getVersionSetting(strVersion, "isBIP"));
+        isBIP = Boolean.valueOf(Context.getInstance().getVersionSetting(strVersion, "isBIP", "true"));
 
         strOutputRootDir = Context.getInstance().getVersionSetting(strVersion, "OutputDir");
         strOutputDictDir = Path.of(strOutputRootDir, "dict").toString();
@@ -298,7 +297,7 @@ public class CreateDataDictAction implements IAction
             if (refClassVO != null)
             {
                 propertyVO.setDataTypeName(refClassVO.getName());
-                propertyVO.setDataType(getMappedClassId(refClassVO));
+                propertyVO.setDataType(refClassVO.getId());
                 propertyVO.setDataTypeDisplayName(refClassVO.getDisplayName());
             }
         }
@@ -376,7 +375,6 @@ public class CreateDataDictAction implements IAction
 
             ModuleVO moduleVO = getModuleVO(classVO);
 
-            String strUrl = getClassUrl(classVO);
             String strClassname = classVO.getFullClassname();
             strClassname = strClassname.contains(".") ? strClassname.substring(strClassname.lastIndexOf(".") + 1) : strClassname;
 
@@ -384,8 +382,8 @@ public class CreateDataDictAction implements IAction
             {
                 boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
 
-                String strDdc = MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), getMappedModuleId(moduleVO), classVO.getDefaultTableName(),
-                    classVO.getDisplayName() + " " + strClassname, strUrl, "ddc");
+                String strDdc = MessageFormat.format(strTreeDataClassTemplate, classVO.getId(), moduleVO.getId(), classVO.getDefaultTableName(),
+                    classVO.getDisplayName() + " " + strClassname, classVO.getId(), "ddc");
 
                 if (blHasChildren)
                 {
@@ -400,11 +398,11 @@ public class CreateDataDictAction implements IAction
             {
                 String strPrimaryClassId = mapComponentIdPrimaryClassId.get(classVO.getComponentId());
                 ClassVO primaryClassVO = strPrimaryClassId == null ? null : (ClassVO) mapClassVO.get(strPrimaryClassId);
-                String strPid = primaryClassVO == null ? getMappedModuleId(moduleVO) : getMappedClassId(primaryClassVO);
+                String strPid = primaryClassVO == null ? moduleVO.getId() : primaryClassVO.getId();
 
                 strClassRows.append(
-                    MessageFormat.format(strTreeDataClassTemplate, getMappedClassId(classVO), strPid, classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname,
-                        strUrl, "ddc"));
+                    MessageFormat.format(strTreeDataClassTemplate, classVO.getId(), strPid, classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname,
+                        classVO.getId(), "ddc"));
             }
 
             String strModuleId = getModuleId(classVO);
@@ -422,7 +420,7 @@ public class CreateDataDictAction implements IAction
                 continue;
             }
 
-            strModuleRows.append(MessageFormat.format(strTreeDataModuleTemplate, getMappedModuleId(moduleVO), moduleVO.getName(), moduleVO.getDisplayName()));
+            strModuleRows.append(MessageFormat.format(strTreeDataModuleTemplate, moduleVO.getId(), moduleVO.getName(), moduleVO.getDisplayName()));
 
             listClassUsedModule.remove(moduleVO.getId());
         }
@@ -549,8 +547,8 @@ public class CreateDataDictAction implements IAction
 
         String strVersionSQL = "ddc_version='" + strVersion + "'";
 
-        String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " and name in(select own_module from md_component where " + strVersionSQL +
-            " and id in(select component_id from md_class where " + strVersionSQL + " and component_id is not null)) order by lower(display_name)";
+        String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL;// + " and name in(select own_module from md_component where " + strVersionSQL +
+        // " and id in(select component_id from md_class where " + strVersionSQL + " and component_id is not null)) order by lower(display_name)";
         String strComponentSQL = sqlExecutor.getSQLSelect(ComponentVO.class) + " where " + strVersionSQL + " and id in(select component_id from md_class where " + strVersionSQL +
             " and component_id is not null)";
         String strClassSQL1 =
@@ -617,7 +615,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected Path getClassFilePath(ClassVO classVO)
     {
-        return Path.of(strOutputDictDir, getMappedClassId(classVO) + ".json");
+        return Path.of(strOutputDictDir, classVO.getId() + ".json");
     }
 
     /***************************************************************************
@@ -659,7 +657,7 @@ public class CreateDataDictAction implements IAction
                 strClassStyle = "classList-master";
             }
 
-            String strClassLink = MessageFormat.format(strClassListHrefTemplate, getClassUrl2(classVO), strClassStyle, classVO.getDisplayName());
+            String strClassLink = MessageFormat.format(strClassListHrefTemplate, classVO.getId(), strClassStyle, classVO.getDisplayName());
 
             // 主实体放在首位
             strClassLinks = classVO.isPrimaryClass() ? strClassLink + " / " + strClassLinks : strClassLinks + " / " + strClassLink;
@@ -673,30 +671,6 @@ public class CreateDataDictAction implements IAction
         }
 
         return strClassLinks;
-    }
-
-    /***************************************************************************
-     * 实体的访问url，相对于根目录
-     * @param classVO
-     * @return String
-     * @author Rocex Wang
-     * @since 2020-5-2 14:26:12
-     ***************************************************************************/
-    protected String getClassUrl(ClassVO classVO)
-    {
-        return getMappedClassId(classVO);
-    }
-
-    /***************************************************************************
-     * 实体的访问url，相对于当前目录
-     * @param classVO
-     * @return String
-     * @author Rocex Wang
-     * @since 2020-5-2 14:30:53
-     ***************************************************************************/
-    protected String getClassUrl2(ClassVO classVO)
-    {
-        return getMappedClassId(classVO);
     }
 
     /***************************************************************************
@@ -726,51 +700,6 @@ public class CreateDataDictAction implements IAction
         }
 
         return strDataScope;
-    }
-
-    /***************************************************************************
-     * @param classVO
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:47:11
-     ***************************************************************************/
-    protected synchronized String getMappedClassId(ClassVO classVO)
-    {
-        return getMappedId("class_", classVO.getId());
-    }
-
-    /***************************************************************************
-     * @param strType
-     * @param strId
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:47:06
-     ***************************************************************************/
-    protected synchronized String getMappedId(String strType, String strId)
-    {
-        String strKey = strType + strId;
-
-        if (mapId.containsKey(strKey))
-        {
-            return mapId.get(strKey);
-        }
-
-        String strMapId = StringHelper.getId();
-
-        mapId.put(strKey, strMapId);
-
-        return strMapId;
-    }
-
-    /***************************************************************************
-     * @param moduleVO
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:46:54
-     ***************************************************************************/
-    protected synchronized String getMappedModuleId(ModuleVO moduleVO)
-    {
-        return getMappedId("module_", moduleVO.getId());
     }
 
     /***************************************************************************
@@ -912,7 +841,7 @@ public class CreateDataDictAction implements IAction
             dictJsonVO.setDdcVersion(strVersion);
             dictJsonVO.setClassId(classVO.getId());
             dictJsonVO.setDictJson(objReadAllBytes);
-            dictJsonVO.setId(getMappedClassId(classVO));
+            dictJsonVO.setId(classVO.getId());
             dictJsonVO.setDisplayName(classVO.getDisplayName());
 
             listDictJsonVO.add(dictJsonVO);

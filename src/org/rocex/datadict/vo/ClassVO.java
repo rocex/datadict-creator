@@ -1,9 +1,10 @@
 package org.rocex.datadict.vo;
 
+import java.util.List;
+
 import javax.persistence.Column;
 import javax.persistence.Index;
 import javax.persistence.Table;
-import java.util.List;
 
 /***************************************************************************
  * <br>
@@ -33,6 +34,23 @@ public class ClassVO extends MetaVO
     private String strRefModelName;
     private String strRemarks;
     private String strReturnType;
+
+    public enum ClassType
+    {
+        clazz(201), enumeration(203), intface(206), db(999);
+
+        private int iClassType;
+
+        private ClassType(int iClassType)
+        {
+            this.iClassType = iClassType;
+        }
+
+        public int value()
+        {
+            return iClassType;
+        }
+    }
 
     /***************************************************************************
      * @return the accessorClassname
@@ -320,22 +338,5 @@ public class ClassVO extends MetaVO
     public void setPrimaryClass(Boolean isPrimaryClass)
     {
         blPrimaryClass = isPrimaryClass;
-    }
-
-    public enum ClassType
-    {
-        clazz(201), enumeration(203), db(999);
-
-        private int iClassType;
-
-        private ClassType(int iClassType)
-        {
-            this.iClassType = iClassType;
-        }
-
-        public int value()
-        {
-            return iClassType;
-        }
     }
 }
