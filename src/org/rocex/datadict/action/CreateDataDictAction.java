@@ -389,7 +389,7 @@ public class CreateDataDictAction implements IAction
 
             if (moduleVO == null)
             {
-                Logger.getLogger().debug("class not have module:" + classVO);
+                Logger.getLogger().debug("Unable to find the module to which the class belongs:" + classVO);
                 continue;
             }
 
@@ -457,7 +457,7 @@ public class CreateDataDictAction implements IAction
 
                 if (moduleVO == null)
                 {
-                    Logger.getLogger().debug("class not have module:" + classVO);
+                    Logger.getLogger().debug("Unable to find the module to which the class belongs:" + classVO);
                     continue;
                 }
 
@@ -563,6 +563,8 @@ public class CreateDataDictAction implements IAction
     @Override
     public void doAction(EventObject evt)
     {
+        Logger.getLogger().begin("create data dictionary " + strVersion);
+
         emptyTargetDir();
 
         createIndexHtmlFile();
@@ -602,6 +604,8 @@ public class CreateDataDictAction implements IAction
         saveToDictJson(listTableVO);
 
         Logger.getLogger().end("save data dict json file to db: " + (listClassVO.size() + listTableVO.size()));
+
+        Logger.getLogger().end("create data dictionary " + strVersion);
     }
 
     /***************************************************************************
@@ -711,7 +715,7 @@ public class CreateDataDictAction implements IAction
         }
         else
         {
-            strDataScope = "[" + StringHelper.getIfEmpty(propertyVO.getAttrMinValue(), "") + " , " + StringHelper.getIfEmpty(propertyVO.getAttrMaxValue(), "") + "]";
+            strDataScope = "[%s , %s]".formatted(StringHelper.getIfEmpty(propertyVO.getAttrMinValue(), ""), StringHelper.getIfEmpty(propertyVO.getAttrMaxValue(), ""));
 
             if ("[ , ]".equals(strDataScope))
             {

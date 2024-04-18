@@ -45,11 +45,9 @@ public class DataDictCreator
 
             new SyncDBSchemaAction(strVersion).doAction(null);
 
-            Logger.getLogger().begin("create data dictionary " + strDataDictVersion);
+            System.gc();
 
             new CreateDataDictAction(strVersion).doAction(null);
-
-            Logger.getLogger().end("create data dictionary " + strDataDictVersion);
 
             Logger.getLogger().debug("\n");
         }
