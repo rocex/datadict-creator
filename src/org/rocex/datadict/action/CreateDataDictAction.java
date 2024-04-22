@@ -689,6 +689,11 @@ public class CreateDataDictAction implements IAction
 
         strClassLinks = strClassLinks.trim().replace("/  /", "/");
 
+        if (strClassLinks.startsWith("/"))
+        {
+            strClassLinks = strClassLinks.substring(1);
+        }
+
         if (strClassLinks.endsWith("/"))
         {
             strClassLinks = strClassLinks.substring(0, strClassLinks.length() - 1);
