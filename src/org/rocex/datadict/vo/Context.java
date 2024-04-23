@@ -1,17 +1,23 @@
 package org.rocex.datadict.vo;
 
 import java.io.File;
+import java.util.HashMap;
+import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.rocex.utils.FileHelper;
 
 public class Context
 {
-    public static Properties settings;
+    private static Properties settings;
     private static Context context;
+    private static Map<String, PropertyVO> mapTableNamePropertyVO;
 
     private Context()
     {
+        mapTableNamePropertyVO = new HashMap<>();
+
         settings = FileHelper.load("data" + File.separator + "settings.properties");
     }
 
@@ -43,6 +49,24 @@ public class Context
     public String getVersionSetting(String strVersion, String strKey, String strDefaultValue)
     {
         return getSetting(strVersion + "." + strKey, getSetting(strKey, strDefaultValue));
+    }
+
+    public PropertyVO getTableNamePropertyVO(String strTableName, String strColumnCode)
+    {
+        return mapTableNamePropertyVO.get(strTableName + "." + strColumnCode);
+    }
+
+    public void setTableNamePropertyVO(List<PropertyVO> listPropertyVO)
+    {
+        if (listPropertyVO == null || listPropertyVO.isEmpty())
+        {
+            return;
+        }
+
+        for (PropertyVO propertyVO : listPropertyVO)
+        {
+            mapTableNamePropertyVO.put(propertyVO.getTableName() + "." + propertyVO.getName(), propertyVO);
+        }
     }
 
     public void setSetting(String strKey, String strValue)

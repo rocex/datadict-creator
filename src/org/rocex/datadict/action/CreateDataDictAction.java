@@ -153,6 +153,28 @@ public class CreateDataDictAction implements IAction
             mapClassVOByComponent.put(classVO.getComponentId(), listClassVO2);
         }
 
+        // bip 还不知道怎么得到主实体，先处理成在没有主实体的情况下把第一个设置成主实体
+        if (isBIP)
+        {
+            for (Map.Entry<String, List<ClassVO>> listEntry : mapClassVOByComponent.entrySet())
+            {
+                String strKey = listEntry.getKey();
+                List<ClassVO> listClassVO2 = listEntry.getValue();
+                if (listClassVO2 == null || listClassVO2.isEmpty())
+                {
+                    continue;
+                }
+
+                boolean blHasPrimaryClass = listClassVO2.stream().anyMatch(ClassVO::isPrimaryClass);
+
+                if (!blHasPrimaryClass)
+                {
+                    listClassVO2.get(0).setPrimaryClass(true);
+                    mapComponentIdPrimaryClassId.put(listClassVO2.get(0).getComponentId(), listClassVO2.get(0).getId());
+                }
+            }
+        }
+
         Logger.getLogger().end("build ClassVO map by componentId");
     }
 
@@ -371,12 +393,12 @@ public class CreateDataDictAction implements IAction
         String strTreeDataModuleTemplate = """
             {id:"%s",name:"%s %s",isDdcClass:false,path:"%s"},
             """;                                                    // 左树模块 虚节点
-        String strTreeDataClassTemplate = """
-            {id:"%s",pId:"%s",name:"%s %s",path:"%s"},
-            """;                                                    // 左树实体 链接实体
         String strTreeDataComponentTemplate = """
             {id:"%s",pId:"%s",name:"%s %s",isDdcClass:false,path:"%s"},
             """;                                                    // 左树组件 虚节点
+        String strTreeDataClassTemplate = """
+            {id:"%s",pId:"%s",name:"%s %s",path:"%s"},
+            """;                                                    // 左树实体 链接实体
 
         for (ClassVO classVO : listClassVO)
         {
@@ -401,7 +423,7 @@ public class CreateDataDictAction implements IAction
                 boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
 
                 String strDdc = strTreeDataClassTemplate.formatted(classVO.getId(), moduleVO.getId(), classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname,
-                    classVO.getId(), "ddc");
+                    moduleVO.getId() + "," + classVO.getComponentId() + "," + classVO.getId());
 
                 if (blHasChildren)
                 {
@@ -419,7 +441,7 @@ public class CreateDataDictAction implements IAction
                 String strPid = primaryClassVO == null ? moduleVO.getId() : primaryClassVO.getId();
 
                 String strTreeDataClass = strTreeDataClassTemplate.formatted(classVO.getId(), strPid, classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname,
-                    classVO.getId(), "ddc");
+                    moduleVO.getId() + "," + classVO.getComponentId() + "," + classVO.getId());
                 strClassRows.append(strTreeDataClass);
             }
 
@@ -492,7 +514,7 @@ public class CreateDataDictAction implements IAction
                 }
 
                 String strClassRow = strTreeDataClassTemplate.formatted(classVO.getId(), classVO.getComponentId(), strTableName, Objects.toString(classVO.getDisplayName(), ""),
-                    ModuleVO.strDBTablesRootId + "," + moduleVO.getId() + "," + componentVO.getId() + "," + classVO.getId());
+                    ModuleVO.strDBTablesRootId + "," + strModuleId + "," + componentVO.getId() + "," + classVO.getId());
                 strClassRows.append(strClassRow);
             }
 
@@ -576,7 +598,7 @@ public class CreateDataDictAction implements IAction
         String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " order by model_type,lower(display_name)";
         String strComponentSQL = sqlExecutor.getSQLSelect(ComponentVO.class) + " where " + strVersionSQL + " order by model_type,own_module,name";
         String strClassSQL1 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='" + MetaVO.ModelType.md.name() +
-            "' order by primary_class desc,default_table_name";
+            "' order by primary_class desc,default_table_name desc";
         String strClassSQL2 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='" + MetaVO.ModelType.db.name() +
             "' order by default_table_name";
 
@@ -713,7 +735,7 @@ public class CreateDataDictAction implements IAction
     {
         String strDataScope;
 
-        if (propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300 &&
+        if (propertyVO.getDataType() != null && propertyVO.getDataType().length() > 20 && propertyVO.getRefModelName() == null && propertyVO.getDataTypeStyle() == 300 &&
             mapEnumString.containsKey(propertyVO.getDataType()))
         {
             strDataScope = mapEnumString.get(propertyVO.getDataType());

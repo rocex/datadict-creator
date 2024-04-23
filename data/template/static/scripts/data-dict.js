@@ -89,8 +89,15 @@ function loadDataDict(classId) {
                 return false;
             }
 
+            const classDefaultName =
+                data.defaultTableName && data.fullClassname
+                    ? " (" + (data.defaultTableName + "/" + data.fullClassname) + ")"
+                    : data.defaultTableName === undefined && data.fullClassname === undefined
+                    ? ""
+                    : " (" + (data.defaultTableName || data.fullClassname) + ")";
+
             $("#classDisplayName").html(data.displayName ? data.displayName : "");
-            $("#classDefaultTableName").html((data.displayName ? " (" : "") + data.defaultTableName + (data.fullClassname ? "/" + data.fullClassname : "") + (data.displayName ? ")" : ""));
+            $("#classDefaultTableName").html(classDefaultName);
             $("#classList").html(data.classListUrl ? data.classListUrl : "");
 
             let ddcBody = "";
@@ -116,7 +123,7 @@ function loadDataDict(classId) {
                         <td>${propertyVO.name}</td>
                         <td>${propertyVO.displayName}</td>
                         <td>${propertyVO.name}</td>
-                        <td>${propertyVO.dataTypeSql}</td>
+                        <td>${propertyVO.dataTypeSql ? propertyVO.dataTypeSql : ""}</td>
                         <td style="text-align: center">${propertyVO.nullable ? "" : "√"}</td>
                         <td>${dataTypeShowName}</td>
                         <td>${propertyVO.defaultValue ? propertyVO.defaultValue : ""}</td>
