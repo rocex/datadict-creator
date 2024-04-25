@@ -73,9 +73,13 @@ public class CreateDataDictAction implements IAction
 
     protected String strOutputDictDir;      // 输出数据字典文件目录
     protected String strOutputRootDir;      // 输出文件根目录
-    protected String strPropertySQL;
-
+    protected String strPropertySQL;        // 在多线程中使用，提取出来
     protected String strVersion;            // 数据字典版本
+
+    protected JacksonHelper jacksonHelper = new JacksonHelper().exclude(ClassVO.class, "accessorClassname", "bizItfImpClassname", "classType", "componentId", "ddcVersion", "help",
+            "id", "keyAttribute", "name", "refModelName", "returnType", "ts", "versionType")
+        .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence", "calculation", "classId", "customAttr", "ddcVersion",
+            "dynamicAttr", "fixedLength", "hidden", "notSerialize", "id", "precise", "readOnly", "refModelName", "ts", "versionType", "refClassPathHref");
 
     /***************************************************************************
      * @author Rocex Wang
@@ -106,13 +110,13 @@ public class CreateDataDictAction implements IAction
 
         sqlExecutor = new SQLExecutor(dbProp);
 
-        strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? and ddc_version=? order by key_prop desc,attr_sequence";
-
         // 补齐正则表达式
         for (int i = 0; i < strCustomPatterns.length; i++)
         {
             strCustomPatterns[i] = "(" + strCustomPatterns[i] + ")[0-9]+";
         }
+
+        strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? and ddc_version=? order by key_prop desc,attr_sequence";
     }
 
     /***************************************************************************
@@ -158,7 +162,6 @@ public class CreateDataDictAction implements IAction
         {
             for (Map.Entry<String, List<ClassVO>> listEntry : mapClassVOByComponent.entrySet())
             {
-                String strKey = listEntry.getKey();
                 List<ClassVO> listClassVO2 = listEntry.getValue();
                 if (listClassVO2 == null || listClassVO2.isEmpty())
                 {
@@ -170,6 +173,7 @@ public class CreateDataDictAction implements IAction
                 if (!blHasPrimaryClass)
                 {
                     listClassVO2.get(0).setPrimaryClass(true);
+
                     mapComponentIdPrimaryClassId.put(listClassVO2.get(0).getComponentId(), listClassVO2.get(0).getId());
                 }
             }
@@ -298,9 +302,9 @@ public class CreateDataDictAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        if (listPropertyVO == null || listPropertyVO.isEmpty())
+        if (listPropertyVO == null)
         {
-            return;
+            listPropertyVO = new ArrayList<>();
         }
 
         listPropertyVO = sortPropertyVO(classVO, listPropertyVO);
@@ -321,8 +325,8 @@ public class CreateDataDictAction implements IAction
 
             if (refClassVO != null)
             {
-                propertyVO.setDataTypeName(refClassVO.getName());
                 propertyVO.setDataType(refClassVO.getId());
+                propertyVO.setDataTypeName(refClassVO.getName());
                 propertyVO.setDataTypeDisplayName(refClassVO.getDisplayName());
             }
         }
@@ -867,16 +871,16 @@ public class CreateDataDictAction implements IAction
             }
 
             DictJsonVO dictJsonVO = new DictJsonVO();
-            dictJsonVO.setName(classVO.getName());
+            dictJsonVO.setId(classVO.getId());
             dictJsonVO.setDdcVersion(strVersion);
+            dictJsonVO.setName(classVO.getName());
             dictJsonVO.setClassId(classVO.getId());
             dictJsonVO.setDictJson(objReadAllBytes);
-            dictJsonVO.setId(classVO.getId());
             dictJsonVO.setDisplayName(classVO.getDisplayName());
 
             listDictJsonVO.add(dictJsonVO);
 
-            if (listDictJsonVO.size() > 100)
+            if (listDictJsonVO.size() > 500)
             {
                 try
                 {
@@ -960,11 +964,6 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void writeDataDictFile(ClassVO classVO)
     {
-        new JacksonHelper()
-            .exclude(ClassVO.class, "accessorClassname", "bizItfImpClassname", "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute", "name", "refModelName",
-                "returnType", "ts", "versionType")
-            .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence", "calculation", "classId", "customAttr", "ddcVersion",
-                "dynamicAttr", "fixedLength", "hidden", "notSerialize", "id", "precise", "readOnly", "refModelName", "ts", "versionType", "refClassPathHref")
-            .serializeThread(classVO, getClassFilePath(classVO));
+        jacksonHelper.serializeThread(classVO, getClassFilePath(classVO));
     }
 }

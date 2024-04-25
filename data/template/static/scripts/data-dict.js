@@ -82,7 +82,11 @@ function loadDataDict(classId) {
         dataType: "json",
         url: "./dict/" + classId + ".json",
         error: function () {
-            alert("请求失败，请稍后再试或联系管理员！");
+            // alert("请求失败，请稍后再试或联系管理员！");
+            $("#classDefaultTableName").html("");
+            $("#classDisplayName").html("<span style='color:red'>请求失败，请稍后再试或联系管理员！</span>");
+            $("#classList").html("&nbsp;");
+            $("#dataDictTableBody").html("");
         },
         success: function (data) {
             if (data === undefined) {
@@ -112,7 +116,7 @@ function loadDataDict(classId) {
 
                 help = help && dynamicTable ? help + "<br />" + dynamicTable : help ? help : dynamicTable ? dynamicTable : "";
 
-                if (propertyVO.dataTypeStyle == 305) {
+                if (propertyVO.dataTypeStyle == 305 && propertyVO.dataTypeDisplayName && propertyVO.dataTypeName) {
                     dataTypeShowName = `
                         <a href="javascript:void(0);" onclick="loadDataDict('${propertyVO.dataType}');">${propertyVO.dataTypeDisplayName}</a> &nbsp;
                         <a href="./index.html?dataType=${propertyVO.dataType}&keyword=${propertyVO.dataTypeDisplayName}" target="_blank" title="新窗口查看 (${propertyVO.dataTypeDisplayName}) 实体" class="blankLink"> (${propertyVO.dataTypeName})</a>`;
@@ -120,7 +124,6 @@ function loadDataDict(classId) {
 
                 ddcBody += `<tr class="${trClass}">
                         <td style="text-align: right;">${index++}</td>
-                        <td>${propertyVO.name}</td>
                         <td>${propertyVO.displayName}</td>
                         <td>${propertyVO.name}</td>
                         <td>${propertyVO.dataTypeSql ? propertyVO.dataTypeSql : ""}</td>

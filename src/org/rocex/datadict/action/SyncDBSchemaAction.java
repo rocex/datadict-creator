@@ -18,6 +18,7 @@ import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.regex.Pattern;
+import java.util.stream.Collectors;
 
 import org.rocex.datadict.vo.ClassVO;
 import org.rocex.datadict.vo.ComponentVO;
@@ -54,8 +55,11 @@ public class SyncDBSchemaAction implements IAction
 
     protected Map<String, String> mapId = new HashMap<>();                      // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, String> mapTableNamePrimaryKeys = new HashMap<>();    // 表名和表主键列表的对应关系，多个主键用；分隔，表名用全小写
+    protected Map<String, ClassVO> mapTableNameClassVO = new HashMap<>();       // 表名 - ClassVO
+    protected Map<String, PropertyVO> mapTableNamePropertyVO = new HashMap<>(); // 表名+属性名 - PropertyVO
 
     protected Pattern patternTableFilter;
+
     protected Properties propCodeName;
 
     protected SQLExecutor sqlExecutorTarget;
@@ -111,7 +115,7 @@ public class SyncDBSchemaAction implements IAction
     protected void adjustDataBip()
     {
         String[] strSQLs = {"update md_class set default_table_name='' where (default_table_name is null or default_table_name in ('null','NULL'))",
-            "update md_class set display_name='' where (display_name is null or display_name in ('null','NULL'))",
+            "update md_class set display_name=name where (display_name is null or display_name in ('','null','NULL'))",
 
             "update md_property set data_type='1976686225086391910' where data_type='attachment' and ddc_version='2312-bip';",
             "update md_property set data_type='1976686225086391911' where data_type='bigText' and ddc_version='2312-bip';",
@@ -246,7 +250,7 @@ public class SyncDBSchemaAction implements IAction
             return propertyVO.getDataTypeSql();
         }
 
-        PropertyVO tableNamePropertyVO = Context.getInstance().getTableNamePropertyVO(propertyVO.getTableName(), propertyVO.getName());
+        PropertyVO tableNamePropertyVO = mapTableNamePropertyVO.get(propertyVO.getTableName() + "." + propertyVO.getName());
         if (tableNamePropertyVO != null)
         {
             String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
@@ -296,8 +300,6 @@ public class SyncDBSchemaAction implements IAction
         {
             propertyVO.setDataTypeSql("char");
         }
-
-        int i = 2;
 
         String strDbType = propertyVO.getDataTypeSql().toLowerCase();
 
@@ -405,6 +407,9 @@ public class SyncDBSchemaAction implements IAction
 
     void initBipModules()
     {
+        if (!isBIP)
+            return;
+
         String[] strDBModuleSQLs = {
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__iuap', '2312-bip', '技术应用平台', 'db', 'iuap', 'db_tables');",
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fi', '2312-bip', '智能会计', 'db', 'fi', 'db_tables');",
@@ -708,45 +713,45 @@ public class SyncDBSchemaAction implements IAction
             "insert into md_component (id, biz_model, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391905', '0', '2312-bip', 'BIP基础数据类型', 'md', 'BipBasicDataType', 'iuap');"};
 
         String[] strMDClassSQLs = {
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391910', 1, '1976686225086391905', '2312-bip', '附件', 'md', 'attachment', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391911', 1, '1976686225086391905', '2312-bip', '大文本', 'md', 'bigText', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391912', 1, '1976686225086391905', '2312-bip', '字节', 'md', 'byte', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391913', 1, '1976686225086391905', '2312-bip', '联系人', 'md', 'contact', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391914', 1, '1976686225086391905', '2312-bip', '相关性', 'md', 'correlation', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391915', 1, '1976686225086391905', '2312-bip', '日期', 'md', 'date', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391916', 1, '1976686225086391905', '2312-bip', '日期', 'md', 'date_MDD', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391917', 1, '1976686225086391905', '2312-bip', '日期时间', 'md', 'dateTime', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391918', 1, '1976686225086391905', '2312-bip', '日期时间戳', 'md', 'dateTime_Timestamp', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391919', 1, '1976686225086391905', '2312-bip', '小数范围', 'md', 'decimalRange', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391910', 1, '1976686225086391905', '2312-bip', '附件', 'md', 'Attachment', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391911', 1, '1976686225086391905', '2312-bip', '大文本', 'md', 'BigText', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391912', 1, '1976686225086391905', '2312-bip', '字节', 'md', 'Byte', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391913', 1, '1976686225086391905', '2312-bip', '联系人', 'md', 'Contact', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391914', 1, '1976686225086391905', '2312-bip', '相关性', 'md', 'Correlation', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391915', 1, '1976686225086391905', '2312-bip', '日期', 'md', 'Date', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391916', 1, '1976686225086391905', '2312-bip', '日期', 'md', 'Date_MDD', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391917', 1, '1976686225086391905', '2312-bip', '日期时间', 'md', 'DateTime', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391918', 1, '1976686225086391905', '2312-bip', '日期时间戳', 'md', 'DateTime_Timestamp', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391919', 1, '1976686225086391905', '2312-bip', '小数范围', 'md', 'DecimalRange', null);",
             "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391920', 1, '1976686225086391905', '2312-bip', 'DefaultCT', 'md', 'DefaultCT', null);",
             "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391921', 1, '1976686225086391905', '2312-bip', 'FreeCT', 'md', 'FreeCT', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391922', 1, '1976686225086391905', '2312-bip', '图片', 'md', 'image', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391923', 1, '1976686225086391905', '2312-bip', '整数', 'md', 'int', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391924', 1, '1976686225086391905', '2312-bip', '整数日期', 'md', 'intDate', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391925', 1, '1976686225086391905', '2312-bip', '整数日期时间', 'md', 'intDateTime', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391926', 1, '1976686225086391905', '2312-bip', '链接', 'md', 'link', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391927', 1, '1976686225086391905', '2312-bip', '长整数', 'md', 'long', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391922', 1, '1976686225086391905', '2312-bip', '图片', 'md', 'Image', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391923', 1, '1976686225086391905', '2312-bip', '整数', 'md', 'Int', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391924', 1, '1976686225086391905', '2312-bip', '整数日期', 'md', 'IntDate', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391925', 1, '1976686225086391905', '2312-bip', '整数日期时间', 'md', 'IntDateTime', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391926', 1, '1976686225086391905', '2312-bip', '链接', 'md', 'Link', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391927', 1, '1976686225086391905', '2312-bip', '长整数', 'md', 'Long', null);",
             "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391928', 1, '1976686225086391905', '2312-bip', 'MaterialPropCT', 'md', 'MaterialPropCT', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391929', 1, '1976686225086391905', '2312-bip', '多语言', 'md', 'multiLanguage', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391930', 1, '1976686225086391905', '2312-bip', '多行文本', 'md', 'multiLineText', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391931', 1, '1976686225086391905', '2312-bip', '多选项', 'md', 'multipleOption', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391932', 1, '1976686225086391905', '2312-bip', '多选项-字符串', 'md', 'multipleOption_String', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391933', 1, '1976686225086391905', '2312-bip', '数字', 'md', 'number', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391929', 1, '1976686225086391905', '2312-bip', '多语言', 'md', 'MultiLanguage', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391930', 1, '1976686225086391905', '2312-bip', '多行文本', 'md', 'MultiLineText', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391931', 1, '1976686225086391905', '2312-bip', '多选项', 'md', 'MultipleOption', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391932', 1, '1976686225086391905', '2312-bip', '多选项-字符串', 'md', 'MultipleOption_String', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391933', 1, '1976686225086391905', '2312-bip', '数字', 'md', 'Number', null);",
             "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391934', 1, '1976686225086391905', '2312-bip', 'OptionCT', 'md', 'OptionCT', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391935', 1, '1976686225086391905', '2312-bip', '引用', 'md', 'quote', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391936', 1, '1976686225086391905', '2312-bip', '引用-列表', 'md', 'quoteList', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391937', 1, '1976686225086391905', '2312-bip', '短整数', 'md', 'short', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391938', 1, '1976686225086391905', '2312-bip', '单选项', 'md', 'singleOption', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391939', 1, '1976686225086391905', '2312-bip', '单选项-整数', 'md', 'singleOption_int', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391940', 1, '1976686225086391905', '2312-bip', '单选项-短整数', 'md', 'singleOption_Short', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391941', 1, '1976686225086391905', '2312-bip', '单选项-字符串', 'md', 'singleOption_String', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391935', 1, '1976686225086391905', '2312-bip', '引用', 'md', 'Quote', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391936', 1, '1976686225086391905', '2312-bip', '引用-列表', 'md', 'QuoteList', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391937', 1, '1976686225086391905', '2312-bip', '短整数', 'md', 'Short', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391938', 1, '1976686225086391905', '2312-bip', '单选项', 'md', 'SingleOption', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391939', 1, '1976686225086391905', '2312-bip', '单选项-整数', 'md', 'SingleOption_int', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391940', 1, '1976686225086391905', '2312-bip', '单选项-短整数', 'md', 'SingleOption_Short', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391941', 1, '1976686225086391905', '2312-bip', '单选项-字符串', 'md', 'SingleOption_String', null);",
             "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391942', 1, '1976686225086391905', '2312-bip', 'SkuPropCT', 'md', 'SkuPropCT', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391943', 1, '1976686225086391905', '2312-bip', '开关', 'md', 'switch', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391944', 1, '1976686225086391905', '2312-bip', '文本', 'md', 'text', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391945', 1, '1976686225086391905', '2312-bip', '文本', 'md', 'text_MDD', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391946', 1, '1976686225086391905', '2312-bip', '时间', 'md', 'time', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391947', 1, '1976686225086391905', '2312-bip', '时间', 'md', 'time_MDD', null);",
-            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391948', 1, '1976686225086391905', '2312-bip', '时间戳', 'md', 'timestamp', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391943', 1, '1976686225086391905', '2312-bip', '开关', 'md', 'Switch', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391944', 1, '1976686225086391905', '2312-bip', '文本', 'md', 'Text', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391945', 1, '1976686225086391905', '2312-bip', '文本', 'md', 'Text_MDD', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391946', 1, '1976686225086391905', '2312-bip', '时间', 'md', 'Time', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391947', 1, '1976686225086391905', '2312-bip', '时间', 'md', 'Time_MDD', null);",
+            "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391948', 1, '1976686225086391905', '2312-bip', '时间戳', 'md', 'Timestamp', null);",
             "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391949', 1, '1976686225086391905', '2312-bip', '用户定义', 'md', 'UserDefine', null);"};
 
         try
@@ -912,9 +917,9 @@ public class SyncDBSchemaAction implements IAction
 
         IAction pagingFieldAction = evt ->
         {
-            List<PropertyVO> listVO = (List<PropertyVO>) evt.getSource();
+            List<PropertyVO> listPropertyVO = (List<PropertyVO>) evt.getSource();
 
-            for (PropertyVO propertyVO : listVO)
+            for (PropertyVO propertyVO : listPropertyVO)
             {
                 propertyVO.setTableName(propertyVO.getClassId().toLowerCase());
                 propertyVO.setClassId(mapTableNameAndId.get(propertyVO.getTableName()));
@@ -941,11 +946,16 @@ public class SyncDBSchemaAction implements IAction
                 mapSequence.put(propertyVO.getClassId(), iSequence);
             }
 
-            Context.getInstance().setTableNamePropertyVO(listVO);
+            Map<String, PropertyVO> mapTableNamePropertyVO2 = listPropertyVO.stream()
+                .collect(Collectors.toMap(propertyVO -> propertyVO.getTableName() + "." + propertyVO.getName(), propertyVO -> propertyVO));
+
+            mapTableNamePropertyVO.putAll(mapTableNamePropertyVO2);
 
             try
             {
-                sqlExecutorTarget.insertVO(listVO.toArray(new PropertyVO[0]));
+                sqlExecutorTarget.insertVO(listPropertyVO.toArray(new PropertyVO[0]));
+
+                listPropertyVO.clear();
             }
             catch (SQLException ex)
             {
@@ -1061,6 +1071,8 @@ public class SyncDBSchemaAction implements IAction
             try
             {
                 sqlExecutorTarget.insertVO(listVO.toArray(new MetaVO[0]));
+
+                listVO.clear();
             }
             catch (SQLException ex)
             {
@@ -1079,19 +1091,15 @@ public class SyncDBSchemaAction implements IAction
                 return false;
             }
 
-            listNeedSyncTableName.add(strDefaultTableName);
-
-            classVO.setClassType(ClassVO.ClassType.db.value());
             classVO.setDdcVersion(strVersion);
             classVO.setId(StringHelper.getId());
-            classVO.setComponentId(strComponentId);
             classVO.setName(strDefaultTableName);
-            classVO.setDefaultTableName(strDefaultTableName);
+            classVO.setComponentId(strComponentId);
             classVO.setModelType(ModelType.db.name());
+            classVO.setDefaultTableName(strDefaultTableName);
+            classVO.setClassType(ClassVO.ClassType.db.value());
             classVO.setDisplayName(
                 propCodeName.getProperty(strDefaultTableName, StringHelper.isEmpty(classVO.getRemarks()) ? "" : classVO.getRemarks().replace("\r\n", "").replace("\n", "")));
-
-            mapTableNameAndId.put(classVO.getDefaultTableName(), classVO.getId());
 
             try
             {
@@ -1103,6 +1111,10 @@ public class SyncDBSchemaAction implements IAction
             {
                 Logger.getLogger().error(ex.getMessage(), ex);
             }
+
+            listNeedSyncTableName.add(strDefaultTableName);
+            mapTableNameAndId.put(classVO.getDefaultTableName(), classVO.getId());
+            mapTableNameClassVO.put(classVO.getId(), classVO);
 
             return true;
         }, "DefaultTableName", "ClassListUrl", "Remarks");
@@ -1204,8 +1216,9 @@ public class SyncDBSchemaAction implements IAction
                 ",table_name as default_table_name,a.display_name,'' as full_classname,null as help,null as key_attribute,a.name,null as own_module,null as primary_class" +
                 ",null as ref_model_name,null as return_type,null as version_type" + strOtherSQL2 +
                 " from md_meta_class a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri" +
-                " where a.ytenant_id='0' and a.meta_component_uri is not null and a.uri in (select object_uri from md_attribute where ytenant_id='0')" +
+                " where a.ytenant_id='0' and a.meta_component_uri is not null" +
                 " and b.own_module is not null and b.own_module not in('','null','NULL') order by meta_component_uri";
+        // and a.uri in (select object_uri from md_attribute where ytenant_id='0')
 
         String strEnumAsClass = "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.enumeration.value() +
             " as class_type,b.id as component_id,null as default_table_name" +
@@ -1228,18 +1241,60 @@ public class SyncDBSchemaAction implements IAction
         String strEnumValueSQL = "select a.id,b.id as class_id,0 as enum_sequence,code as enum_value,a.name as name,0 as version_type" + strOtherSQL1 +
             " from md_enumeration_literal a left join md_enumeration b on a.enumeration_uri=b.uri and b.ytenant_id='0'" + " where a.ytenant_id='0' order by enumeration_uri,code";
 
-        // todo test
-        Properties dbPropSource2 = (Properties) dbPropSource.clone();
-        dbPropSource2.setProperty("jdbc.url", "jdbc:mysql://172.20.36.73:3306/iuap_metadata_base");
-        dbPropSource2.setProperty("jdbc.user", "ro_all_db");
-        dbPropSource2.setProperty("jdbc.password", "RMgfkzz48R!t");
+        Properties dbPropSourceMd = new Properties();
 
-        // String strSourceUrl = Context.getInstance().getSetting(strVersion + ".jdbc.url");
-        // dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", "iuap_metadata_base"));
+        String strUrl = Context.getInstance().getSetting(strVersion + ".md.jdbc.url", Context.getInstance().getSetting(strVersion + ".jdbc.url"));
+        dbPropSourceMd.setProperty("jdbc.url", strUrl.replace("${schema}", "iuap_metadata_base"));
+        dbPropSourceMd.setProperty("jdbc.user", Context.getInstance().getSetting(strVersion + ".md.jdbc.user", Context.getInstance().getSetting(strVersion + ".jdbc.user")));
+        dbPropSourceMd.setProperty("jdbc.driver", Context.getInstance().getSetting(strVersion + ".md.jdbc.driver", Context.getInstance().getSetting(strVersion + ".jdbc.driver")));
+        dbPropSourceMd.setProperty("jdbc.password",
+            Context.getInstance().getSetting(strVersion + ".md.jdbc.password", Context.getInstance().getSetting(strVersion + ".jdbc.password")));
 
-        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2))
+        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSourceMd))
         {
             syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strClassSQL, strPropertySQL, strEnumAsClass, strEnumValueSQL);
+        }
+
+        List<ClassVO> listClassVO = new ArrayList<>();
+
+        try
+        {
+            listClassVO = (List<ClassVO>) sqlExecutorTarget.executeQuery(sqlExecutorTarget.getSQLSelect(ClassVO.class), new BeanListProcessor<>(ClassVO.class));
+        }
+        catch (SQLException ex)
+        {
+            throw new RuntimeException(ex);
+        }
+
+        Map<String, List<ClassVO>> mapClassVOByComponentId = listClassVO.stream().collect(Collectors.groupingBy(ClassVO::getComponentId));
+
+        List<ClassVO> listChangedClassVO = new ArrayList<>();
+
+        for (Map.Entry<String, List<ClassVO>> listEntry : mapClassVOByComponentId.entrySet())
+        {
+            List<ClassVO> listClassVO2 = listEntry.getValue();
+            if (listClassVO2 == null || listClassVO2.isEmpty())
+            {
+                continue;
+            }
+
+            boolean blHasPrimaryClass = listClassVO2.stream().anyMatch(ClassVO::isPrimaryClass);
+
+            if (!blHasPrimaryClass)
+            {
+                listClassVO2.get(0).setPrimaryClass(true);
+
+                listChangedClassVO.add(listClassVO2.get(0));
+            }
+        }
+
+        try
+        {
+            sqlExecutorTarget.updateVO(listChangedClassVO.toArray(new ClassVO[listChangedClassVO.size()]), "primary_class");
+        }
+        catch (SQLException ex)
+        {
+            throw new RuntimeException(ex);
         }
     }
 

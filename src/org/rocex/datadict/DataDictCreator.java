@@ -43,11 +43,17 @@ public class DataDictCreator
                 throw new RuntimeException(ex);
             }
 
-            new SyncDBSchemaAction(strVersion).doAction(null);
+            SyncDBSchemaAction syncDBSchemaAction = new SyncDBSchemaAction(strVersion);
+            syncDBSchemaAction.doAction(null);
+
+            syncDBSchemaAction = null;
 
             System.gc();
 
-            new CreateDataDictAction(strVersion).doAction(null);
+            CreateDataDictAction createDataDictAction = new CreateDataDictAction(strVersion);
+            createDataDictAction.doAction(null);
+
+            System.gc();
 
             Logger.getLogger().debug("\n");
         }
