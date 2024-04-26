@@ -190,15 +190,18 @@ function filterData(searchVal, dictIndexData) {
             item.open = true;
             return true;
         }
+
         if (!!item.name && item.name.toLowerCase().includes(searchVal)) {
             // if (!childrenArr.includes(item.pId)) childrenArr.push(item.pId);
             if (childrenArr.includes(item.pId)) {
                 childrenArr = [...childrenArr, item.id];
             } else if (item.path) {
-                childrenArr = [...new Set([...childrenArr, ...item.path.split(",")])];
+                childrenArr = [...new Set([...childrenArr, ...item.path.split(","), item.id])];
             }
+
             return true;
         }
+
         return false;
     });
 

@@ -429,7 +429,7 @@ public class CreateDataDictAction implements IAction
                 boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
 
                 String strDdc = strTreeDataClassTemplate.formatted(classVO.getId(), moduleVO.getId(), Objects.toString(classVO.getDefaultTableName(), ""),
-                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + moduleVO.getId() + "," + classVO.getComponentId() + "," + classVO.getId());
+                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + moduleVO.getId() + "," + classVO.getComponentId());
 
                 if (blHasChildren)
                 {
@@ -447,7 +447,7 @@ public class CreateDataDictAction implements IAction
                 String strPid = primaryClassVO == null ? moduleVO.getId() : primaryClassVO.getId();
 
                 String strTreeDataClass = strTreeDataClassTemplate.formatted(classVO.getId(), strPid, Objects.toString(classVO.getDefaultTableName(), ""),
-                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + moduleVO.getId() + "," + classVO.getComponentId() + "," + classVO.getId());
+                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + moduleVO.getId() + "," + classVO.getComponentId());
                 strClassRows.append(strTreeDataClass);
             }
 
@@ -467,7 +467,7 @@ public class CreateDataDictAction implements IAction
             }
 
             String strTreeDataModule = strTreeDataComponentTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(), moduleVO.getDisplayName(),
-                ModuleVO.strMDRootId + "," + moduleVO.getId());
+                ModuleVO.strMDRootId);
             strModuleRows.append(strTreeDataModule);
 
             listClassUsedModule.remove(moduleVO.getId());
@@ -521,7 +521,7 @@ public class CreateDataDictAction implements IAction
                 }
 
                 String strClassRow = strTreeDataClassTemplate.formatted(classVO.getId(), classVO.getComponentId(), strTableName, Objects.toString(classVO.getDisplayName(), ""),
-                    ModuleVO.strDBRootId + "," + strModuleId + "," + componentVO.getId() + "," + classVO.getId());
+                    ModuleVO.strDBRootId + "," + strModuleId + "," + componentVO.getId());
                 strClassRows.append(strClassRow);
             }
 
@@ -533,7 +533,7 @@ public class CreateDataDictAction implements IAction
                 }
 
                 String strModuleRow = strTreeDataComponentTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(),
-                    Objects.toString(moduleVO.getDisplayName(), ""), ModuleVO.strDBRootId + "," + moduleVO.getId());
+                    Objects.toString(moduleVO.getDisplayName(), ""), ModuleVO.strDBRootId);
                 strModuleRows.append(strModuleRow);
 
                 listClassUsedModule.remove(moduleVO.getId());
@@ -549,7 +549,7 @@ public class CreateDataDictAction implements IAction
                 }
 
                 String strComponentRow = strTreeDataComponentTemplate.formatted(componentVO.getId(), componentVO.getOwnModule(), componentVO.getName(),
-                    Objects.toString(componentVO.getDisplayName(), ""), ModuleVO.strDBRootId + "," + componentVO.getOwnModule() + "," + componentVO.getId());
+                    Objects.toString(componentVO.getDisplayName(), ""), ModuleVO.strDBRootId + "," + componentVO.getOwnModule());
                 strComponentRows.append(strComponentRow);
             }
         }
