@@ -12,7 +12,8 @@ import javax.persistence.Table;
 @Table(name = "md_module", indexes = {@Index(name = "i_md_module_ddc_version", columnList = "ddc_version")})
 public class ModuleVO extends MetaVO
 {
-    public static final String strDBTablesRootId = "db_tables";
+    public static final String strDBRootId = "db_table";
+    public static final String strMDRootId = "md_clazz";
 
     private String strParentModuleId;
 

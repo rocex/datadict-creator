@@ -31,7 +31,6 @@ public class DataDictCreator
 
         for (String strVersion : strDataDictVersions)
         {
-            String strDataDictVersion = Context.getInstance().getVersionSetting(strVersion, "DataDictVersion");
             String strOutputRootDir = Context.getInstance().getVersionSetting(strVersion, "OutputDir");
 
             try
@@ -46,7 +45,7 @@ public class DataDictCreator
             SyncDBSchemaAction syncDBSchemaAction = new SyncDBSchemaAction(strVersion);
             syncDBSchemaAction.doAction(null);
 
-            syncDBSchemaAction = null;
+            syncDBSchemaAction.close();
 
             System.gc();
 

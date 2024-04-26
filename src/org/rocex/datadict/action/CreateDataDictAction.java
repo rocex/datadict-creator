@@ -116,7 +116,7 @@ public class CreateDataDictAction implements IAction
             strCustomPatterns[i] = "(" + strCustomPatterns[i] + ")[0-9]+";
         }
 
-        strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? and ddc_version=? order by key_prop desc,attr_sequence";
+        strPropertySQL = sqlExecutor.getSQLSelect(PropertyVO.class) + " where class_id=? and ddc_version=? order by key_prop desc,attr_sequence,name";
     }
 
     /***************************************************************************
@@ -302,7 +302,7 @@ public class CreateDataDictAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        if (listPropertyVO == null)
+        if (listPropertyVO == null) // 旗舰版存在没有属性的元数据，如果不生成，会存在断链的引用
         {
             listPropertyVO = new ArrayList<>();
         }
@@ -404,6 +404,8 @@ public class CreateDataDictAction implements IAction
             {id:"%s",pId:"%s",name:"%s %s",path:"%s"},
             """;                                                    // 左树实体 链接实体
 
+        strModuleRows.append(strTreeDataModuleTemplate.formatted(ModuleVO.strMDRootId, "Class", "元数据字典", ModuleVO.strMDRootId));
+
         for (ClassVO classVO : listClassVO)
         {
             if (classVO.getClassType() != ClassVO.ClassType.clazz.value())
@@ -426,8 +428,8 @@ public class CreateDataDictAction implements IAction
             {
                 boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
 
-                String strDdc = strTreeDataClassTemplate.formatted(classVO.getId(), moduleVO.getId(), classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname,
-                    moduleVO.getId() + "," + classVO.getComponentId() + "," + classVO.getId());
+                String strDdc = strTreeDataClassTemplate.formatted(classVO.getId(), moduleVO.getId(), Objects.toString(classVO.getDefaultTableName(), ""),
+                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + moduleVO.getId() + "," + classVO.getComponentId() + "," + classVO.getId());
 
                 if (blHasChildren)
                 {
@@ -444,8 +446,8 @@ public class CreateDataDictAction implements IAction
                 ClassVO primaryClassVO = strPrimaryClassId == null ? null : (ClassVO) mapIdClassVO.get(strPrimaryClassId);
                 String strPid = primaryClassVO == null ? moduleVO.getId() : primaryClassVO.getId();
 
-                String strTreeDataClass = strTreeDataClassTemplate.formatted(classVO.getId(), strPid, classVO.getDefaultTableName(), classVO.getDisplayName() + " " + strClassname,
-                    moduleVO.getId() + "," + classVO.getComponentId() + "," + classVO.getId());
+                String strTreeDataClass = strTreeDataClassTemplate.formatted(classVO.getId(), strPid, Objects.toString(classVO.getDefaultTableName(), ""),
+                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + moduleVO.getId() + "," + classVO.getComponentId() + "," + classVO.getId());
                 strClassRows.append(strTreeDataClass);
             }
 
@@ -464,7 +466,8 @@ public class CreateDataDictAction implements IAction
                 continue;
             }
 
-            String strTreeDataModule = strTreeDataModuleTemplate.formatted(moduleVO.getId(), moduleVO.getName(), moduleVO.getDisplayName(), moduleVO.getId());
+            String strTreeDataModule = strTreeDataComponentTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(), moduleVO.getDisplayName(),
+                ModuleVO.strMDRootId + "," + moduleVO.getId());
             strModuleRows.append(strTreeDataModule);
 
             listClassUsedModule.remove(moduleVO.getId());
@@ -475,7 +478,7 @@ public class CreateDataDictAction implements IAction
         // 所有表都按字母顺序挂在一个节点下，不再分级
         if (!listTableVO.isEmpty())
         {
-            strModuleRows.append(strTreeDataModuleTemplate.formatted(ModuleVO.strDBTablesRootId, "Tables", "数据库字典", ModuleVO.strDBTablesRootId));
+            strModuleRows.append(strTreeDataModuleTemplate.formatted(ModuleVO.strDBRootId, "Table", "数据库字典", ModuleVO.strDBRootId));
 
             for (ClassVO classVO : listTableVO)
             {
@@ -498,11 +501,11 @@ public class CreateDataDictAction implements IAction
                     moduleVO = new ModuleVO();
                     moduleVO.setId("char_" + string0);
                     moduleVO.setName(string0);
-                    moduleVO.setParentModuleId(ModuleVO.strDBTablesRootId);
+                    moduleVO.setParentModuleId(ModuleVO.strDBRootId);
                     moduleVO.setDisplayName(char0 >= 'a' && char0 <= 'z' ? string0.toUpperCase() + " 开头" : "其它");
                 }
 
-                moduleVO.setPath(ModuleVO.strDBTablesRootId + "," + moduleVO.getId());
+                moduleVO.setPath(ModuleVO.strDBRootId + "," + moduleVO.getId());
 
                 ComponentVO componentVO = (ComponentVO) mapIdComponentVO.get(classVO.getComponentId());
                 if (!listClassUsedComponent.contains(componentVO.getId()))
@@ -518,7 +521,7 @@ public class CreateDataDictAction implements IAction
                 }
 
                 String strClassRow = strTreeDataClassTemplate.formatted(classVO.getId(), classVO.getComponentId(), strTableName, Objects.toString(classVO.getDisplayName(), ""),
-                    ModuleVO.strDBTablesRootId + "," + strModuleId + "," + componentVO.getId() + "," + classVO.getId());
+                    ModuleVO.strDBRootId + "," + strModuleId + "," + componentVO.getId() + "," + classVO.getId());
                 strClassRows.append(strClassRow);
             }
 
@@ -530,7 +533,7 @@ public class CreateDataDictAction implements IAction
                 }
 
                 String strModuleRow = strTreeDataComponentTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(),
-                    Objects.toString(moduleVO.getDisplayName(), ""), ModuleVO.strDBTablesRootId + "," + moduleVO.getId());
+                    Objects.toString(moduleVO.getDisplayName(), ""), ModuleVO.strDBRootId + "," + moduleVO.getId());
                 strModuleRows.append(strModuleRow);
 
                 listClassUsedModule.remove(moduleVO.getId());
@@ -546,7 +549,7 @@ public class CreateDataDictAction implements IAction
                 }
 
                 String strComponentRow = strTreeDataComponentTemplate.formatted(componentVO.getId(), componentVO.getOwnModule(), componentVO.getName(),
-                    Objects.toString(componentVO.getDisplayName(), ""), ModuleVO.strDBTablesRootId + "," + componentVO.getOwnModule() + "," + componentVO.getId());
+                    Objects.toString(componentVO.getDisplayName(), ""), ModuleVO.strDBRootId + "," + componentVO.getOwnModule() + "," + componentVO.getId());
                 strComponentRows.append(strComponentRow);
             }
         }
@@ -599,7 +602,7 @@ public class CreateDataDictAction implements IAction
 
         String strVersionSQL = "ddc_version='" + strVersion + "'";
 
-        String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " order by model_type,lower(display_name)";
+        String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " order by model_type";
         String strComponentSQL = sqlExecutor.getSQLSelect(ComponentVO.class) + " where " + strVersionSQL + " order by model_type,own_module,name";
         String strClassSQL1 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='" + MetaVO.ModelType.md.name() +
             "' order by primary_class desc,default_table_name desc";
@@ -648,7 +651,7 @@ public class CreateDataDictAction implements IAction
 
             sqlExecutor.executeUpdate("delete from ddc_dict_json where ddc_version=?", new SQLParameter().addParam(strVersion));
         }
-        catch (IOException | SQLException ex)
+        catch (SQLException | IOException ex)
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }

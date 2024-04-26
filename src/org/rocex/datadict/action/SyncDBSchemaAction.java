@@ -1,5 +1,6 @@
 package org.rocex.datadict.action;
 
+import java.io.Closeable;
 import java.io.File;
 import java.sql.Connection;
 import java.sql.ResultSet;
@@ -45,18 +46,17 @@ import org.rocex.vo.IAction;
  * @author Rocex Wang
  * @since 2021-10-28 02:17:34
  ***************************************************************************/
-public class SyncDBSchemaAction implements IAction
+public class SyncDBSchemaAction implements IAction, Closeable
 {
     protected Properties dbPropSource;
 
     protected Boolean isBIP = true;
 
-    protected List<String> listNeedSyncTableName = new Vector<>();              // 要同步的表名
+    protected List<String> listNeedSyncTableName = new Vector<>();                  // 要同步的表名
 
-    protected Map<String, String> mapId = new HashMap<>();                      // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
-    protected Map<String, String> mapTableNamePrimaryKeys = new HashMap<>();    // 表名和表主键列表的对应关系，多个主键用；分隔，表名用全小写
-    protected Map<String, ClassVO> mapTableNameClassVO = new HashMap<>();       // 表名 - ClassVO
-    protected Map<String, PropertyVO> mapTableNamePropertyVO = new HashMap<>(); // 表名+属性名 - PropertyVO
+    protected Map<String, String> mapId = new HashMap<>();                          // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
+    protected Map<String, String> mapPrimaryKeyByTableName = new HashMap<>();       // 表名和表主键列表的对应关系，多个主键用；分隔，表名用全小写
+    protected Map<String, PropertyVO> mapPropertyVOByTableName = new HashMap<>();   // 表名+属性名 - PropertyVO
 
     protected Pattern patternTableFilter;
 
@@ -114,7 +114,7 @@ public class SyncDBSchemaAction implements IAction
 
     protected void adjustDataBip()
     {
-        String[] strSQLs = {"update md_class set default_table_name='' where (default_table_name is null or default_table_name in ('null','NULL'))",
+        String[] strSQLs = {//"update md_class set default_table_name='' where (default_table_name is null or default_table_name in ('null','NULL'))",
             "update md_class set display_name=name where (display_name is null or display_name in ('','null','NULL'))",
 
             "update md_property set data_type='1976686225086391910' where data_type='attachment' and ddc_version='2312-bip';",
@@ -250,7 +250,7 @@ public class SyncDBSchemaAction implements IAction
             return propertyVO.getDataTypeSql();
         }
 
-        PropertyVO tableNamePropertyVO = mapTableNamePropertyVO.get(propertyVO.getTableName() + "." + propertyVO.getName());
+        PropertyVO tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + propertyVO.getName());
         if (tableNamePropertyVO != null)
         {
             String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
@@ -411,25 +411,25 @@ public class SyncDBSchemaAction implements IAction
             return;
 
         String[] strDBModuleSQLs = {
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__iuap', '2312-bip', '技术应用平台', 'db', 'iuap', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fi', '2312-bip', '智能会计', 'db', 'fi', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__scm', '2312-bip', '供应链云', 'db', 'scm', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__hr_cloud', '2312-bip', '人力云', 'db', 'hr_cloud', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yonbip-mkt', '2312-bip', '营销云', 'db', 'yonbip-mkt', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__am', '2312-bip', '资产云', 'db', 'am', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__cgy', '2312-bip', '采购云', 'db', 'cgy', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__tax', '2312-bip', '税务云', 'db', 'tax', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__mm', '2312-bip', '制造云', 'db', 'mm', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__epm', '2312-bip', '企业绩效', 'db', 'epm', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yonbip-pm', '2312-bip', '项目云', 'db', 'yonbip-pm', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__trst', '2312-bip', '云可信', 'db', 'trst', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__bztrc', '2312-bip', '商旅云', 'db', 'bztrc', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ctrm', '2312-bip', '贸易云', 'db', 'ctrm', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yonbip-base', '2312-bip', '领域基础', 'db', 'yonbip-base', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ec', '2312-bip', '协同云', 'db', 'ec', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__szyx', '2312-bip', '数字营销', 'db', 'szyx', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fkgxcz', '2312-bip', '费控共享财资云', 'db', 'fkgxcz', 'db_tables');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ndi', '2312-bip', '国防工业云', 'db', 'ndi', 'db_tables');"};
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__iuap', '2312-bip', '技术应用平台', 'db', 'iuap', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fi', '2312-bip', '智能会计', 'db', 'fi', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__scm', '2312-bip', '供应链云', 'db', 'scm', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__hr_cloud', '2312-bip', '人力云', 'db', 'hr_cloud', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yonbip-mkt', '2312-bip', '营销云', 'db', 'yonbip-mkt', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__am', '2312-bip', '资产云', 'db', 'am', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__cgy', '2312-bip', '采购云', 'db', 'cgy', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__tax', '2312-bip', '税务云', 'db', 'tax', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__mm', '2312-bip', '制造云', 'db', 'mm', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__epm', '2312-bip', '企业绩效', 'db', 'epm', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yonbip-pm', '2312-bip', '项目云', 'db', 'yonbip-pm', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__trst', '2312-bip', '云可信', 'db', 'trst', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__bztrc', '2312-bip', '商旅云', 'db', 'bztrc', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ctrm', '2312-bip', '贸易云', 'db', 'ctrm', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yonbip-base', '2312-bip', '领域基础', 'db', 'yonbip-base', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ec', '2312-bip', '协同云', 'db', 'ec', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__szyx', '2312-bip', '数字营销', 'db', 'szyx', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fkgxcz', '2312-bip', '费控共享财资云', 'db', 'fkgxcz', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ndi', '2312-bip', '国防工业云', 'db', 'ndi', 'db_table');"};
 
         String[] strDBComponentSQLs = {"insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__amc_aim', '2312-bip', 'db', 'amc_aim', 'db__am');",
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__amc_ambd', '2312-bip', 'db', 'amc_ambd', 'db__am');",
@@ -907,6 +907,76 @@ public class SyncDBSchemaAction implements IAction
      * @author Rocex Wang
      * @since 2021-11-15 13:59:54
      ***************************************************************************/
+    protected void syncDBField(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, ClassVO classVO) throws SQLException
+    {
+        IAction pagingFieldAction = evt ->
+        {
+            int iSequence = 0;
+            List<PropertyVO> listPropertyVO = (List<PropertyVO>) evt.getSource();
+
+            for (PropertyVO propertyVO : listPropertyVO)
+            {
+                propertyVO.setClassId(classVO.getId());
+
+                String strPropLowerName = propertyVO.getName().toLowerCase();
+
+                propertyVO.setDataTypeStyle(ClassVO.ClassType.db.value());
+                propertyVO.setName(strPropLowerName);
+                propertyVO.setDdcVersion(strVersion);
+                propertyVO.setId(StringHelper.getId());
+                propertyVO.setAttrSequence(++iSequence);
+                propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
+                propertyVO.setDefaultValue(StringHelper.isEmpty(propertyVO.getDefaultValue()) ? null : propertyVO.getDefaultValue().toLowerCase());
+                propertyVO.setDisplayName(StringHelper.isEmpty(propertyVO.getRemarks()) ? strPropLowerName : propertyVO.getRemarks().replace("\r\n", "").replace("\n", ""));
+            }
+
+            Map<String, PropertyVO> mapTableNamePropertyVO2 = listPropertyVO.stream()
+                .collect(Collectors.toMap(propertyVO -> propertyVO.getTableName() + "." + propertyVO.getName(), propertyVO -> propertyVO));
+
+            mapPropertyVOByTableName.putAll(mapTableNamePropertyVO2);
+
+            try
+            {
+                sqlExecutorTarget.insertVO(listPropertyVO.toArray(new PropertyVO[0]));
+
+                listPropertyVO.clear();
+            }
+            catch (SQLException ex)
+            {
+                Logger.getLogger().error(ex.getMessage(), ex);
+            }
+        };
+
+        Map<String, String> mapColumn = new HashMap<>();
+        mapColumn.put("COLUMN_NAME", "Name");
+        mapColumn.put("COLUMN_SIZE", "AttrLength");
+        mapColumn.put("COLUMN_DEF", "DefaultValue");
+        mapColumn.put("TABLE_NAME", "TableName");
+        mapColumn.put("TYPE_NAME", "DataTypeSql");
+        mapColumn.put("DECIMAL_DIGITS", "Precise");
+        mapColumn.put("NULLABLE", "Nullable");
+
+        BeanListProcessor<? extends MetaVO> processor = new BeanListProcessor<>(PropertyVO.class, mapColumn, propertyVO ->
+        {
+            String strDefaultTableName = propertyVO.getTableName().toLowerCase();
+
+            return listNeedSyncTableName.contains(strDefaultTableName) && isTableNameValid(strDefaultTableName);
+        });
+
+        try (Connection connection = sqlExecutorSource.getConnection();
+             ResultSet rsColumns = connection.getMetaData().getColumns(strDBCatalog, strDBSchema, classVO.getDefaultTableName(), null))
+        {
+            processor.setPagingAction(pagingFieldAction);
+
+            processor.doAction(rsColumns);
+        }
+    }
+
+    /***************************************************************************
+     * @throws SQLException
+     * @author Rocex Wang
+     * @since 2021-11-15 13:59:54
+     ***************************************************************************/
     protected void syncDBField(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, Map<String, String> mapTableNameAndId) throws SQLException
     {
         String strMsg = "sync all field from schema [%s]".formatted(strDBSchema);
@@ -921,8 +991,7 @@ public class SyncDBSchemaAction implements IAction
 
             for (PropertyVO propertyVO : listPropertyVO)
             {
-                propertyVO.setTableName(propertyVO.getClassId().toLowerCase());
-                propertyVO.setClassId(mapTableNameAndId.get(propertyVO.getTableName()));
+                propertyVO.setClassId(mapTableNameAndId.get(propertyVO.getTableName().toLowerCase()));
 
                 String strPropLowerName = propertyVO.getName().toLowerCase();
 
@@ -949,7 +1018,7 @@ public class SyncDBSchemaAction implements IAction
             Map<String, PropertyVO> mapTableNamePropertyVO2 = listPropertyVO.stream()
                 .collect(Collectors.toMap(propertyVO -> propertyVO.getTableName() + "." + propertyVO.getName(), propertyVO -> propertyVO));
 
-            mapTableNamePropertyVO.putAll(mapTableNamePropertyVO2);
+            mapPropertyVOByTableName.putAll(mapTableNamePropertyVO2);
 
             try
             {
@@ -967,16 +1036,16 @@ public class SyncDBSchemaAction implements IAction
         mapColumn.put("COLUMN_NAME", "Name");
         mapColumn.put("COLUMN_SIZE", "AttrLength");
         mapColumn.put("COLUMN_DEF", "DefaultValue");
-        mapColumn.put("TABLE_NAME", "ClassId");
+        mapColumn.put("TABLE_NAME", "TableName");
         mapColumn.put("TYPE_NAME", "DataTypeSql");
         mapColumn.put("DECIMAL_DIGITS", "Precise");
         mapColumn.put("NULLABLE", "Nullable");
 
         BeanListProcessor<? extends MetaVO> processor = new BeanListProcessor<>(PropertyVO.class, mapColumn, propertyVO ->
         {
-            String strDefaultTableName = propertyVO.getClassId().toLowerCase();
+            String strDefaultTableName = propertyVO.getTableName().toLowerCase();
 
-            return listNeedSyncTableName.contains(strDefaultTableName) && isTableNameValid(strDefaultTableName);
+            return listNeedSyncTableName.contains(strDefaultTableName) && mapTableNameAndId.containsKey(strDefaultTableName) && isTableNameValid(strDefaultTableName);
         });
 
         // 一次性查出所有表的字段
@@ -1007,38 +1076,24 @@ public class SyncDBSchemaAction implements IAction
 
         String[] strSrcDBSchemas = StringHelper.isEmpty(strSrcDBSchemaList) ? new String[]{""} : strSrcDBSchemaList.split(",");
 
-        ExecutorService executorService = Executors.newFixedThreadPool(ResHelper.getThreadCount());
-
         for (String strSrcDBSchema : strSrcDBSchemas)
         {
-            executorService.execute(() ->
+            Properties dbPropSource2 = (Properties) dbPropSource.clone();
+            dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", strSrcDBSchema));
+
+            try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);
+                 Connection connection = sqlExecutorSource.getConnection())
             {
-                Properties dbPropSource2 = (Properties) dbPropSource.clone();
-                dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", strSrcDBSchema));
+                String strSrcDBCatalog = connection.getCatalog();
 
-                try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);
-                     Connection connection = sqlExecutorSource.getConnection())
-                {
-                    String strSrcDBCatalog = connection.getCatalog();
+                initTableFiltersWithTempTableName(sqlExecutorSource);
 
-                    initTableFiltersWithTempTableName(sqlExecutorSource);
-
-                    Map<String, String> mapTableNameId = syncDBTable(sqlExecutorSource, strSrcDBCatalog, strSrcDBSchema, "db__" + strSrcDBSchema);
-
-                    syncDBField(sqlExecutorSource, strSrcDBCatalog, strSrcDBSchema, mapTableNameId);
-                }
-                catch (SQLException ex)
-                {
-                    Logger.getLogger().error(ex.getMessage(), ex);
-                }
-            });
-        }
-
-        executorService.shutdown();
-
-        while (!executorService.isTerminated())
-        {
-            ResHelper.sleep(100);
+                syncDBTable(sqlExecutorSource, strSrcDBCatalog, strSrcDBSchema, "db__" + strSrcDBSchema);
+            }
+            catch (SQLException ex)
+            {
+                Logger.getLogger().error(ex.getMessage(), ex);
+            }
         }
 
         Logger.getLogger().end("sync database meta");
@@ -1050,9 +1105,9 @@ public class SyncDBSchemaAction implements IAction
      * @since 2020-5-11 11:19:19
      * @throws Exception
      ***************************************************************************/
-    protected Map<String, String> syncDBTable(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, String strComponentId) throws SQLException
+    protected void syncDBTable(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, String strComponentId) throws SQLException
     {
-        String strMsg = "sync all table from schema [%s]".formatted(strDBSchema);
+        String strMsg = "sync all tables and fields from schema [%s]".formatted(strDBSchema);
 
         Logger.getLogger().begin(strMsg);
 
@@ -1066,21 +1121,43 @@ public class SyncDBSchemaAction implements IAction
 
         IAction pagingAction = evt ->
         {
-            List<MetaVO> listVO = (List<MetaVO>) evt.getSource();
+            List<ClassVO> listClassVO = (List<ClassVO>) evt.getSource();
 
             try
             {
-                sqlExecutorTarget.insertVO(listVO.toArray(new MetaVO[0]));
-
-                listVO.clear();
+                sqlExecutorTarget.insertVO(listClassVO.toArray(new ClassVO[0]));
             }
             catch (SQLException ex)
             {
                 Logger.getLogger().error(ex.getMessage(), ex);
             }
-        };
 
-        Map<String, String> mapTableNameAndId = new HashMap<>();
+            ExecutorService executorService = Executors.newFixedThreadPool(ResHelper.getThreadCount());
+
+            listClassVO.forEach(classVO ->
+            {
+                executorService.execute(() ->
+                {
+                    try
+                    {
+                        syncDBField(sqlExecutorSource, strDBCatalog, strDBSchema, classVO);
+                    }
+                    catch (SQLException ex)
+                    {
+                        Logger.getLogger().error(ex.getMessage(), ex);
+                    }
+                });
+            });
+
+            executorService.shutdown();
+
+            while (!executorService.isTerminated())
+            {
+                ResHelper.sleep(100);
+            }
+
+            listClassVO.clear();
+        };
 
         BeanListProcessor<ClassVO> processor = new BeanListProcessor<>(ClassVO.class, mapTable, classVO ->
         {
@@ -1106,6 +1183,8 @@ public class SyncDBSchemaAction implements IAction
                 String strPrimaryKeys = getPrimaryKeys(sqlExecutorSource, strDBCatalog, strDBSchema, strDefaultTableName, mapPrimaryKey);
 
                 classVO.setKeyAttribute(strPrimaryKeys);
+
+                mapPrimaryKeyByTableName.put(strDefaultTableName, strPrimaryKeys);
             }
             catch (Exception ex)
             {
@@ -1113,8 +1192,6 @@ public class SyncDBSchemaAction implements IAction
             }
 
             listNeedSyncTableName.add(strDefaultTableName);
-            mapTableNameAndId.put(classVO.getDefaultTableName(), classVO.getId());
-            mapTableNameClassVO.put(classVO.getId(), classVO);
 
             return true;
         }, "DefaultTableName", "ClassListUrl", "Remarks");
@@ -1127,8 +1204,6 @@ public class SyncDBSchemaAction implements IAction
         }
 
         Logger.getLogger().end(strMsg);
-
-        return mapTableNameAndId;
     }
 
     protected void syncMetaData(SQLExecutor sqlExecutorSource, String strModuleSQL, String strComponentSQL, String strClassSQL, String strPropertySQL, String strEnumAsClass,
@@ -1150,6 +1225,11 @@ public class SyncDBSchemaAction implements IAction
                 if (metaVO.getDisplayName() != null)
                 {
                     metaVO.setDisplayName(metaVO.getDisplayName().replace("\r\n", "").replace("\n", ""));
+                }
+
+                if (metaVO instanceof ClassVO classVO && StringHelper.isBlank(classVO.getKeyAttribute()))
+                {
+                    classVO.setKeyAttribute(mapPrimaryKeyByTableName.get(Objects.toString(classVO.getDefaultTableName(), "").toLowerCase()));
                 }
             }
 
@@ -1204,8 +1284,8 @@ public class SyncDBSchemaAction implements IAction
         String strOtherSQL2 = ",'" + ModelType.md.name() + "' as model_type" + strOtherSQL1;
 
         String strModuleSQL =
-            "select distinct lower(own_module) as id,own_module as display_name,null as help,own_module as name,null as parent_module_id,null as version_type" + strOtherSQL2 +
-                " from md_meta_component where ytenant_id='0' and own_module is not null and own_module not in('','null','NULL') order by own_module";
+            "select distinct lower(own_module) as id,own_module as display_name,null as help,own_module as name,'md_clazz' as parent_module_id,null as version_type" +
+                strOtherSQL2 + " from md_meta_component where ytenant_id='0' and own_module is not null and own_module not in('','null','NULL') order by own_module";
 
         String strComponentSQL =
             "select id,null as biz_model,display_name,null as help,name,null as namespace,lower(own_module) as own_module,null as version,null as version_type" + strOtherSQL2 +
@@ -1330,5 +1410,18 @@ public class SyncDBSchemaAction implements IAction
         {
             syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strClassSQL, strPropertySQL, null, strEnumValueSQL);
         }
+    }
+
+    @Override
+    public void close()
+    {
+        mapId.clear();
+        dbPropSource.clear();
+        propCodeName.clear();
+        listNeedSyncTableName.clear();
+        mapPrimaryKeyByTableName.clear();
+        mapPropertyVOByTableName.clear();
+
+        sqlExecutorTarget.close();
     }
 }
