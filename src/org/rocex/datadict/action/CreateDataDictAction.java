@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.function.Function;
@@ -48,11 +47,7 @@ import org.rocex.vo.IAction;
 public class CreateDataDictAction implements IAction
 {
     protected Boolean isBIP;
-
-    // 已生成的模块、组件、实体
-    protected List<String> listModule = new Vector<>();
-    protected List<String> listComonent = new Vector<>();
-    protected List<String> listClass = new Vector<>();
+    protected Boolean isCreateDbDdc = true;
 
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();       // component id 和 component 内所有 class 链接的对应关系
     protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();       // component id 和 主实体 id 的对应关系
@@ -92,6 +87,7 @@ public class CreateDataDictAction implements IAction
         this.strVersion = strVersion;
 
         isBIP = Boolean.valueOf(Context.getInstance().getVersionSetting(strVersion, "isBIP", "true"));
+        isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getVersionSetting(strVersion, "createDbDdc", "true"));
 
         strOutputRootDir = Context.getInstance().getVersionSetting(strVersion, "OutputDir");
         strOutputDictDir = Path.of(strOutputRootDir, "dict").toString();
@@ -318,7 +314,7 @@ public class CreateDataDictAction implements IAction
             propertyVO.setDataScope(getDataScope(propertyVO));
 
             // 默认值
-            propertyVO.setDefaultValue(propertyVO.getDefaultValue() == null ? "" : propertyVO.getDefaultValue());
+            propertyVO.setDefaultValue(Objects.toString(propertyVO.getDefaultValue(), ""));
 
             // 引用实体模型，这个放到最后，因为会改变dataType的值
             ClassVO refClassVO = (ClassVO) mapIdClassVO.get(propertyVO.getDataType());
@@ -394,17 +390,14 @@ public class CreateDataDictAction implements IAction
         List<String> listClassUsedModule = new ArrayList<>();       // 只生成含有实体的Module
         List<String> listClassUsedComponent = new ArrayList<>();    // 只生成含有实体的Component
 
-        String strTreeDataModuleTemplate = """
-            {id:"%s",name:"%s %s",isDdcClass:false,path:"%s"},
-            """;                                                    // 左树模块 虚节点
-        String strTreeDataComponentTemplate = """
+        String strTreeDataFolderTemplate = """
             {id:"%s",pId:"%s",name:"%s %s",isDdcClass:false,path:"%s"},
-            """;                                                    // 左树组件 虚节点
+            """;                                                    // 左树目录 虚节点
         String strTreeDataClassTemplate = """
             {id:"%s",pId:"%s",name:"%s %s",path:"%s"},
             """;                                                    // 左树实体 链接实体
 
-        strModuleRows.append(strTreeDataModuleTemplate.formatted(ModuleVO.strMDRootId, "Class", "元数据字典", ModuleVO.strMDRootId));
+        strModuleRows.append(strTreeDataFolderTemplate.formatted(ModuleVO.strMDRootId, null, "Class", "元数据字典", ModuleVO.strMDRootId));
 
         for (ClassVO classVO : listClassVO)
         {
@@ -421,6 +414,7 @@ public class CreateDataDictAction implements IAction
                 continue;
             }
 
+            String strModuleId = moduleVO.getId();
             String strClassname = classVO.getFullClassname();
             strClassname = strClassname.contains(".") ? strClassname.substring(strClassname.lastIndexOf(".") + 1) : strClassname;
 
@@ -428,8 +422,8 @@ public class CreateDataDictAction implements IAction
             {
                 boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
 
-                String strDdc = strTreeDataClassTemplate.formatted(classVO.getId(), moduleVO.getId(), Objects.toString(classVO.getDefaultTableName(), ""),
-                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + moduleVO.getId() + "," + classVO.getComponentId());
+                String strDdc = strTreeDataClassTemplate.formatted(classVO.getId(), strModuleId, Objects.toString(classVO.getDefaultTableName(), ""),
+                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + strModuleId + "," + classVO.getComponentId());
 
                 if (blHasChildren)
                 {
@@ -444,14 +438,12 @@ public class CreateDataDictAction implements IAction
             {
                 String strPrimaryClassId = mapComponentIdPrimaryClassId.get(classVO.getComponentId());
                 ClassVO primaryClassVO = strPrimaryClassId == null ? null : (ClassVO) mapIdClassVO.get(strPrimaryClassId);
-                String strPid = primaryClassVO == null ? moduleVO.getId() : primaryClassVO.getId();
+                String strPid = primaryClassVO == null ? strModuleId : primaryClassVO.getId();
 
                 String strTreeDataClass = strTreeDataClassTemplate.formatted(classVO.getId(), strPid, Objects.toString(classVO.getDefaultTableName(), ""),
-                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + moduleVO.getId() + "," + classVO.getComponentId());
+                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + strModuleId + "," + classVO.getComponentId());
                 strClassRows.append(strTreeDataClass);
             }
-
-            String strModuleId = moduleVO.getId();
 
             if (!listClassUsedModule.contains(strModuleId))
             {
@@ -463,10 +455,10 @@ public class CreateDataDictAction implements IAction
         {
             if (!listClassUsedModule.contains(moduleVO.getId()))
             {
-                continue;
+                // continue;
             }
 
-            String strTreeDataModule = strTreeDataComponentTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(), moduleVO.getDisplayName(),
+            String strTreeDataModule = strTreeDataFolderTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(), moduleVO.getDisplayName(),
                 ModuleVO.strMDRootId);
             strModuleRows.append(strTreeDataModule);
 
@@ -478,7 +470,7 @@ public class CreateDataDictAction implements IAction
         // 所有表都按字母顺序挂在一个节点下，不再分级
         if (!listTableVO.isEmpty())
         {
-            strModuleRows.append(strTreeDataModuleTemplate.formatted(ModuleVO.strDBRootId, "Table", "数据库字典", ModuleVO.strDBRootId));
+            strModuleRows.append(strTreeDataFolderTemplate.formatted(ModuleVO.strDBRootId, null, "Table", "数据库字典", ModuleVO.strDBRootId));
 
             for (ClassVO classVO : listTableVO)
             {
@@ -490,22 +482,7 @@ public class CreateDataDictAction implements IAction
                     continue;
                 }
 
-                String strTableName = classVO.getDefaultTableName().toLowerCase();
-
-                char char0 = strTableName.charAt(0);
-
-                if (moduleVO == null)
-                {
-                    String string0 = String.valueOf(char0 >= 'a' && char0 <= 'z' ? char0 - 'a' : '0');
-
-                    moduleVO = new ModuleVO();
-                    moduleVO.setId("char_" + string0);
-                    moduleVO.setName(string0);
-                    moduleVO.setParentModuleId(ModuleVO.strDBRootId);
-                    moduleVO.setDisplayName(char0 >= 'a' && char0 <= 'z' ? string0.toUpperCase() + " 开头" : "其它");
-                }
-
-                moduleVO.setPath(ModuleVO.strDBRootId + "," + moduleVO.getId());
+                // moduleVO.setPath(ModuleVO.strDBRootId + "," + moduleVO.getId());
 
                 ComponentVO componentVO = (ComponentVO) mapIdComponentVO.get(classVO.getComponentId());
                 if (!listClassUsedComponent.contains(componentVO.getId()))
@@ -520,6 +497,8 @@ public class CreateDataDictAction implements IAction
                     listClassUsedModule.add(strModuleId);
                 }
 
+                String strTableName = classVO.getDefaultTableName().toLowerCase();
+
                 String strClassRow = strTreeDataClassTemplate.formatted(classVO.getId(), classVO.getComponentId(), strTableName, Objects.toString(classVO.getDisplayName(), ""),
                     ModuleVO.strDBRootId + "," + strModuleId + "," + componentVO.getId());
                 strClassRows.append(strClassRow);
@@ -532,7 +511,7 @@ public class CreateDataDictAction implements IAction
                     continue;
                 }
 
-                String strModuleRow = strTreeDataComponentTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(),
+                String strModuleRow = strTreeDataFolderTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(),
                     Objects.toString(moduleVO.getDisplayName(), ""), ModuleVO.strDBRootId);
                 strModuleRows.append(strModuleRow);
 
@@ -548,7 +527,7 @@ public class CreateDataDictAction implements IAction
                     continue;
                 }
 
-                String strComponentRow = strTreeDataComponentTemplate.formatted(componentVO.getId(), componentVO.getOwnModule(), componentVO.getName(),
+                String strComponentRow = strTreeDataFolderTemplate.formatted(componentVO.getId(), componentVO.getOwnModule(), componentVO.getName(),
                     Objects.toString(componentVO.getDisplayName(), ""), ModuleVO.strDBRootId + "," + componentVO.getOwnModule());
                 strComponentRows.append(strComponentRow);
             }
@@ -612,15 +591,15 @@ public class CreateDataDictAction implements IAction
         List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL, null, null);
         List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL, null, null);
         List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL1, null, null);
-        List<ClassVO> listTableVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL2, null, null);
 
         mapIdModuleVO = buildMap(listModuleVO);
         mapIdComponentVO = buildMap(listComponentVO);
         mapIdClassVO = buildMap(listClassVO);
 
         buildEnumMap();
-
         buildClassVOMapByComponentId(listClassVO);
+
+        List<ClassVO> listTableVO = isCreateDbDdc ? (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL2, null, null) : new ArrayList<>();
 
         createDataDictTree(listModuleVO, listComponentVO, listClassVO, listTableVO);
 

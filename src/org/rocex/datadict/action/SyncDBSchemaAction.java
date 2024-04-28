@@ -48,9 +48,8 @@ import org.rocex.vo.IAction;
  ***************************************************************************/
 public class SyncDBSchemaAction implements IAction, Closeable
 {
-    protected Properties dbPropSource;
-
     protected Boolean isBIP = true;
+    protected Boolean isCreateDbDdc = true;
 
     protected List<String> listNeedSyncTableName = new Vector<>();                  // 要同步的表名
 
@@ -61,6 +60,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
     protected Pattern patternTableFilter;
 
     protected Properties propCodeName;
+    protected Properties propDBSource;
 
     protected SQLExecutor sqlExecutorTarget;
 
@@ -73,7 +73,6 @@ public class SyncDBSchemaAction implements IAction, Closeable
         "t_laterow", "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_"};
 
     protected String strTs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ").format(new Date());
-
     protected String strVersion;              // 数据字典版本
 
     /***************************************************************************
@@ -87,16 +86,17 @@ public class SyncDBSchemaAction implements IAction, Closeable
 
         this.strVersion = strVersion;
 
-        isBIP = Boolean.valueOf(Context.getInstance().getVersionSetting(strVersion, "isBIP"));
+        isBIP = Boolean.valueOf(Context.getInstance().getVersionSetting(strVersion, "isBIP", "true"));
+        isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getVersionSetting(strVersion, "createDbDdc", "true"));
 
         propCodeName = FileHelper.load("data" + File.separator + "code-name.properties");
 
         // source
-        dbPropSource = new Properties();
-        dbPropSource.setProperty("jdbc.url", Context.getInstance().getSetting(strVersion + ".jdbc.url"));
-        dbPropSource.setProperty("jdbc.user", Context.getInstance().getSetting(strVersion + ".jdbc.user"));
-        dbPropSource.setProperty("jdbc.driver", Context.getInstance().getSetting(strVersion + ".jdbc.driver"));
-        dbPropSource.setProperty("jdbc.password", Context.getInstance().getSetting(strVersion + ".jdbc.password"));
+        propDBSource = new Properties();
+        propDBSource.setProperty("jdbc.url", Context.getInstance().getSetting(strVersion + ".jdbc.url"));
+        propDBSource.setProperty("jdbc.user", Context.getInstance().getSetting(strVersion + ".jdbc.user"));
+        propDBSource.setProperty("jdbc.driver", Context.getInstance().getSetting(strVersion + ".jdbc.driver"));
+        propDBSource.setProperty("jdbc.password", Context.getInstance().getSetting(strVersion + ".jdbc.password"));
 
         // target
         Properties dbPropTarget = new Properties();
@@ -220,9 +220,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
 
         sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, DictJsonVO.class);
 
-        Boolean blCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getSetting("createDbDdc", "false"));
-
-        if (blCreateDbDdc)
+        if (isCreateDbDdc)
         {
             syncDBMeta();
         }
@@ -251,6 +249,15 @@ public class SyncDBSchemaAction implements IAction, Closeable
         }
 
         PropertyVO tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + propertyVO.getName());
+        if (tableNamePropertyVO == null)
+        {
+            tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.camelToUnderline(propertyVO.getName()));
+            if (tableNamePropertyVO == null)
+            {
+                tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.underlineToCamel(propertyVO.getName()));
+            }
+        }
+
         if (tableNamePropertyVO != null)
         {
             String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
@@ -411,6 +418,26 @@ public class SyncDBSchemaAction implements IAction, Closeable
             return;
 
         String[] strDBModuleSQLs = {
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__iuap', '2312-bip', '技术应用平台', 'md', 'iuap', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__fi', '2312-bip', '智能会计', 'md', 'fi', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__scm', '2312-bip', '供应链云', 'md', 'scm', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__hr_cloud', '2312-bip', '人力云', 'md', 'hr_cloud', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yonbip-mkt', '2312-bip', '营销云', 'md', 'yonbip-mkt', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__am', '2312-bip', '资产云', 'md', 'am', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__cgy', '2312-bip', '采购云', 'md', 'cgy', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__tax', '2312-bip', '税务云', 'md', 'tax', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__mm', '2312-bip', '制造云', 'md', 'mm', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__epm', '2312-bip', '企业绩效', 'md', 'epm', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yonbip-pm', '2312-bip', '项目云', 'md', 'yonbip-pm', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__trst', '2312-bip', '云可信', 'md', 'trst', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__bztrc', '2312-bip', '商旅云', 'md', 'bztrc', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__ctrm', '2312-bip', '贸易云', 'md', 'ctrm', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yonbip-base', '2312-bip', '领域基础', 'md', 'yonbip-base', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__ec', '2312-bip', '协同云', 'md', 'ec', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__szyx', '2312-bip', '数字营销', 'md', 'szyx', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__fkgxcz', '2312-bip', '费控共享财资云', 'md', 'fkgxcz', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__ndi', '2312-bip', '国防工业云', 'md', 'ndi', 'md_clazz');",
+
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__iuap', '2312-bip', '技术应用平台', 'db', 'iuap', 'db_table');",
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fi', '2312-bip', '智能会计', 'db', 'fi', 'db_table');",
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__scm', '2312-bip', '供应链云', 'db', 'scm', 'db_table');",
@@ -1078,7 +1105,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
 
         for (String strSrcDBSchema : strSrcDBSchemas)
         {
-            Properties dbPropSource2 = (Properties) dbPropSource.clone();
+            Properties dbPropSource2 = (Properties) propDBSource.clone();
             dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", strSrcDBSchema));
 
             try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);
@@ -1404,7 +1431,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
         String strEnumValueSQL =
             "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherSQL + " from md_enumvalue order by id,enumsequence";
 
-        Properties dbPropSource2 = (Properties) dbPropSource.clone();
+        Properties dbPropSource2 = (Properties) propDBSource.clone();
 
         try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2))
         {
@@ -1416,7 +1443,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
     public void close()
     {
         mapId.clear();
-        dbPropSource.clear();
+        propDBSource.clear();
         propCodeName.clear();
         listNeedSyncTableName.clear();
         mapPrimaryKeyByTableName.clear();
