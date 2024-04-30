@@ -453,9 +453,9 @@ public class CreateDataDictAction implements IAction
 
         for (ModuleVO moduleVO : listModuleVO)
         {
-            if (!listClassUsedModule.contains(moduleVO.getId()))
+            if (!listClassUsedModule.contains(moduleVO.getId()) && !ModuleVO.strMDRootId.equals(moduleVO.getParentModuleId()))
             {
-                // continue;
+                continue;
             }
 
             String strTreeDataModule = strTreeDataFolderTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(), moduleVO.getDisplayName(),
@@ -908,6 +908,10 @@ public class CreateDataDictAction implements IAction
 
         List<String> listPk = Arrays.asList(StringHelper.isEmpty(classVO.getKeyAttribute()) ? new String[]{} : classVO.getKeyAttribute().split(";"));
 
+        List<String> listAuditTsDr = Arrays.asList("dr", "ts", "creator", "created_by", "create_user", "creatorid", "creator_id", "created", "createdate", "created_date",
+            "createtime", "create_date", "create_time", "creationtime", "creation_time", "last_modified_by", "modifier", "modifierid", "last_modified_date", "modifiedtime",
+            "modified_time", "modifydate", "modifytime", "modify_date", "modify_time", "update_time");
+
         for (PropertyVO propertyVO : listPropertyVO)
         {
             String strPropKey = propertyVO.getName();
@@ -921,8 +925,7 @@ public class CreateDataDictAction implements IAction
             {
                 listCustomPropertyVO.add(propertyVO);
             }
-            else if ("dr".equalsIgnoreCase(strPropKey) || "ts".equalsIgnoreCase(strPropKey) || "creator".equalsIgnoreCase(strPropKey) ||
-                "creationtime".equalsIgnoreCase(strPropKey) || "modifier".equalsIgnoreCase(strPropKey) || "modifiedtime".equalsIgnoreCase(strPropKey))
+            else if (listAuditTsDr.contains(strPropKey.toLowerCase()))
             {
                 listPropertyFinalVO.add(propertyVO);
             }
