@@ -1343,7 +1343,6 @@ public class SyncDBSchemaAction implements IAction, Closeable
                 " from md_meta_class a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri" +
                 " where a.ytenant_id='0' and a.meta_component_uri is not null" +
                 " and b.own_module is not null and b.own_module not in('','null','NULL') order by meta_component_uri";
-        // and a.uri in (select object_uri from md_attribute where ytenant_id='0')
 
         String strEnumAsClass = "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.enumeration.value() +
             " as class_type,b.id as component_id,null as default_table_name" +

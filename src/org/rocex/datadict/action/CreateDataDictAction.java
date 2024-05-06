@@ -387,8 +387,7 @@ public class CreateDataDictAction implements IAction
         StringBuilder strComponentRows = new StringBuilder();       // 所有组件
         StringBuilder strClassRows = new StringBuilder();           // 所有实体
 
-        List<String> listClassUsedModule = new ArrayList<>();       // 只生成含有实体的Module
-        List<String> listClassUsedComponent = new ArrayList<>();    // 只生成含有实体的Component
+        List<String> listWithChildren = new ArrayList<>();          // 只生成含有实体的Module和Component
 
         String strTreeDataFolderTemplate = """
             {id:"%s",pId:"%s",name:"%s %s",isDdcClass:false,path:"%s"},
@@ -415,15 +414,17 @@ public class CreateDataDictAction implements IAction
             }
 
             String strModuleId = moduleVO.getId();
+            String strParentModuleId = moduleVO.getParentModuleId();
+
             String strClassname = classVO.getFullClassname();
             strClassname = strClassname.contains(".") ? strClassname.substring(strClassname.lastIndexOf(".") + 1) : strClassname;
 
             if (classVO.isPrimaryClass())
             {
-                boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
-
                 String strDdc = strTreeDataClassTemplate.formatted(classVO.getId(), strModuleId, Objects.toString(classVO.getDefaultTableName(), ""),
-                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + strModuleId + "," + classVO.getComponentId());
+                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + strParentModuleId + "," + strModuleId);
+
+                boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
 
                 if (blHasChildren)
                 {
@@ -441,31 +442,34 @@ public class CreateDataDictAction implements IAction
                 String strPid = primaryClassVO == null ? strModuleId : primaryClassVO.getId();
 
                 String strTreeDataClass = strTreeDataClassTemplate.formatted(classVO.getId(), strPid, Objects.toString(classVO.getDefaultTableName(), ""),
-                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + strModuleId + "," + classVO.getComponentId());
+                    classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + strParentModuleId + "," + strModuleId + "," + strPid);
                 strClassRows.append(strTreeDataClass);
             }
 
-            if (!listClassUsedModule.contains(strModuleId))
+            if (!listWithChildren.contains(strParentModuleId))
             {
-                listClassUsedModule.add(strModuleId);
+                listWithChildren.add(strParentModuleId);
+            }
+
+            if (!listWithChildren.contains(strModuleId))
+            {
+                listWithChildren.add(strModuleId);
             }
         }
 
         for (ModuleVO moduleVO : listModuleVO)
         {
-            if (!listClassUsedModule.contains(moduleVO.getId()) && !ModuleVO.strMDRootId.equals(moduleVO.getParentModuleId()))
+            if (!listWithChildren.contains(moduleVO.getId()))
             {
                 continue;
             }
 
             String strTreeDataModule = strTreeDataFolderTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(), moduleVO.getDisplayName(),
-                ModuleVO.strMDRootId);
+                ModuleVO.strMDRootId + "," + moduleVO.getParentModuleId());
             strModuleRows.append(strTreeDataModule);
-
-            listClassUsedModule.remove(moduleVO.getId());
         }
 
-        listClassUsedModule.clear();
+        listWithChildren.clear();
 
         // 所有表都按字母顺序挂在一个节点下，不再分级
         if (!listTableVO.isEmpty())
@@ -485,16 +489,16 @@ public class CreateDataDictAction implements IAction
                 // moduleVO.setPath(ModuleVO.strDBRootId + "," + moduleVO.getId());
 
                 ComponentVO componentVO = (ComponentVO) mapIdComponentVO.get(classVO.getComponentId());
-                if (!listClassUsedComponent.contains(componentVO.getId()))
+                if (!listWithChildren.contains(componentVO.getId()))
                 {
-                    listClassUsedComponent.add(componentVO.getId());
+                    listWithChildren.add(componentVO.getId());
                 }
 
                 String strModuleId = moduleVO.getId();
 
-                if (!listClassUsedModule.contains(strModuleId))
+                if (!listWithChildren.contains(strModuleId))
                 {
-                    listClassUsedModule.add(strModuleId);
+                    listWithChildren.add(strModuleId);
                 }
 
                 String strTableName = classVO.getDefaultTableName().toLowerCase();
@@ -506,7 +510,7 @@ public class CreateDataDictAction implements IAction
 
             for (ModuleVO moduleVO : listModuleVO)
             {
-                if (!listClassUsedModule.contains(moduleVO.getId()))
+                if (!listWithChildren.contains(moduleVO.getId()))
                 {
                     continue;
                 }
@@ -514,15 +518,11 @@ public class CreateDataDictAction implements IAction
                 String strModuleRow = strTreeDataFolderTemplate.formatted(moduleVO.getId(), moduleVO.getParentModuleId(), moduleVO.getName(),
                     Objects.toString(moduleVO.getDisplayName(), ""), ModuleVO.strDBRootId);
                 strModuleRows.append(strModuleRow);
-
-                listClassUsedModule.remove(moduleVO.getId());
             }
-
-            listClassUsedModule.clear();
 
             for (ComponentVO componentVO : listComponentVO)
             {
-                if (!listClassUsedComponent.contains(componentVO.getId()))
+                if (!listWithChildren.contains(componentVO.getId()))
                 {
                     continue;
                 }
@@ -531,6 +531,8 @@ public class CreateDataDictAction implements IAction
                     Objects.toString(componentVO.getDisplayName(), ""), ModuleVO.strDBRootId + "," + componentVO.getOwnModule());
                 strComponentRows.append(strComponentRow);
             }
+
+            listWithChildren.clear();
         }
 
         FileHelper.writeFileThread(Path.of(strOutputRootDir, "scripts", "data-dict-tree.js"), "var dataDictIndexData=[" + strModuleRows + strComponentRows + strClassRows + "];");

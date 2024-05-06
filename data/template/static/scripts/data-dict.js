@@ -192,10 +192,7 @@ function filterData(searchVal, dictIndexData) {
         }
 
         if (!!item.name && item.name.toLowerCase().includes(searchVal)) {
-            // if (!childrenArr.includes(item.pId)) childrenArr.push(item.pId);
-            if (childrenArr.includes(item.pId)) {
-                childrenArr = [...childrenArr, item.id];
-            } else if (item.path) {
+            if (item.path) {
                 childrenArr = [...new Set([...childrenArr, ...item.path.split(","), item.id])];
             }
 
