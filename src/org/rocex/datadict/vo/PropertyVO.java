@@ -35,6 +35,7 @@ public class PropertyVO extends MetaVO
     private String strAttrMaxValue;
     private String strAttrMinValue;
     private String strClassId;
+    private String strColumnCode;
     private String strDataScope;
     private String strDataType;
     private String strDataTypeDisplayName;
@@ -462,11 +463,21 @@ public class PropertyVO extends MetaVO
         strDataType = dataType;
     }
 
+    /***************************************************************************
+     * @param dataTypeDisplayName the dataType display name to set
+     * @author Rocex Wang
+     * @since 2024-05-07 11:08:45
+     ***************************************************************************/
     public void setDataTypeDisplayName(String dataTypeDisplayName)
     {
         strDataTypeDisplayName = dataTypeDisplayName;
     }
 
+    /***************************************************************************
+     * @param dataTypeName the dataType name to set
+     * @author Rocex Wang
+     * @since 2024-05-07 11:09:09
+     ***************************************************************************/
     public void setDataTypeName(String dataTypeName)
     {
         strDataTypeName = dataTypeName;
@@ -602,8 +613,32 @@ public class PropertyVO extends MetaVO
         strRefModelName = refModelName;
     }
 
+    /***************************************************************************
+     * @param strRemarks the remarks to set
+     * @author Rocex Wang
+     * @since 2024-05-07 11:09:49
+     ***************************************************************************/
     public void setRemarks(String strRemarks)
     {
         this.strRemarks = strRemarks;
+    }
+
+    /***************************************************************************
+     * @author Rocex Wang
+     * @since 2024-05-07 11:10:20
+     ***************************************************************************/
+    public String getColumnCode()
+    {
+        return strColumnCode;
+    }
+
+    /***************************************************************************
+     * @param columnCode the column code to set
+     * @author Rocex Wang
+     * @since 2024-05-07 11:10:10
+     ***************************************************************************/
+    public void setColumnCode(String columnCode)
+    {
+        strColumnCode = columnCode;
     }
 }

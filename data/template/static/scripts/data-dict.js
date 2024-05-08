@@ -83,7 +83,7 @@ function loadDataDict(classId) {
         url: "./dict/" + classId + ".json",
         error: function () {
             // alert("请求失败，请稍后再试或联系管理员！");
-            $("#classDefaultTableName").html("");
+            $("#classTableName").html("");
             $("#classDisplayName").html("<span style='color:red'>请求失败，请稍后再试或联系管理员！</span>");
             $("#classList").html("&nbsp;");
             $("#dataDictTableBody").html("");
@@ -101,7 +101,7 @@ function loadDataDict(classId) {
                     : " (" + (data.defaultTableName || data.fullClassname) + ")";
 
             $("#classDisplayName").html(data.displayName ? data.displayName : "");
-            $("#classDefaultTableName").html(classDefaultName);
+            $("#classTableName").html(classDefaultName);
             $("#classList").html(data.classListUrl ? data.classListUrl : "");
 
             let ddcBody = "";
@@ -126,11 +126,12 @@ function loadDataDict(classId) {
                         <td style="text-align: right;">${index++}</td>
                         <td>${propertyVO.displayName}</td>
                         <td>${propertyVO.name}</td>
-                        <td>${propertyVO.dataTypeSql ? propertyVO.dataTypeSql : ""}</td>
+                        <td>${propertyVO.columnCode || propertyVO.name}</td>
+                        <td>${propertyVO.dataTypeSql || ""}</td>
                         <td style="text-align: center">${propertyVO.nullable ? "" : "√"}</td>
                         <td>${dataTypeShowName}</td>
-                        <td>${propertyVO.defaultValue ? propertyVO.defaultValue : ""}</td>
-                        <td>${propertyVO.dataScope ? propertyVO.dataScope : ""}</td>
+                        <td>${propertyVO.defaultValue || ""}</td>
+                        <td>${propertyVO.dataScope || ""}</td>
                         <td>${help}</td>
                     </tr>`;
             });

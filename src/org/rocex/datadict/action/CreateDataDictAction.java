@@ -47,7 +47,7 @@ import org.rocex.vo.IAction;
 public class CreateDataDictAction implements IAction
 {
     protected Boolean isBIP;
-    protected Boolean isCreateDbDdc = true;
+    protected Boolean isCreateDbDdc;
 
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();       // component id 和 component 内所有 class 链接的对应关系
     protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();       // component id 和 主实体 id 的对应关系
@@ -349,15 +349,12 @@ public class CreateDataDictAction implements IAction
 
         ExecutorService executorService = Executors.newFixedThreadPool(ResHelper.getThreadCount());
 
-        listClassVO.forEach(classVO ->
+        listClassVO.forEach(classVO -> executorService.execute(() ->
         {
-            executorService.execute(() ->
-            {
-                createDataDictFile(classVO);
+            createDataDictFile(classVO);
 
-                Logger.getLogger().log2(Logger.iLoggerLevelDebug, ++iCount[0] + "/" + iCount[1]);
-            });
-        });
+            Logger.getLogger().log2(Logger.iLoggerLevelDebug, ++iCount[0] + "/" + iCount[1]);
+        }));
 
         executorService.shutdown();
 
@@ -421,7 +418,7 @@ public class CreateDataDictAction implements IAction
 
             if (classVO.isPrimaryClass())
             {
-                String strDdc = strTreeDataClassTemplate.formatted(classVO.getId(), strModuleId, Objects.toString(classVO.getDefaultTableName(), ""),
+                String strDdc = strTreeDataClassTemplate.formatted(classVO.getId(), strModuleId, Objects.toString(classVO.getTableName(), ""),
                     classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + strParentModuleId + "," + strModuleId);
 
                 boolean blHasChildren = mapClassVOByComponent.get(classVO.getComponentId()).size() > 1;
@@ -441,7 +438,7 @@ public class CreateDataDictAction implements IAction
                 ClassVO primaryClassVO = strPrimaryClassId == null ? null : (ClassVO) mapIdClassVO.get(strPrimaryClassId);
                 String strPid = primaryClassVO == null ? strModuleId : primaryClassVO.getId();
 
-                String strTreeDataClass = strTreeDataClassTemplate.formatted(classVO.getId(), strPid, Objects.toString(classVO.getDefaultTableName(), ""),
+                String strTreeDataClass = strTreeDataClassTemplate.formatted(classVO.getId(), strPid, Objects.toString(classVO.getTableName(), ""),
                     classVO.getDisplayName() + " " + strClassname, ModuleVO.strMDRootId + "," + strParentModuleId + "," + strModuleId + "," + strPid);
                 strClassRows.append(strTreeDataClass);
             }
@@ -501,7 +498,7 @@ public class CreateDataDictAction implements IAction
                     listWithChildren.add(strModuleId);
                 }
 
-                String strTableName = classVO.getDefaultTableName().toLowerCase();
+                String strTableName = classVO.getTableName().toLowerCase();
 
                 String strClassRow = strTreeDataClassTemplate.formatted(classVO.getId(), classVO.getComponentId(), strTableName, Objects.toString(classVO.getDisplayName(), ""),
                     ModuleVO.strDBRootId + "," + strModuleId + "," + componentVO.getId());
@@ -586,9 +583,9 @@ public class CreateDataDictAction implements IAction
         String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " order by model_type";
         String strComponentSQL = sqlExecutor.getSQLSelect(ComponentVO.class) + " where " + strVersionSQL + " order by model_type,own_module,name";
         String strClassSQL1 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='" + MetaVO.ModelType.md.name() +
-            "' order by primary_class desc,default_table_name desc";
+            "' order by primary_class desc,table_name desc";
         String strClassSQL2 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='" + MetaVO.ModelType.db.name() +
-            "' order by default_table_name";
+            "' order by table_name";
 
         List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL, null, null);
         List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL, null, null);

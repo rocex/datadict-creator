@@ -11,9 +11,8 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @since 2020-4-21 13:20:06
  ***************************************************************************/
-@Table(name = "md_class", indexes = {@Index(name = "i_md_class_component_id", columnList = "component_id"),
-    @Index(name = "i_md_class_default_table_name", columnList = "default_table_name"), @Index(name = "i_md_class_class_type", columnList = "class_type"),
-    @Index(name = "i_md_class_ddc_version", columnList = "ddc_version")})
+@Table(name = "md_class", indexes = {@Index(name = "i_md_class_component_id", columnList = "component_id"), @Index(name = "i_md_class_table_name", columnList = "table_name"),
+    @Index(name = "i_md_class_class_type", columnList = "class_type"), @Index(name = "i_md_class_ddc_version", columnList = "ddc_version")})
 public class ClassVO extends MetaVO
 {
     private Boolean blAuthen;
@@ -27,13 +26,16 @@ public class ClassVO extends MetaVO
     private String strBizItfImpClassname;
     private String strClassListUrl;
     private String strComponentId;
-    private String strDefaultTableName;
     private String strFullClassname;
     private String strKeyAttribute;
     private String strOwnModule;
     private String strRefModelName;
     private String strRemarks;
     private String strReturnType;
+    private String strTableName;
+
+    private String strMainClassId;
+    private String strBizObjectId;
 
     public enum ClassType
     {
@@ -160,19 +162,19 @@ public class ClassVO extends MetaVO
      * @since 2020-4-22 10:39:06
      ***************************************************************************/
     @Column(length = 50)
-    public String getDefaultTableName()
+    public String getTableName()
     {
-        return strDefaultTableName;
+        return strTableName;
     }
 
     /***************************************************************************
-     * @param defaultTableName the defaultTableName to set
+     * @param tableName the defaultTableName to set
      * @author Rocex Wang
      * @since 2020-4-22 10:39:06
      ***************************************************************************/
-    public void setDefaultTableName(String defaultTableName)
+    public void setTableName(String tableName)
     {
-        strDefaultTableName = defaultTableName;
+        strTableName = tableName;
     }
 
     /***************************************************************************
@@ -338,5 +340,25 @@ public class ClassVO extends MetaVO
     public void setPrimaryClass(Boolean isPrimaryClass)
     {
         blPrimaryClass = isPrimaryClass;
+    }
+
+    public String getBizObjectId()
+    {
+        return strBizObjectId;
+    }
+
+    public void setBizObjectId(String bizObjectId)
+    {
+        strBizObjectId = bizObjectId;
+    }
+
+    public String getMainClassId()
+    {
+        return strMainClassId;
+    }
+
+    public void setMainClassId(String mainClassId)
+    {
+        strMainClassId = mainClassId;
     }
 }
