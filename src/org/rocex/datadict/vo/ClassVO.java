@@ -157,7 +157,7 @@ public class ClassVO extends MetaVO
     }
 
     /***************************************************************************
-     * @return the defaultTableName
+     * @return the tableName
      * @author Rocex Wang
      * @since 2020-4-22 10:39:06
      ***************************************************************************/
@@ -168,7 +168,7 @@ public class ClassVO extends MetaVO
     }
 
     /***************************************************************************
-     * @param tableName the defaultTableName to set
+     * @param tableName the tableName to set
      * @author Rocex Wang
      * @since 2020-4-22 10:39:06
      ***************************************************************************/

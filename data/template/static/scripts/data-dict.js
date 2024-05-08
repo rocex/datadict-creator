@@ -94,11 +94,11 @@ function loadDataDict(classId) {
             }
 
             const classDefaultName =
-                data.defaultTableName && data.fullClassname
-                    ? " (" + (data.defaultTableName + "/" + data.fullClassname) + ")"
-                    : data.defaultTableName === undefined && data.fullClassname === undefined
+                data.tableName && data.fullClassname
+                    ? " (" + (data.tableName + "/" + data.fullClassname) + ")"
+                    : data.tableName === undefined && data.fullClassname === undefined
                     ? ""
-                    : " (" + (data.defaultTableName || data.fullClassname) + ")";
+                    : " (" + (data.tableName || data.fullClassname) + ")";
 
             $("#classDisplayName").html(data.displayName ? data.displayName : "");
             $("#classTableName").html(classDefaultName);
