@@ -112,8 +112,10 @@ public class SyncDBSchemaAction implements IAction, Closeable
         patternTableFilter = Pattern.compile(strTableFilterPattern, Pattern.CASE_INSENSITIVE);
     }
 
-    protected void adjustDataBip()
+    protected void afterSyncDataBip()
     {
+        Logger.getLogger().begin("after sync bip data");
+
         String[] strSQLs = {//"update md_class set table_name='' where (table_name is null or table_name in ('null','NULL'))",
             "update md_module set parent_module_id='md__am' where model_type='md' and id in('adc','aim','ambd','ampub','ams','aom','apm','asp','aum','eiot','iass','lim','lom','mim','omm','pam','pvm','rmm','saa','sem','sim','som','spp');",
             "update md_module set parent_module_id='md__bztrc' where model_type='md' and id in('btis','commom','common','tenant');",
@@ -133,7 +135,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
             "update md_module set parent_module_id='md__tax' where model_type='md' and id in('mdd','taxbd','taxpubdoc','taxspec','yonbip-fi-taxability','yonbip-fi-taxbd','yonbip-fi-taxbuilding','yonbip-fi-taxgateway','yonbip-fi-taxincome','yonbip-fi-taxinfra','yonbip-fi-taxit','yonbip-fi-taxot','yonbip-fi-taxoth','yonbip-fi-taxotypd','yonbip-fi-taxreturn');",
 
             "update md_class set display_name=name where (display_name is null or display_name in ('','null','NULL'));",
-            "update md_class set primary_class='1' where id in(select id from md_class where main_class_id is not null);", // 设置同一个业务对象下的主实体
+            "update md_class set primary_class='1' where id in(select main_class_id from md_class where main_class_id is not null);", // 设置同一个业务对象下的主实体
             "update md_class set component_id=biz_object_id where biz_object_id is not null;",
 
             "update md_property set data_type='1976686225086391910' where data_type='attachment' and ddc_version='2312-bip';",
@@ -185,6 +187,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }
+
+        Logger.getLogger().end("after sync bip data");
     }
 
     /***************************************************************************
@@ -192,9 +196,9 @@ public class SyncDBSchemaAction implements IAction, Closeable
      * @author Rocex Wang
      * @since 2020-5-9 14:05:43
      ***************************************************************************/
-    protected void adjustDataNcc()
+    protected void afterSyncDataNcc()
     {
-        Logger.getLogger().begin("fix ncc data");
+        Logger.getLogger().begin("after sync ncc data");
 
         String[] strSQLs = {"update md_class set name='Memo' where id='BS000010000100001030' and name='MEMO'",
             "update md_class set name='MultiLangText' where id='BS000010000100001058' and name='MULTILANGTEXT'",
@@ -216,7 +220,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end("fix ncc data");
+        Logger.getLogger().end("after sync ncc data");
     }
 
     /****************************************************************************
@@ -237,7 +241,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
 
         sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, DictJsonVO.class);
 
-        initBipModules();
+        beforeSyncDataBip();
 
         if (isCreateDbDdc)
         {
@@ -248,13 +252,13 @@ public class SyncDBSchemaAction implements IAction, Closeable
         {
             syncMetaDataBip();
 
-            adjustDataBip();
+            afterSyncDataBip();
         }
         else
         {
             syncMetaDataNcc();
 
-            adjustDataNcc();
+            afterSyncDataNcc();
         }
 
         Logger.getLogger().end("sync db schema and meta data");
@@ -428,8 +432,10 @@ public class SyncDBSchemaAction implements IAction, Closeable
         return String.join(";", listPk);
     }
 
-    void initBipModules()
+    void beforeSyncDataBip()
     {
+        Logger.getLogger().begin("before sync bip data");
+
         if (!isBIP)
             return;
 
@@ -810,6 +816,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
         {
             throw new RuntimeException(ex);
         }
+
+        Logger.getLogger().end("before sync bip data");
     }
 
     /***************************************************************************
@@ -1344,7 +1352,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
         String strComponentSQL =
             "select id as original_id,name,displayname,ownmodule,namespace,help,isbizmodel as biz_model,version,versiontype," + strOtherSQL + " from md_component";
 
-        String strClassSQL = "select id,name,displayname,defaulttablename,fullclassname,keyattribute,componentid,classtype,isprimary,help" +
+        String strClassSQL = "select id,name,displayname,defaulttablename as table_name,fullclassname,keyattribute,componentid,classtype,isprimary,help" +
             ",accessorclassname,bizitfimpclassname,refmodelname,returntype,isauthen,versiontype," + strOtherSQL + " from md_class order by defaulttablename";
 
         String strPropertySQL = "select a.id original_id,a.name as name,a.displayname as displayname,attrlength,attrminvalue" +

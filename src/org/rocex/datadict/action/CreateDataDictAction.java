@@ -71,8 +71,8 @@ public class CreateDataDictAction implements IAction
     protected String strPropertySQL;        // 在多线程中使用，提取出来
     protected String strVersion;            // 数据字典版本
 
-    protected JacksonHelper jacksonHelper = new JacksonHelper().exclude(ClassVO.class, "accessorClassname", "bizItfImpClassname", "classType", "componentId", "ddcVersion", "help",
-            "id", "keyAttribute", "name", "refModelName", "returnType", "ts", "versionType")
+    protected JacksonHelper jacksonHelper = new JacksonHelper().exclude(ClassVO.class, "accessorClassname", "authen", "bizItfImpClassname", "bizObjectId", "classType",
+            "componentId", "ddcVersion", "help", "id", "keyAttribute", "mainClassId", "name", "refModelName", "returnType", "ts", "versionType")
         .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence", "calculation", "classId", "customAttr", "ddcVersion",
             "dynamicAttr", "fixedLength", "hidden", "notSerialize", "id", "precise", "readOnly", "refModelName", "ts", "versionType", "refClassPathHref");
 
@@ -583,7 +583,7 @@ public class CreateDataDictAction implements IAction
         String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " order by model_type";
         String strComponentSQL = sqlExecutor.getSQLSelect(ComponentVO.class) + " where " + strVersionSQL + " order by model_type,own_module,name";
         String strClassSQL1 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='" + MetaVO.ModelType.md.name() +
-            "' order by primary_class desc,table_name desc";
+            "' order by primary_class desc,table_name";
         String strClassSQL2 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='" + MetaVO.ModelType.db.name() +
             "' order by table_name";
 
