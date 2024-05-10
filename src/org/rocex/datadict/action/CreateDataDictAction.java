@@ -154,7 +154,7 @@ public class CreateDataDictAction implements IAction
         }
 
         // bip 还不知道怎么得到主实体，先处理成在没有主实体的情况下把第一个设置成主实体
-        if (isBIP)
+        /* if (isBIP)
         {
             for (Map.Entry<String, List<ClassVO>> listEntry : mapClassVOByComponent.entrySet())
             {
@@ -173,7 +173,7 @@ public class CreateDataDictAction implements IAction
                     mapComponentIdPrimaryClassId.put(listClassVO2.get(0).getComponentId(), listClassVO2.get(0).getId());
                 }
             }
-        }
+        } */
 
         Logger.getLogger().end("build ClassVO map by componentId");
     }
@@ -387,11 +387,9 @@ public class CreateDataDictAction implements IAction
         List<String> listWithChildren = new ArrayList<>();          // 只生成含有实体的Module和Component
 
         String strTreeDataFolderTemplate = """
-            {id:"%s",pId:"%s",name:"%s %s",isDdcClass:false,path:"%s"},
-            """;                                                    // 左树目录 虚节点
+            {id:"%s",pId:"%s",name:"%s %s",isDdcClass:false,path:"%s"},""";     // 左树目录 虚节点
         String strTreeDataClassTemplate = """
-            {id:"%s",pId:"%s",name:"%s %s",path:"%s"},
-            """;                                                    // 左树实体 链接实体
+            {id:"%s",pId:"%s",name:"%s %s",path:"%s"},""";                      // 左树实体 链接实体
 
         strModuleRows.append(strTreeDataFolderTemplate.formatted(ModuleVO.strMDRootId, null, "Class", "元数据字典", ModuleVO.strMDRootId));
 

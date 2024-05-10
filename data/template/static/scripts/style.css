@@ -34,7 +34,7 @@ body {
 }
 
 ul.ztree {
-    width: 98%;
+    width: 97%;
     margin-top: 5px;
     max-height: 100%;
     overflow-x: auto;
@@ -94,8 +94,8 @@ ul.ztree {
     right: 20px;
 }
 
-/*table.js-sort-table th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after { 
-    content: " \25C6"; /* \25B4 \25BE \25C6 
+/*table.js-sort-table th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after {
+    content: " \25C6"; /* \25B4 \25BE \25C6
 } */
 
 #dataDictTable {
@@ -161,6 +161,6 @@ a:active {
     text-decoration: underline;
 }
 
-.blankLink{
+.blankLink {
     color: #00c3ff !important;
 }
