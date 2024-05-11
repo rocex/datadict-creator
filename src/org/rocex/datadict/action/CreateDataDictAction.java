@@ -5,7 +5,6 @@ import java.nio.file.Files;
 import java.nio.file.Path;
 import java.nio.file.StandardCopyOption;
 import java.sql.SQLException;
-import java.text.MessageFormat;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
@@ -255,7 +254,7 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected void copyStaticHtmlFiles()
     {
-        Logger.getLogger().begin("copy html files");
+        Logger.getLogger().begin("copy static files");
 
         try
         {
@@ -266,7 +265,24 @@ public class CreateDataDictAction implements IAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end("copy html files");
+        Logger.getLogger().end("copy static files");
+
+        Logger.getLogger().begin("create ddc info file");
+
+        try
+        {
+            String strInfoFile = Files.readString(Path.of("data", "template", "data-dict-info.js"));
+
+            strInfoFile = strInfoFile.formatted(strCreateTime, Context.getInstance().getVersionSetting(strVersion, "DataDictVersion"), strVersion);
+
+            FileHelper.writeFileThread(Path.of(strOutputRootDir, "scripts", "data-dict-info.js"), strInfoFile);
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+
+        Logger.getLogger().end("create ddc info file");
     }
 
     /***************************************************************************
@@ -535,30 +551,6 @@ public class CreateDataDictAction implements IAction
         Logger.getLogger().end("create data dict tree: " + (listClassVO.size() + listTableVO.size()));
     }
 
-    /***************************************************************************
-     * @author Rocex Wang
-     * @since 2020-5-18 9:42:59
-     ***************************************************************************/
-    protected void createIndexHtmlFile()
-    {
-        Logger.getLogger().begin("create index html file");
-
-        try
-        {
-            String strHtmlIndexFile = Files.readString(Path.of("data", "template", "index.html"));
-
-            String strHtml = MessageFormat.format(strHtmlIndexFile, Context.getInstance().getVersionSetting(strVersion, "DataDictVersion"), strVersion, strCreateTime);
-
-            FileHelper.writeFileThread(Path.of(strOutputRootDir, "index.html"), strHtml);
-        }
-        catch (IOException ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
-
-        Logger.getLogger().end("create index html file");
-    }
-
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.vo.IAction#doAction(EventObject)
@@ -571,8 +563,6 @@ public class CreateDataDictAction implements IAction
         Logger.getLogger().begin("create data dictionary " + strVersion);
 
         emptyTargetDir();
-
-        createIndexHtmlFile();
 
         copyStaticHtmlFiles();
 

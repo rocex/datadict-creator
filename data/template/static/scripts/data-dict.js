@@ -238,7 +238,9 @@ function searchUse() {
 
 $(document).ready(function () {
     // 设置当前选中版本
+    document.title = ddcTitle;
     document.getElementById("ddcVersion").value = ddcVersion;
+    document.getElementById("ddcCreateTime").innerText = ddcTs;
 
     let searchKey = document.getElementById("searchKey");
 
@@ -258,6 +260,16 @@ $(document).ready(function () {
         loadDataDict(strDataType);
     }
 });
+
+function clearSearchKey() {
+    var searchKey = document.getElementById("searchKey");
+    if (searchKey) {
+        searchKey.focus();
+        searchKey.value = "";
+
+        searchUse();
+    }
+}
 
 /**********************************************************************
  * 如果url中带keyword参数值对，就默认在左侧搜索

@@ -35,7 +35,7 @@ body {
 
 ul.ztree {
     width: 97%;
-    margin-top: 5px;
+    margin-top: 31px;
     max-height: 100%;
     overflow-x: auto;
     overflow-y: auto;
@@ -141,6 +141,53 @@ ul.ztree {
 .separator {
     color: #60c876;
     opacity: 0.2;
+}
+
+.refreshDdc {
+    width: 20px;
+    position: fixed;
+    margin-top: 38px;
+    margin-left: calc(20% - 50px);
+}
+
+/* 带清空的输入框 */
+.input-with-clear-div {
+    width: 100%;
+    position: relative;
+
+    /*输入框部分*/
+    .input-with-clear {
+        position: absolute;
+        width: calc(100% - 8px);
+        height: 23px;
+        border-radius: 3px;
+        border: 1px solid #9fa39a;
+    }
+
+    /*清除按钮部分 纯css验证输入框是否为空显示清除按钮*/
+    .input-with-clear:valid + .clear-box {
+        width: 14px;
+        height: 14px;
+        background: #e3e6e2;
+        position: absolute;
+        top: 6px;
+        right: 6px;
+        border-radius: 100%;
+        opacity: 0.9;
+        transition: 0.4s ease-in;
+
+        /*画叉的部分*/
+        &::after {
+            width: 8px;
+            height: 1.5px;
+            position: absolute;
+            background: #fff;
+            content: "x";
+            top: -4.5px;
+            left: 3.5px;
+            opacity: 0.9;
+        }
+    }
 }
 
 a:link {
