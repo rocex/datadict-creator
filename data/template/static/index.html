@@ -3,7 +3,7 @@
 
 <head>
     <meta charset="UTF-8" />
-    <title>数据字典</title>
+    <title>YonBIP 数据字典</title>
     <link href="./favicon.ico" rel="shortcut icon" />
     <link href="./scripts/style.css" rel="stylesheet" type="text/css" />
     <link href="./scripts/zTreeStyle.css" rel="stylesheet" type="text/css" />
@@ -15,10 +15,10 @@
     <script src="./scripts/sort-table.min.js" type="text/javascript"></script>
 </head>
 
-<body style="overflow-x:hidden;overflow-y: hidden;">
-    <div id="container" style="height: calc(100% - 1px);">
+<body style="overflow-x: hidden; overflow-y: hidden">
+    <div id="container" style="height: calc(100% - 1px)">
         <div class="left" id="left">
-            <div class="input-with-clear-div" style="width:100%; align-self: center;">
+            <div class="input-with-clear-div" style="width: 100%; align-self: center">
                 <input class="input-with-clear" id="searchKey" required placeholder="请至少输入3个字符进行搜索，快捷键英文反斜杆(\)获取焦点" />
                 <div class="clear-box" onclick="clearSearchKey();return false;"></div>
             </div>
@@ -49,32 +49,29 @@
                     </select>
                 </span>
             </div>
-            <div id="intro" style="overflow-x:auto; overflow-y:auto; align-self: center;">
-
+            <div id="intro" style="overflow-x: auto; overflow-y: auto; align-self: center">
                 <div style="margin-top: 20%; font-size: large">
-                    <br>
-                    <b style="color: red;">
-                        依据公司安全规范，数据字典属于公司核心资产。<br>
-                        数据字典版权归属于 用友网络科技股份有限公司。<br>
-                    </b><br><br>
+                    <br />
+                    <b style="color: red">
+                        依据公司安全规范，数据字典属于公司核心资产。<br />
+                        数据字典版权归属于 用友网络科技股份有限公司。<br /> </b><br /><br />
 
-                    <b>说明：</b><br><br>
+                    <b>说明：</b><br /><br />
 
-                    1、数据字典数据来源于已发布的元数据，元数据上的字段名、数据类型、长度、引用实体、枚举等都是组成数据字典的必要数据；<br>
-                    2、数据字典上没有体现出来的信息，首先应该检查下元数据上是否有对应的属性设置；<br>
-                    3、数据字典页面左上角有时会出现多个实体链接，表明这是一个聚合实体，第一个实体是主实体，其它都是子实体，这里体现不出来孙实体；<br>
-                    4、数据字典左侧树上模块下显示的是主实体，展开后显示的是子实体。<br>
+                    1、数据字典数据来源于已发布的元数据，元数据上的字段名、数据类型、长度、引用实体、枚举等都是组成数据字典的必要数据；<br />
+                    2、数据字典上没有体现出来的信息，首先应该检查下元数据上是否有对应的属性设置；<br />
+                    3、数据字典页面左上角有时会出现多个实体链接，表明这是一个聚合实体，第一个实体是主实体，其它都是子实体，这里体现不出来孙实体；<br />
+                    4、数据字典左侧树上模块下显示的是主实体，展开后显示的是子实体。<br />
 
                     <br /><br /><br />
                     YonBIP旗舰版离线数据字典<a href="https://ikm.yonyou.com/share?shareid=978626776b0ea1e00eea4cf8373a7314" rel="noopener noreferrer" target="_blank">一键获取</a>，让实施开发更高效!
                 </div>
-
             </div>
-            <div class="dataDictArea" id="dataDictArea" style="display: none;">
+            <div class="dataDictArea" id="dataDictArea" style="display: none">
                 <div class="classList" id="classList"></div>
-                <div id="dataDictContainer" style="width: 100%; height: calc(100% - 2em); overflow: auto;">
+                <div id="dataDictContainer" style="width: 100%; height: calc(100% - 2em); overflow: auto">
                     <table class="js-sort-table" id="dataDictTable">
-                        <thead style="position: sticky; top: 0;">
+                        <thead style="position: sticky; top: 0">
                             <tr>
                                 <th class="js-sort-number" id="number" width="1%">序号</th>
                                 <th id="PropName" width="10%">属性名称</th>
@@ -88,8 +85,7 @@
                                 <th id="help">标签/扩展表名</th>
                             </tr>
                         </thead>
-                        <tbody id="dataDictTableBody">
-                        </tbody>
+                        <tbody id="dataDictTableBody"></tbody>
                     </table>
                 </div>
             </div>
