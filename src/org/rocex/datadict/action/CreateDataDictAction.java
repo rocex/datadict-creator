@@ -271,11 +271,11 @@ public class CreateDataDictAction implements IAction
 
         try
         {
-            String strInfoFile = Files.readString(Path.of("data", "template", "data-dict-info.js"));
+            String strInfoFile = Files.readString(Path.of("data", "template", "info.json"));
 
             strInfoFile = strInfoFile.formatted(strCreateTime, Context.getInstance().getVersionSetting(strVersion, "DataDictVersion"), strVersion);
 
-            FileHelper.writeFileThread(Path.of(strOutputRootDir, "scripts", "data-dict-info.js"), strInfoFile);
+            FileHelper.writeFileThread(Path.of(strOutputRootDir, "info.json"), strInfoFile);
         }
         catch (IOException ex)
         {
@@ -888,10 +888,10 @@ public class CreateDataDictAction implements IAction
      ***************************************************************************/
     protected List<PropertyVO> sortPropertyVO(ClassVO classVO, List<PropertyVO> listPropertyVO)
     {
-        List<PropertyVO> listPkPropertyVO = new ArrayList<>();  // 主键列
+        List<PropertyVO> listPkPropertyVO = new ArrayList<>();      // 主键列
         List<PropertyVO> listNormalPropertyVO = new ArrayList<>();  // 普通字段列
-        List<PropertyVO> listCustomPropertyVO = new ArrayList<>(); // 自定义项列
-        List<PropertyVO> listPropertyFinalVO = new ArrayList<>();  // dr、ts列
+        List<PropertyVO> listCustomPropertyVO = new ArrayList<>();  // 自定义项列
+        List<PropertyVO> listPropertyFinalVO = new ArrayList<>();   // dr、ts列
 
         List<String> listPk = Arrays.asList(StringHelper.isEmpty(classVO.getKeyAttribute()) ? new String[]{} : classVO.getKeyAttribute().split(";"));
 

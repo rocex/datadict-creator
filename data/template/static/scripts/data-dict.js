@@ -237,14 +237,11 @@ function searchUse() {
 }
 
 $(document).ready(function () {
-    // 设置当前选中版本
-    document.title = ddcTitle;
-    document.getElementById("ddcVersion").value = ddcVersion;
-    document.getElementById("ddcCreateTime").innerText = ddcTs;
-
-    let searchKey = document.getElementById("searchKey");
+    initUI();
 
     setTreeData(dataDictIndexData);
+
+    let searchKey = document.getElementById("searchKey");
 
     searchKey.focus();
     searchKey.addEventListener("keyup", debounce(searchUse, 500));
@@ -260,6 +257,31 @@ $(document).ready(function () {
         loadDataDict(strDataType);
     }
 });
+
+function initUI() {
+    $.ajax({
+        cache: false,
+        dataType: "json",
+        url: "./info.json",
+        error: function () {
+            // alert("请求失败，请稍后再试或联系管理员！");
+            $("#classTableName").html("");
+            $("#classDisplayName").html("<span style='color:red'>请求失败，请稍后再试或联系管理员！</span>");
+            $("#classList").html("&nbsp;");
+            $("#dataDictTableBody").html("");
+        },
+        success: function (data) {
+            if (data === undefined) {
+                return false;
+            }
+
+            // 设置当前选中版本
+            document.title = data.ddcTitle;
+            document.getElementById("ddcVersion").value = data.ddcVersion;
+            document.getElementById("ddcCreateTime").innerText = data.ddcTs;
+        },
+    });
+}
 
 function clearSearchKey() {
     var searchKey = document.getElementById("searchKey");
