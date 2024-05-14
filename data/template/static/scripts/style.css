@@ -20,7 +20,7 @@ body {
     margin-left: 1em;
     position: absolute;
     flex-direction: column;
-    left: calc(20% - 10px);
+    right: 8px;
     width: calc(80% - 8px);
     height: calc(100% - 30px);
     max-height: calc(100% - 5px);
@@ -34,15 +34,16 @@ body {
 }
 
 ul.ztree {
-    width: 97%;
     margin-top: 31px;
     max-height: 100%;
     overflow-x: auto;
     overflow-y: auto;
     background: #fafafa;
-    height: calc(100% - 16px);
-    border: 1px solid #617775;
+    width: calc(100% - 12px);
+    height: calc(100% - 1px);
+    border: 0px solid #617775;
 }
+
 
 .title {
     text-align: center;
@@ -92,6 +93,16 @@ ul.ztree {
     opacity: 0.6;
     bottom: 3px;
     right: 20px;
+}
+
+.splitter {
+    right: -8px;
+    width: 8px;
+    height: 100px;
+    top: calc(50% - 1px);
+    position: absolute;
+    cursor: w-resize;
+    background-color: gray;
 }
 
 /*table.js-sort-table th:not(.sorttable_sorted):not(.sorttable_sorted_reverse):not(.sorttable_nosort):after {
@@ -144,10 +155,15 @@ ul.ztree {
 }
 
 .refreshDdc {
-    width: 20px;
-    position: fixed;
-    margin-top: 38px;
-    margin-left: calc(20% - 50px);
+    top: 38px;
+    right: 8px;
+    width: 50px;
+    position: absolute;
+}
+
+.refreshDdc::after {
+    content: url("./img/refresh.png");
+    position: absolute;
 }
 
 /* 带清空的输入框 */
@@ -183,7 +199,7 @@ ul.ztree {
             position: absolute;
             background: #fff;
             content: "x";
-            top: -4.5px;
+            top: -4px;
             left: 3.5px;
             opacity: 0.9;
         }

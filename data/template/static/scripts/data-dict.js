@@ -27,6 +27,15 @@ window.onload = function () {
         hotkey(e);
     });
 
+    //分割条
+    // var divSplitter = document.getElementById("splitter");
+    // divSplitter.onmousedown = moveSplitter;
+
+    $("#container").splitter({
+        orientation: "horizontal",
+        limit: 100,
+    });
+
     // 版本号切换
     let ddcVersionSelect = document.getElementById("ddcVersion");
     ddcVersionSelect.addEventListener("change", function (evt) {
@@ -144,9 +153,6 @@ function loadDataDict(classId) {
 
             document.getElementById("dataDictArea").scrollTop = 0;
             document.getElementById("dataDictContainer").scrollTop = 0;
-
-            // 设置当前选中版本
-            document.getElementById("ddcVersion").value = ddcVersion;
 
             sendBaidu(window.location.href);
         },
@@ -303,6 +309,56 @@ function getUrlSearchParam(strKey) {
     var search2 = decodeURI(search);
 
     return search2.match(reg) ? search2.match(reg)[0].substring(strKey.length + 1) : null;
+}
+
+/**********************************************************************
+ * 移动分隔条
+ **********************************************************************/
+function moveSplitter(e) {
+    var divLeft = document.getElementById("left");
+    if ("none" == divLeft.style.display) {
+        return false;
+    }
+
+    // 改变分隔条左右宽度所需常量
+    const divOrgLeftWidth = 500; // 左边部分原始宽度
+    const rightDivLeftGap = 8; // 右边部分与左边部分的距离
+    const divSplitterWidth = 8; // 分隔条宽度
+    const divSplitterMinLeft = 100; // 分隔条左边部分最小宽度
+    const divSplitterMaxLeft = 1000; // 分隔条左边部分最大宽度
+
+    var divContainer = document.getElementById("container"),
+        divRight = document.getElementById("right"),
+        divSplitter = document.getElementById("splitter");
+
+    var disX = e.clientX; // 记录下初始位置的值
+    divSplitter.left = divSplitter.offsetLeft + 3;
+
+    document.onmousemove = function (e) {
+        var moveX = e.clientX - disX; // 鼠标拖动的偏移距离
+        var iT = divSplitter.left + moveX, // 分隔条相对父级定位的 left 值
+            maxT = divContainer.clientWidth - divSplitter.offsetWidth;
+
+        if (iT < 0) {
+            iT = 0;
+        } else if (iT > maxT) {
+            iT = maxT;
+        }
+
+        if (iT > divSplitterMinLeft && iT < divSplitterMaxLeft) {
+            divLeft.style.width = divSplitter.style.left = iT + 3 + "px";
+            divRight.style.left = iT + rightDivLeftGap + "px";
+            divRight.style.width = document.body.clientWidth - iT - rightDivLeftGap - 6 + "px";
+        }
+
+        return false;
+    };
+
+    // 鼠标放开的时候取消操作
+    document.onmouseup = function () {
+        document.onmouseup = null;
+        document.onmousemove = null;
+    };
 }
 
 /**********************************************************************

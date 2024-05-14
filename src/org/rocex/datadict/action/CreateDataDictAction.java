@@ -575,9 +575,9 @@ public class CreateDataDictAction implements IAction
         String strClassSQL2 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='" + MetaVO.ModelType.db.name() +
             "' order by table_name";
 
-        List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL, null, null);
-        List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL, null, null);
-        List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL1, null, null);
+        List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL);
+        List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL);
+        List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL1);
 
         mapIdModuleVO = buildMap(listModuleVO);
         mapIdComponentVO = buildMap(listComponentVO);
@@ -586,7 +586,7 @@ public class CreateDataDictAction implements IAction
         buildEnumMap();
         buildClassVOMapByComponentId(listClassVO);
 
-        List<ClassVO> listTableVO = isCreateDbDdc ? (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL2, null, null) : new ArrayList<>();
+        List<ClassVO> listTableVO = isCreateDbDdc ? (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL2) : new ArrayList<>();
 
         createDataDictTree(listModuleVO, listComponentVO, listClassVO, listTableVO);
 
@@ -771,13 +771,11 @@ public class CreateDataDictAction implements IAction
     /***************************************************************************
      * @param metaVOClass Class<? extends MetaVO>
      * @param strSQL String
-     * @param param SQLParameter
-     * @param pagingAction IAction
      * @return List<? extends MetaVO>
      * @author Rocex Wang
      * @since 2020-5-9 11:20:25
      ***************************************************************************/
-    protected List<? extends MetaVO> queryMetaVO(Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param, IAction pagingAction)
+    protected List<? extends MetaVO> queryMetaVO(Class<? extends MetaVO> metaVOClass, String strSQL)
     {
         String strMessage = "query " + metaVOClass.getSimpleName();
 
@@ -788,9 +786,8 @@ public class CreateDataDictAction implements IAction
         try
         {
             BeanListProcessor<? extends MetaVO> processor = new BeanListProcessor<>(metaVOClass);
-            processor.setPagingAction(pagingAction);
 
-            listMetaVO = (List<? extends MetaVO>) sqlExecutor.executeQuery(strSQL, param, processor);
+            listMetaVO = (List<? extends MetaVO>) sqlExecutor.executeQuery(strSQL, null, processor);
         }
         catch (Exception ex)
         {
