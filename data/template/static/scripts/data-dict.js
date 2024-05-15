@@ -223,7 +223,15 @@ function searchUse() {
 
     var searchDomVal = searchKey.value;
 
-    if (searchDomVal.length < 3) {
+    var iLength = 0;
+
+    for (var i = 0; i < searchDomVal.length; i++) {
+        var strTemp = searchDomVal.charCodeAt(i);
+
+        iLength = iLength + (strTemp >= 0 && strTemp <= 255 ? 1 : 2);
+    }
+
+    if (iLength < 3) {
         if (searchDomVal.length == 0) {
             setTreeData(oldTreeData);
             return;
