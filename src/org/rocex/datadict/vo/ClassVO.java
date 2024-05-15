@@ -41,9 +41,9 @@ public class ClassVO extends MetaVO
     {
         clazz(201), enumeration(203), intface(206), db(999);
 
-        private int iClassType;
+        private final int iClassType;
 
-        private ClassType(int iClassType)
+        ClassType(int iClassType)
         {
             this.iClassType = iClassType;
         }
