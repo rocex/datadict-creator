@@ -14,15 +14,18 @@
     <script src="./scripts/data-dict.js" type="text/javascript"></script>
     <script src="./scripts/sort-table.min.js" type="text/javascript"></script>
     <script src="./scripts/jquery.splitter.js" type="text/javascript"></script>
+    <script src="./scripts/fulltext.js" type="text/javascript"></script>
 </head>
 
 <body style="overflow-x: hidden; overflow-y: hidden">
     <div id="container" style="height: calc(100% - 1px)">
         <div class="left" id="left">
-            <div class="input-with-clear-div">
+            <div class="input-with-clear-div" style="width: 88%">
                 <input class="input-with-clear" id="searchKey" required placeholder="请至少输入3个字符进行搜索，快捷键英文反斜杆(\)获取焦点" />
                 <div class="clear-box" onclick="clearSearchKey(); return false;"></div>
             </div>
+            <label for="chckFullText" style="position: absolute; top: 4px; right: 8px" title="搜索属性编码和名称">全文</label>
+            <input type="checkbox" id="chckFullText" name="chckFullText" value="value1" style="position: absolute; right: 38px; top: 5px" title="搜索属性编码和名称" />
 
             <div class="refreshDdc" onclick="setTreeData(dataDictIndexData);"></div>
             <ul class="ztree" id="dataDictTree"></ul>

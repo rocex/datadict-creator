@@ -1,3 +1,5 @@
+let strSearchText;
+
 /**********************************************************************
  *  tree hotkey
  **********************************************************************/
@@ -20,8 +22,6 @@ function ddcOnload() {
 }
 
 window.onload = function () {
-    let tree = document.getElementById("tree");
-
     //tree.contentWindow.
     document.addEventListener("keyup", function (e) {
         hotkey(e);
@@ -87,7 +87,7 @@ function loadDataDict(classId) {
     $("#dataDictArea").css("display", "initial");
 
     $.ajax({
-        cache: false,
+        cache: true,
         dataType: "json",
         url: "./dict/" + classId + ".json",
         error: function () {
@@ -135,11 +135,19 @@ function loadDataDict(classId) {
                         <a href="./index.html?dataType=${propertyVO.dataType}&keyword=${propertyVO.dataTypeDisplayName}" target="_blank" title="新窗口查看 (${propertyVO.dataTypeDisplayName}) 实体" class="blankLink"> (${propertyVO.dataTypeName})</a>`;
                 }
 
+                let strName = propertyVO.name || "";
+                let strDislpayName = propertyVO.displayName || "";
+                let strColumnCode = propertyVO.columnCode || propertyVO.name || "";
+
+                strName = strName.replace(strSearchText, "<span class='high-light'>" + strSearchText + "</span>");
+                strDislpayName = strDislpayName.replace(strSearchText, "<span class='high-light'>" + strSearchText + "</span>");
+                strColumnCode = strColumnCode.replace(strSearchText, "<span class='high-light'>" + strSearchText + "</span>");
+
                 ddcBody += `<tr class="${trClass}">
                         <td style="text-align: right;">${index++}</td>
-                        <td>${propertyVO.displayName || ""}</td>
-                        <td>${propertyVO.name || ""}</td>
-                        <td>${propertyVO.columnCode || propertyVO.name || ""}</td>
+                        <td>${strDislpayName}</td>
+                        <td>${strName}</td>
+                        <td>${strColumnCode}</td>
                         <td>${propertyVO.dataTypeSql || ""}</td>
                         <td style="text-align: center">${propertyVO.nullable ? "" : "√"}</td>
                         <td>${dataTypeShowName || ""}</td>
@@ -194,7 +202,7 @@ function setTreeData(data) {
 }
 
 function filterData(searchVal, dictIndexData) {
-    let childrenArr = [];
+    let strFindIds = [];
 
     dictIndexData.filter(function (item) {
         if (!item.pId) {
@@ -202,9 +210,9 @@ function filterData(searchVal, dictIndexData) {
             return true;
         }
 
-        if (!!item.name && item.name.toLowerCase().includes(searchVal)) {
+        if ((!!item.name && item.name.toLowerCase().includes(searchVal))) {
             if (item.path) {
-                childrenArr = [...new Set([...childrenArr, ...item.path.split(","), item.id])];
+                strFindIds = [...new Set([...strFindIds, ...item.path.split(","), item.id])];
             }
 
             return true;
@@ -213,26 +221,45 @@ function filterData(searchVal, dictIndexData) {
         return false;
     });
 
+    let blFullText = document.getElementById("chckFullText").checked;
+    if (blFullText) {
+        let strFindFullIds = [];
+
+        strFullText.filter((strText) => {
+            if (strText[1].indexOf(searchVal) > -1) {
+                strFindFullIds.push(strText[0]);
+                return true;
+            }
+            return false;
+        });
+
+        dataDictIndexData.filter(function (item) {
+            if (strFindFullIds.includes(item.id)) {
+                strFindIds = [...new Set([...strFindIds, ...item.path.split(","), item.id])];
+            }
+        });
+    }
+
     return dictIndexData.filter(function (item) {
-        return childrenArr.includes(item.id);
+        return strFindIds.includes(item.id);
     });
 }
 
 function searchUse() {
     let searchKey = document.getElementById("searchKey");
 
-    var searchDomVal = searchKey.value;
+    strSearchText = searchKey.value;
 
     var iLength = 0;
 
-    for (var i = 0; i < searchDomVal.length; i++) {
-        var strTemp = searchDomVal.charCodeAt(i);
+    for (var i = 0; i < strSearchText.length; i++) {
+        var strTemp = strSearchText.charCodeAt(i);
 
         iLength = iLength + (strTemp >= 0 && strTemp <= 255 ? 1 : 2);
     }
 
     if (iLength < 3) {
-        if (searchDomVal.length == 0) {
+        if (strSearchText.length == 0) {
             setTreeData(oldTreeData);
             return;
         }
@@ -240,37 +267,92 @@ function searchUse() {
         return;
     }
 
-    if (!searchDomVal) {
+    if (!strSearchText) {
         setTreeData(oldTreeData);
         return;
     }
 
-    let searchData = filterData(searchDomVal.toLowerCase(), dataDictIndexData);
+    let searchData = filterData(strSearchText.toLowerCase(), dataDictIndexData);
 
     setTreeData(searchData);
 }
 
 $(document).ready(function () {
-    initUI();
-
-    setTreeData(dataDictIndexData);
-
     let searchKey = document.getElementById("searchKey");
 
     searchKey.focus();
     searchKey.addEventListener("keyup", debounce(searchUse, 500));
 
-    let strSearchValue = getUrlSearchParam("keyword");
-    if (strSearchValue) {
-        searchKey.value = strSearchValue;
-        searchUse();
-    }
+    initUI();
 
-    var strDataType = getUrlSearchParam("dataType");
-    if (strDataType) {
-        loadDataDict(strDataType);
+    // initFullText();
+
+    let strClassId = getUrlSearchParam("dataType");
+    strSearchText = getUrlSearchParam("keyword");
+
+    if (strClassId) {
+        loadDataDict(strClassId);
+    } else if (strSearchText) {
+        searchKey.value = strSearchText;
+        searchUse();
+    } else {
+        setTreeData(dataDictIndexData);
     }
 });
+
+function initFullText() {
+    const blUseFlex = true;
+
+    let strFind = "org_orgs";
+    let findIds = [];
+
+    if (blUseFlex) {
+        const index = FlexSearch.Worker({ tokenize: "strict" });
+
+        strFullText.forEach((strText) => {
+            index.add(strText[0], strText[1]);
+        });
+
+        findIds = index.search(strFind, 99999).then(function (result) {
+            let newIds = [];
+
+            dataDictIndexData.filter(function (item) {
+                if (result.includes(item.id)) {
+                    newIds = [...new Set([...newIds, ...item.path.split(","), item.id])];
+                }
+            });
+
+            let searchData = dataDictIndexData.filter(function (item) {
+                return newIds.includes(item.id);
+            });
+
+            setTreeData(searchData);
+        });
+        return;
+    } else {
+        strFullText.filter((strText) => {
+            if (strText[1].indexOf(strFind) > -1) {
+                findIds.push(strText[0]);
+            }
+        });
+    }
+
+    console.log(findIds);
+
+    let newIds = [];
+
+    dataDictIndexData.filter(function (item) {
+        if (findIds.includes(item.id)) {
+            newIds = [...new Set([...newIds, ...item.path.split(","), item.id])];
+        }
+    });
+
+    let searchData = dataDictIndexData.filter(function (item) {
+        return newIds.includes(item.id);
+    });
+
+    setTreeData(searchData);
+}
 
 function initUI() {
     $.ajax({

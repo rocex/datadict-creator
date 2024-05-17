@@ -971,7 +971,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
                 propertyVO.setAttrSequence(++iSequence);
                 propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
                 propertyVO.setDefaultValue(StringHelper.isEmpty(propertyVO.getDefaultValue()) ? null : propertyVO.getDefaultValue().toLowerCase());
-                propertyVO.setDisplayName(StringHelper.isEmpty(propertyVO.getRemarks()) ? strPropLowerName : propertyVO.getRemarks().replace("\r\n", "").replace("\n", ""));
+                propertyVO.setDisplayName(StringHelper.isEmpty(propertyVO.getRemarks()) ? strPropLowerName : StringHelper.removeCRLF(propertyVO.getRemarks()));
             }
 
             Map<String, PropertyVO> mapTableNamePropertyVO2 = listPropertyVO.stream()
@@ -1126,8 +1126,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
             classVO.setModelType(ModelType.db.name());
             classVO.setTableName(strTableName);
             classVO.setClassType(ClassVO.ClassType.db.value());
-            classVO.setDisplayName(
-                propCodeName.getProperty(strTableName, StringHelper.isEmpty(classVO.getRemarks()) ? "" : classVO.getRemarks().replace("\r\n", "").replace("\n", "")));
+            classVO.setDisplayName(propCodeName.getProperty(strTableName, StringHelper.isEmpty(classVO.getRemarks()) ? "" : StringHelper.removeCRLF(classVO.getRemarks())));
 
             try
             {
@@ -1173,10 +1172,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
                     metaVO.setId(StringHelper.getId());
                 }
 
-                if (metaVO.getDisplayName() != null)
-                {
-                    metaVO.setDisplayName(metaVO.getDisplayName().replace("\r\n", "").replace("\n", ""));
-                }
+                metaVO.setDisplayName(StringHelper.removeCRLF(metaVO.getDisplayName()));
 
                 if (metaVO instanceof ClassVO classVO && StringHelper.isBlank(classVO.getKeyAttribute()))
                 {
@@ -1201,6 +1197,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
             for (PropertyVO propertyVO : listVO)
             {
                 propertyVO.setId(StringHelper.getId());
+                propertyVO.setDisplayName(StringHelper.removeCRLF(propertyVO.getDisplayName()));
                 propertyVO.setDataTypeSql(isBIP ? getDataTypeSqlBip(propertyVO) : getDataTypeSql(propertyVO));
             }
 
