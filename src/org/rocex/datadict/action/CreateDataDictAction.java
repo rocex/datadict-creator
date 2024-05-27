@@ -25,12 +25,15 @@ import org.rocex.datadict.vo.ComponentVO;
 import org.rocex.datadict.vo.Context;
 import org.rocex.datadict.vo.DictJsonVO;
 import org.rocex.datadict.vo.EnumValueVO;
+import org.rocex.datadict.vo.FullTextItem;
 import org.rocex.datadict.vo.MetaVO;
 import org.rocex.datadict.vo.ModuleVO;
 import org.rocex.datadict.vo.PropertyVO;
 import org.rocex.db.SQLExecutor;
 import org.rocex.db.param.SQLParameter;
 import org.rocex.db.processor.BeanListProcessor;
+import org.rocex.db.processor.PagingAction;
+import org.rocex.db.processor.PagingEventObject;
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.JacksonHelper;
 import org.rocex.utils.Logger;
@@ -69,6 +72,7 @@ public class CreateDataDictAction implements IAction
     protected String strOutputRootDir;      // 输出文件根目录
     protected String strPropertySQL;        // 在多线程中使用，提取出来
     protected String strVersion;            // 数据字典版本
+    protected String strFullTextFileIndex;  // 全文检索文件名序号，英文逗号分割
 
     protected JacksonHelper jacksonHelper = new JacksonHelper().exclude(ClassVO.class, "accessorClassname", "authen", "bizItfImpClassname", "bizObjectId", "classType",
             "componentId", "ddcVersion", "help", "id", "keyAttribute", "mainClassId", "name", "refModelName", "returnType", "ts", "versionType")
@@ -273,7 +277,7 @@ public class CreateDataDictAction implements IAction
         {
             String strInfoFile = Files.readString(Path.of("data", "template", "info.json"));
 
-            strInfoFile = strInfoFile.formatted(strCreateTime, Context.getInstance().getVersionSetting(strVersion, "DataDictVersion"), strVersion);
+            strInfoFile = strInfoFile.formatted(strCreateTime, Context.getInstance().getVersionSetting(strVersion, "DataDictVersion"), strVersion, strFullTextFileIndex);
 
             FileHelper.writeFileThread(Path.of(strOutputRootDir, "info.json"), strInfoFile);
         }
@@ -564,8 +568,6 @@ public class CreateDataDictAction implements IAction
 
         emptyTargetDir();
 
-        copyStaticHtmlFiles();
-
         String strVersionSQL = "ddc_version='" + strVersion + "'";
 
         String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " order by model_type";
@@ -599,6 +601,10 @@ public class CreateDataDictAction implements IAction
         saveToDictJson(listTableVO);
 
         Logger.getLogger().end("save data dict json file to db: " + (listClassVO.size() + listTableVO.size()));
+
+        exportFullText();
+
+        copyStaticHtmlFiles();
 
         Logger.getLogger().end("create data dictionary " + strVersion);
     }
@@ -934,5 +940,60 @@ public class CreateDataDictAction implements IAction
     protected void writeDataDictFile(ClassVO classVO)
     {
         jacksonHelper.serializeThread(classVO, getClassFilePath(classVO));
+    }
+
+    protected void exportFullText()
+    {
+        String strSQL = "select class_id as id,group_concat(replace(name,'\"',''''),'|')||'|'||group_concat(replace(display_name,'\"',''''),'|') as name" +
+            " from md_property group by class_id order by class_id";
+
+        class FullText
+        {
+            private FullTextItem[] data;
+
+            public FullTextItem[] getData()
+            {
+                return data;
+            }
+
+            public void setData(FullTextItem[] data)
+            {
+                this.data = data;
+            }
+        }
+
+        List<String> listIndex = new ArrayList<>();
+
+        PagingAction pagingFullTextAction = new PagingAction()
+        {
+            @Override
+            public void doAction(EventObject evt)
+            {
+                List<FullTextItem> listVO = (List<FullTextItem>) evt.getSource();
+                int iPage = ((PagingEventObject) evt).getPage();
+
+                FullText fullText = new FullText();
+                fullText.setData(listVO.toArray(new FullTextItem[0]));
+
+                String strFullTextFileName = StringHelper.leftPad(String.valueOf(iPage), "0", 2);
+                listIndex.add(strFullTextFileName);
+
+                jacksonHelper.serializeThread(fullText, Path.of(strOutputRootDir, "scripts", "full-text-" + strFullTextFileName + ".json"));
+            }
+        };
+
+        strFullTextFileIndex = String.join(",", listIndex);
+
+        try
+        {
+            BeanListProcessor<FullTextItem> processor = new BeanListProcessor<>(FullTextItem.class);
+            processor.setPagingAction(pagingFullTextAction.setPageSize(10000));
+
+            List<FullTextItem> listMetaVO = (List<FullTextItem>) sqlExecutor.executeQuery(strSQL, null, processor);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
     }
 }

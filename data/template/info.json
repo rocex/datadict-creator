@@ -1,5 +1,6 @@
 {
     "ddcTs": "%s",
     "ddcTitle": "%s",
-    "ddcVersion": "%s"
+    "ddcVersion": "%s",
+    "fullTextIndex": "%s"
 }

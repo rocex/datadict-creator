@@ -1,4 +1,5 @@
 let strSearchText;
+let strFullText = [];
 
 /**********************************************************************
  *  tree hotkey
@@ -55,6 +56,7 @@ var setting = {
     view: {
         dblClickExpand: false,
         showLine: true,
+        nameIsHTML: true, //允许name支持html
     },
     data: {
         simpleData: {
@@ -65,6 +67,9 @@ var setting = {
         onClick: onClick,
     },
 };
+dataDictIndexData.forEach((item) => {
+    item.oldName = item.name;
+});
 
 let oldTreeData = JSON.parse(JSON.stringify(dataDictIndexData));
 
@@ -210,7 +215,7 @@ function filterData(searchVal, dictIndexData) {
             return true;
         }
 
-        if ((!!item.name && item.name.toLowerCase().includes(searchVal))) {
+        if (!!item.oldName && item.oldName.toLowerCase().includes(searchVal)) {
             if (item.path) {
                 strFindIds = [...new Set([...strFindIds, ...item.path.split(","), item.id])];
             }
@@ -226,8 +231,8 @@ function filterData(searchVal, dictIndexData) {
         let strFindFullIds = [];
 
         strFullText.filter((strText) => {
-            if (strText[1].indexOf(searchVal) > -1) {
-                strFindFullIds.push(strText[0]);
+            if (strText.name.includes(searchVal)) {
+                strFindFullIds.push(strText.id);
                 return true;
             }
             return false;
@@ -241,7 +246,9 @@ function filterData(searchVal, dictIndexData) {
     }
 
     return dictIndexData.filter(function (item) {
-        return strFindIds.includes(item.id);
+        let blFind = strFindIds.includes(item.id);
+        item.name = blFind && item.oldName.includes(searchVal) ? item.oldName.replace(searchVal, "<span class='high-light'>" + searchVal + "</span>") : item.oldName;
+        return blFind;
     });
 }
 
@@ -285,8 +292,6 @@ $(document).ready(function () {
 
     initUI();
 
-    // initFullText();
-
     let strClassId = getUrlSearchParam("dataType");
     strSearchText = getUrlSearchParam("keyword");
 
@@ -298,61 +303,11 @@ $(document).ready(function () {
     } else {
         setTreeData(dataDictIndexData);
     }
+
+    setTimeout(() => {
+        fetchFullText(); // 调用异步函数
+    }, 3000);
 });
-
-function initFullText() {
-    const blUseFlex = true;
-
-    let strFind = "org_orgs";
-    let findIds = [];
-
-    if (blUseFlex) {
-        const index = FlexSearch.Worker({ tokenize: "strict" });
-
-        strFullText.forEach((strText) => {
-            index.add(strText[0], strText[1]);
-        });
-
-        findIds = index.search(strFind, 99999).then(function (result) {
-            let newIds = [];
-
-            dataDictIndexData.filter(function (item) {
-                if (result.includes(item.id)) {
-                    newIds = [...new Set([...newIds, ...item.path.split(","), item.id])];
-                }
-            });
-
-            let searchData = dataDictIndexData.filter(function (item) {
-                return newIds.includes(item.id);
-            });
-
-            setTreeData(searchData);
-        });
-        return;
-    } else {
-        strFullText.filter((strText) => {
-            if (strText[1].indexOf(strFind) > -1) {
-                findIds.push(strText[0]);
-            }
-        });
-    }
-
-    console.log(findIds);
-
-    let newIds = [];
-
-    dataDictIndexData.filter(function (item) {
-        if (findIds.includes(item.id)) {
-            newIds = [...new Set([...newIds, ...item.path.split(","), item.id])];
-        }
-    });
-
-    let searchData = dataDictIndexData.filter(function (item) {
-        return newIds.includes(item.id);
-    });
-
-    setTreeData(searchData);
-}
 
 function initUI() {
     $.ajax({
@@ -375,6 +330,7 @@ function initUI() {
             document.title = data.ddcTitle;
             document.getElementById("ddcVersion").value = data.ddcVersion;
             document.getElementById("ddcCreateTime").innerText = data.ddcTs;
+            document.getElementById("fullTextIndex").value = data.fullTextIndex;
         },
     });
 }
@@ -470,4 +426,35 @@ function sendBaidu(path) {
     if (window._hmt) {
         window._hmt.push(["_trackPageview", path]);
     }
+}
+
+async function fetchFullText() {
+    let fullTextFileName = document.getElementById("fullText").value.split(",");
+
+    console.log(fullTextFileName);
+
+    let promises = fullTextFileName.map((id) => {
+        return fetchData("./scripts/full-text-" + id + ".json");
+    });
+
+    function fetchData(url) {
+        return fetch(url)
+            .then((response) => response.json())
+            .then((json) => {
+                console.log(json.data.length);
+                return json.data;
+            })
+            .catch((ex) => console.log(ex));
+    }
+
+    await Promise.all(promises)
+        .then((results) => {
+            results.forEach((result) => {
+                strFullText = strFullText.concat(result);
+                result = null;
+            });
+        })
+        .catch((ex) => console.log(ex));
+
+    console.log("length:" + strFullText.length);
 }

@@ -34,6 +34,7 @@ import org.rocex.db.SQLExecutor;
 import org.rocex.db.SQLExecutor.DBType;
 import org.rocex.db.param.SQLParameter;
 import org.rocex.db.processor.BeanListProcessor;
+import org.rocex.db.processor.PagingAction;
 import org.rocex.db.processor.ResultSetProcessor;
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
@@ -923,7 +924,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
      * @author Rocex Wang
      * @since 2020-5-9 11:20:25
      ***************************************************************************/
-    protected List<? extends MetaVO> queryMetaVO(SQLExecutor sqlExecutorSource, Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param, IAction pagingAction)
+    protected List<? extends MetaVO> queryMetaVO(SQLExecutor sqlExecutorSource, Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param, PagingAction pagingAction)
     {
         Logger.getLogger().begin("query " + metaVOClass.getSimpleName());
 
@@ -953,41 +954,45 @@ public class SyncDBSchemaAction implements IAction, Closeable
      ***************************************************************************/
     protected void syncDBField(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, ClassVO classVO) throws SQLException
     {
-        IAction pagingFieldAction = evt ->
+        PagingAction pagingFieldAction = new PagingAction()
         {
-            int iSequence = 0;
-            List<PropertyVO> listPropertyVO = (List<PropertyVO>) evt.getSource();
-
-            for (PropertyVO propertyVO : listPropertyVO)
+            @Override
+            public void doAction(EventObject evt)
             {
-                propertyVO.setClassId(classVO.getId());
+                int iSequence = 0;
+                List<PropertyVO> listPropertyVO = (List<PropertyVO>) evt.getSource();
 
-                String strPropLowerName = propertyVO.getName().toLowerCase();
+                for (PropertyVO propertyVO : listPropertyVO)
+                {
+                    propertyVO.setClassId(classVO.getId());
 
-                propertyVO.setDataTypeStyle(ClassVO.ClassType.db.value());
-                propertyVO.setName(strPropLowerName);
-                propertyVO.setDdcVersion(strVersion);
-                propertyVO.setId(StringHelper.getId());
-                propertyVO.setAttrSequence(++iSequence);
-                propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
-                propertyVO.setDefaultValue(StringHelper.isEmpty(propertyVO.getDefaultValue()) ? null : propertyVO.getDefaultValue().toLowerCase());
-                propertyVO.setDisplayName(StringHelper.isEmpty(propertyVO.getRemarks()) ? strPropLowerName : StringHelper.removeCRLF(propertyVO.getRemarks()));
-            }
+                    String strPropLowerName = propertyVO.getName().toLowerCase();
 
-            Map<String, PropertyVO> mapTableNamePropertyVO2 = listPropertyVO.stream()
-                .collect(Collectors.toMap(propertyVO -> propertyVO.getTableName() + "." + propertyVO.getName(), propertyVO -> propertyVO));
+                    propertyVO.setDataTypeStyle(ClassVO.ClassType.db.value());
+                    propertyVO.setName(strPropLowerName);
+                    propertyVO.setDdcVersion(strVersion);
+                    propertyVO.setId(StringHelper.getId());
+                    propertyVO.setAttrSequence(++iSequence);
+                    propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
+                    propertyVO.setDefaultValue(StringHelper.isEmpty(propertyVO.getDefaultValue()) ? null : propertyVO.getDefaultValue().toLowerCase());
+                    propertyVO.setDisplayName(StringHelper.isEmpty(propertyVO.getRemarks()) ? strPropLowerName : StringHelper.removeCRLF(propertyVO.getRemarks()));
+                }
 
-            mapPropertyVOByTableName.putAll(mapTableNamePropertyVO2);
+                Map<String, PropertyVO> mapTableNamePropertyVO2 = listPropertyVO.stream()
+                    .collect(Collectors.toMap(propertyVO -> propertyVO.getTableName() + "." + propertyVO.getName(), propertyVO -> propertyVO));
 
-            try
-            {
-                sqlExecutorTarget.insertVO(listPropertyVO.toArray(new PropertyVO[0]));
+                mapPropertyVOByTableName.putAll(mapTableNamePropertyVO2);
 
-                listPropertyVO.clear();
-            }
-            catch (SQLException ex)
-            {
-                Logger.getLogger().error(ex.getMessage(), ex);
+                try
+                {
+                    sqlExecutorTarget.insertVO(listPropertyVO.toArray(new PropertyVO[0]));
+
+                    listPropertyVO.clear();
+                }
+                catch (SQLException ex)
+                {
+                    Logger.getLogger().error(ex.getMessage(), ex);
+                }
             }
         };
 
@@ -1073,41 +1078,45 @@ public class SyncDBSchemaAction implements IAction, Closeable
         mapPrimaryKey.put("COLUMN_NAME", "name");
         mapPrimaryKey.put("KEY_SEQ", "AttrSequence");
 
-        IAction pagingAction = evt ->
+        PagingAction pagingAction = new PagingAction()
         {
-            List<ClassVO> listClassVO = (List<ClassVO>) evt.getSource();
-
-            try
+            @Override
+            public void doAction(EventObject evt)
             {
-                sqlExecutorTarget.insertVO(listClassVO.toArray(new ClassVO[0]));
-            }
-            catch (SQLException ex)
-            {
-                Logger.getLogger().error(ex.getMessage(), ex);
-            }
+                List<ClassVO> listClassVO = (List<ClassVO>) evt.getSource();
 
-            ExecutorService executorService = Executors.newFixedThreadPool(ResHelper.getThreadCount());
-
-            listClassVO.forEach(classVO -> executorService.execute(() ->
-            {
                 try
                 {
-                    syncDBField(sqlExecutorSource, strDBCatalog, strDBSchema, classVO);
+                    sqlExecutorTarget.insertVO(listClassVO.toArray(new ClassVO[0]));
                 }
                 catch (SQLException ex)
                 {
                     Logger.getLogger().error(ex.getMessage(), ex);
                 }
-            }));
 
-            executorService.shutdown();
+                ExecutorService executorService = Executors.newFixedThreadPool(ResHelper.getThreadCount());
 
-            while (!executorService.isTerminated())
-            {
-                ResHelper.sleep(100);
+                listClassVO.forEach(classVO -> executorService.execute(() ->
+                {
+                    try
+                    {
+                        syncDBField(sqlExecutorSource, strDBCatalog, strDBSchema, classVO);
+                    }
+                    catch (SQLException ex)
+                    {
+                        Logger.getLogger().error(ex.getMessage(), ex);
+                    }
+                }));
+
+                executorService.shutdown();
+
+                while (!executorService.isTerminated())
+                {
+                    ResHelper.sleep(100);
+                }
+
+                listClassVO.clear();
             }
-
-            listClassVO.clear();
         };
 
         BeanListProcessor<ClassVO> processor = new BeanListProcessor<>(ClassVO.class, mapTable, classVO ->
@@ -1161,53 +1170,61 @@ public class SyncDBSchemaAction implements IAction, Closeable
     {
         Logger.getLogger().begin("sync bip metadata");
 
-        IAction pagingAction = evt ->
+        PagingAction pagingAction = new PagingAction()
         {
-            List<MetaVO> listVO = (List<MetaVO>) evt.getSource();
-
-            for (MetaVO metaVO : listVO)
+            @Override
+            public void doAction(EventObject evt)
             {
-                if (metaVO.getId() == null)
+                List<MetaVO> listVO = (List<MetaVO>) evt.getSource();
+
+                for (MetaVO metaVO : listVO)
                 {
-                    metaVO.setId(StringHelper.getId());
+                    if (metaVO.getId() == null)
+                    {
+                        metaVO.setId(StringHelper.getId());
+                    }
+
+                    metaVO.setDisplayName(StringHelper.removeCRLF(metaVO.getDisplayName()));
+
+                    if (metaVO instanceof ClassVO classVO && StringHelper.isBlank(classVO.getKeyAttribute()))
+                    {
+                        classVO.setKeyAttribute(mapPrimaryKeyByTableName.get(Objects.toString(classVO.getTableName(), "").toLowerCase()));
+                    }
                 }
 
-                metaVO.setDisplayName(StringHelper.removeCRLF(metaVO.getDisplayName()));
-
-                if (metaVO instanceof ClassVO classVO && StringHelper.isBlank(classVO.getKeyAttribute()))
+                try
                 {
-                    classVO.setKeyAttribute(mapPrimaryKeyByTableName.get(Objects.toString(classVO.getTableName(), "").toLowerCase()));
+                    sqlExecutorTarget.insertVO(listVO.toArray(new MetaVO[0]));
                 }
-            }
-
-            try
-            {
-                sqlExecutorTarget.insertVO(listVO.toArray(new MetaVO[0]));
-            }
-            catch (SQLException ex)
-            {
-                Logger.getLogger().error(ex.getMessage(), ex);
+                catch (SQLException ex)
+                {
+                    Logger.getLogger().error(ex.getMessage(), ex);
+                }
             }
         };
 
-        IAction pagingPropertyAction = evt ->
+        PagingAction pagingPropertyAction = new PagingAction()
         {
-            List<PropertyVO> listVO = (List<PropertyVO>) evt.getSource();
+            @Override
+            public void doAction(EventObject evt)
+            {
+                List<PropertyVO> listVO = (List<PropertyVO>) evt.getSource();
 
-            for (PropertyVO propertyVO : listVO)
-            {
-                propertyVO.setId(StringHelper.getId());
-                propertyVO.setDisplayName(StringHelper.removeCRLF(propertyVO.getDisplayName()));
-                propertyVO.setDataTypeSql(isBIP ? getDataTypeSqlBip(propertyVO) : getDataTypeSql(propertyVO));
-            }
+                for (PropertyVO propertyVO : listVO)
+                {
+                    propertyVO.setId(StringHelper.getId());
+                    propertyVO.setDisplayName(StringHelper.removeCRLF(propertyVO.getDisplayName()));
+                    propertyVO.setDataTypeSql(isBIP ? getDataTypeSqlBip(propertyVO) : getDataTypeSql(propertyVO));
+                }
 
-            try
-            {
-                sqlExecutorTarget.insertVO(listVO.toArray(new MetaVO[0]));
-            }
-            catch (SQLException ex)
-            {
-                Logger.getLogger().error(ex.getMessage(), ex);
+                try
+                {
+                    sqlExecutorTarget.insertVO(listVO.toArray(new MetaVO[0]));
+                }
+                catch (SQLException ex)
+                {
+                    Logger.getLogger().error(ex.getMessage(), ex);
+                }
             }
         };
 
