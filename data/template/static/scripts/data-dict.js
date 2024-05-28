@@ -429,7 +429,7 @@ function sendBaidu(path) {
 }
 
 async function fetchFullText() {
-    let fullTextFileName = document.getElementById("fullText").value.split(",");
+    let fullTextFileName = document.getElementById("fullTextIndex").value.split(",");
 
     console.log(fullTextFileName);
 
