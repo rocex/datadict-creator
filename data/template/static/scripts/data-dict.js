@@ -454,6 +454,9 @@ async function fetchFullText() {
                 result = null;
             });
         })
+        .then(() => {
+            document.getElementById("chckFullText").disabled = false;
+        })
         .catch((ex) => console.log(ex));
 
     console.log("length:" + strFullText.length);

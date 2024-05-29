@@ -982,8 +982,6 @@ public class CreateDataDictAction implements IAction
             }
         };
 
-        strFullTextFileIndex = String.join(",", listIndex);
-
         try
         {
             BeanListProcessor<FullTextItem> processor = new BeanListProcessor<>(FullTextItem.class);
@@ -995,5 +993,7 @@ public class CreateDataDictAction implements IAction
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }
+
+        strFullTextFileIndex = String.join(",", listIndex);
     }
 }

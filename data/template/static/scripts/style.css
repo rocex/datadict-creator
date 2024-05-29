@@ -163,6 +163,7 @@ ul.ztree {
 .refreshDdc::after {
     content: url("./img/refresh.png");
     position: absolute;
+    scale: 80%;
 }
 
 /* 带清空的输入框 */
