@@ -66,12 +66,13 @@ public class SyncDBSchemaAction implements IAction, Closeable
     protected SQLExecutor sqlExecutorTarget;
 
     // 排除的一些表名前缀
-    protected String[] strTableFilters = {"aqua_explain_", "gltmp_verdtlbal", "gl_tmp_table", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_", "iufo_tmp_pub_",
-        "ntb_tmp_formual_", "obsclass", "pitemid", "pkjkbx", "sm_securitylog_", "sm_securitylog_", "ssccm_adjustlog_b_", "ssccm_adjust_log_", "szxmid", "tb_cell_wbk", "tb_fd_sht",
-        "tb_fd_sht", "tb_tmp_", "tb_tmp_tcheck", "tb_tmp_tcheck_", "tb_tt_", "tb_tt_gh_budgetmodle", "temp000", "temppkts", "temptable_", "temp_", "temp_bd_", "temp_fa_",
-        "temp_ia_", "temp_ic_", "temp_pam_", "temp_scacosts_", "temp_scas", "temq_", "temq_", "tmpbd_", "tmpin", "tmpina", "tmpinb", "tmpinpk_", "tmpins", "tmpinsrc_", "tmpintop_",
-        "tmpub_calog_temp", "tmp_", "tmp_arap_", "tmp_gl_", "tmp_po_", "tmp_scmf", "tmp_so_", "tm_mqsend_success_", "transf2pcm", "t_ationid", "t_emplate", "t_laterow",
-        "t_laterow", "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_"};
+    protected String[] strTableFilters = {"aqua_explain_", "gltmp_verdtlbal", "gl_tmp_table", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_",
+        "iufo_tmp_pub_", "ntb_tmp_formual_", "obsclass", "pitemid", "pkjkbx", "sm_securitylog_", "sm_securitylog_", "ssccm_adjustlog_b_", "ssccm_adjust_log_",
+        "szxmid", "tb_cell_wbk", "tb_fd_sht", "tb_fd_sht", "tb_tmp_", "tb_tmp_tcheck", "tb_tmp_tcheck_", "tb_tt_", "tb_tt_gh_budgetmodle", "temp000",
+        "temppkts", "temptable_", "temp_", "temp_bd_", "temp_fa_", "temp_ia_", "temp_ic_", "temp_pam_", "temp_scacosts_", "temp_scas", "temq_", "temq_",
+        "tmpbd_", "tmpin", "tmpina", "tmpinb", "tmpinpk_", "tmpins", "tmpinsrc_", "tmpintop_", "tmpub_calog_temp", "tmp_", "tmp_arap_", "tmp_gl_", "tmp_po_",
+        "tmp_scmf", "tmp_so_", "tm_mqsend_success_", "transf2pcm", "t_ationid", "t_emplate", "t_laterow", "t_laterow", "uidbcache_temp_", "uidbcache_temp_",
+        "wa_temp_", "zdp_"};
 
     protected String strTs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ").format(new Date());
     protected String strVersion;              // 数据字典版本
@@ -307,7 +308,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
         }
 
         // 参照-305,枚举-203
-        if (strDataType.length() == 19 && ((propertyVO.getDataTypeStyle() == 305 && propertyVO.getRefModelName() != null) || propertyVO.getDataTypeStyle() == 203))
+        if (strDataType.length() == 19 &&
+            ((propertyVO.getDataTypeStyle() == 305 && propertyVO.getRefModelName() != null) || propertyVO.getDataTypeStyle() == 203))
         {
             propertyVO.setDataTypeSql("varchar");
 
@@ -411,7 +413,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
      * @author Rocex Wang
      * @since 2020-5-22 14:03:59
      ***************************************************************************/
-    protected String getPrimaryKeys(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, String strTableName, Map<String, String> mapPrimaryKey) throws Exception
+    protected String getPrimaryKeys(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, String strTableName,
+        Map<String, String> mapPrimaryKey) throws Exception
     {
         List<String> listPk = new ArrayList<>();
 
@@ -482,7 +485,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fkgxcz', '2312-bip', '费控共享财资云', 'db', 'fkgxcz', 'db_table');",
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ndi', '2312-bip', '国防工业云', 'db', 'ndi', 'db_table');"};
 
-        String[] strDBComponentSQLs = {"insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__amc_aim', '2312-bip', 'db', 'amc_aim', 'db__am');",
+        String[] strDBComponentSQLs = {
+            "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__amc_aim', '2312-bip', 'db', 'amc_aim', 'db__am');",
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__amc_ambd', '2312-bip', 'db', 'amc_ambd', 'db__am');",
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__amc_aom', '2312-bip', 'db', 'amc_aom', 'db__am');",
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__amc_aum', '2312-bip', 'db', 'amc_aum', 'db__am');",
@@ -924,7 +928,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
      * @author Rocex Wang
      * @since 2020-5-9 11:20:25
      ***************************************************************************/
-    protected List<? extends MetaVO> queryMetaVO(SQLExecutor sqlExecutorSource, Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param, PagingAction pagingAction)
+    protected List<? extends MetaVO> queryMetaVO(SQLExecutor sqlExecutorSource, Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param,
+        PagingAction pagingAction)
     {
         Logger.getLogger().begin("query " + metaVOClass.getSimpleName());
 
@@ -975,7 +980,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
                     propertyVO.setAttrSequence(++iSequence);
                     propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
                     propertyVO.setDefaultValue(StringHelper.isEmpty(propertyVO.getDefaultValue()) ? null : propertyVO.getDefaultValue().toLowerCase());
-                    propertyVO.setDisplayName(StringHelper.isEmpty(propertyVO.getRemarks()) ? strPropLowerName : StringHelper.removeCRLF(propertyVO.getRemarks()));
+                    propertyVO.setDisplayName(
+                        StringHelper.isEmpty(propertyVO.getRemarks()) ? strPropLowerName : StringHelper.removeCRLF(propertyVO.getRemarks()));
                 }
 
                 Map<String, PropertyVO> mapTableNamePropertyVO2 = listPropertyVO.stream()
@@ -1135,7 +1141,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
             classVO.setModelType(ModelType.db.name());
             classVO.setTableName(strTableName);
             classVO.setClassType(ClassVO.ClassType.db.value());
-            classVO.setDisplayName(propCodeName.getProperty(strTableName, StringHelper.isEmpty(classVO.getRemarks()) ? "" : StringHelper.removeCRLF(classVO.getRemarks())));
+            classVO.setDisplayName(
+                propCodeName.getProperty(strTableName, StringHelper.isEmpty(classVO.getRemarks()) ? "" : StringHelper.removeCRLF(classVO.getRemarks())));
 
             try
             {
@@ -1255,10 +1262,12 @@ public class SyncDBSchemaAction implements IAction, Closeable
 
         String strModuleSQL =
             "select distinct lower(own_module) as id,own_module as display_name,null as help,own_module as name,'md__other' as parent_module_id,null as version_type" +
-                strOtherSQL2 + " from md_meta_component where ytenant_id='0' and own_module is not null and own_module not in('','null','NULL') order by own_module";
+                strOtherSQL2 +
+                " from md_meta_component where ytenant_id='0' and own_module is not null and own_module not in('','null','NULL') order by own_module";
 
         String strComponentSQL =
-            "select id,null as biz_model,display_name,null as help,name,null as namespace,lower(own_module) as own_module,null as version,null as version_type" + strOtherSQL2 +
+            "select id,null as biz_model,display_name,null as help,name,null as namespace,lower(own_module) as own_module,null as version,null as version_type" +
+                strOtherSQL2 +
                 " from md_meta_component where ytenant_id='0' and own_module is not null and own_module not in('','null','NULL') order by own_module";
 
         String strBizObjAsComponentSQL =
@@ -1266,14 +1275,14 @@ public class SyncDBSchemaAction implements IAction, Closeable
                 strOtherSQL2 + " from md_biz_obj a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri" +
                 " where a.ytenant_id='0' and b.own_module is not null and a.code in(select biz_object_code from md_meta_class where ytenant_id='0')";
 
-        String strClassSQL =
-            "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.clazz.value() + " as class_type,b.id as component_id" +
-                ",a.table_name as table_name,a.display_name,'' as full_classname,null as help,null as key_attribute,a.name,null as own_module,null as primary_class" +
-                ",null as ref_model_name,null as return_type,null as version_type,c.id as biz_object_id,c.main_entity,d.id as main_class_id" + strOtherSQL2 +
-                " from md_meta_class a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri" +
-                " left join md_biz_obj c on c.ytenant_id='0' and a.biz_object_code=c.code left join md_meta_class d on d.ytenant_id='0' and c.main_entity=d.uri" +
-                " where a.ytenant_id='0' and a.meta_component_uri is not null" +
-                " and b.own_module is not null and b.own_module not in('','null','NULL') order by a.meta_component_uri";
+        String strClassSQL = "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.clazz.value() +
+            " as class_type,b.id as component_id" +
+            ",a.table_name as table_name,a.display_name,'' as full_classname,null as help,null as key_attribute,a.name,null as own_module,null as primary_class" +
+            ",null as ref_model_name,null as return_type,null as version_type,c.id as biz_object_id,c.main_entity,d.id as main_class_id" + strOtherSQL2 +
+            " from md_meta_class a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri" +
+            " left join md_biz_obj c on c.ytenant_id='0' and a.biz_object_code=c.code left join md_meta_class d on d.ytenant_id='0' and c.main_entity=d.uri" +
+            " where a.ytenant_id='0' and a.meta_component_uri is not null" +
+            " and b.own_module is not null and b.own_module not in('','null','NULL') order by a.meta_component_uri";
 
         String strEnumAsClass = "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.enumeration.value() +
             " as class_type,b.id as component_id,null as table_name" +
@@ -1294,63 +1303,25 @@ public class SyncDBSchemaAction implements IAction, Closeable
                 " where a.ytenant_id='0' and a.biz_type is not null and object_uri in(select uri from md_meta_class where ytenant_id='0')";
 
         String strEnumValueSQL = "select a.id,b.id as class_id,0 as enum_sequence,code as enum_value,a.name as name,0 as version_type" + strOtherSQL1 +
-            " from md_enumeration_literal a left join md_enumeration b on a.enumeration_uri=b.uri and b.ytenant_id='0'" + " where a.ytenant_id='0' order by enumeration_uri,code";
+            " from md_enumeration_literal a left join md_enumeration b on a.enumeration_uri=b.uri and b.ytenant_id='0'" +
+            " where a.ytenant_id='0' order by enumeration_uri,code";
 
         Properties dbPropSourceMd = new Properties();
 
         String strUrl = Context.getInstance().getSetting(strVersion + ".md.jdbc.url", Context.getInstance().getSetting(strVersion + ".jdbc.url"));
         dbPropSourceMd.setProperty("jdbc.url", strUrl.replace("${schema}", "iuap_metadata_base"));
-        dbPropSourceMd.setProperty("jdbc.user", Context.getInstance().getSetting(strVersion + ".md.jdbc.user", Context.getInstance().getSetting(strVersion + ".jdbc.user")));
-        dbPropSourceMd.setProperty("jdbc.driver", Context.getInstance().getSetting(strVersion + ".md.jdbc.driver", Context.getInstance().getSetting(strVersion + ".jdbc.driver")));
+        dbPropSourceMd.setProperty("jdbc.user",
+            Context.getInstance().getSetting(strVersion + ".md.jdbc.user", Context.getInstance().getSetting(strVersion + ".jdbc.user")));
+        dbPropSourceMd.setProperty("jdbc.driver",
+            Context.getInstance().getSetting(strVersion + ".md.jdbc.driver", Context.getInstance().getSetting(strVersion + ".jdbc.driver")));
         dbPropSourceMd.setProperty("jdbc.password",
             Context.getInstance().getSetting(strVersion + ".md.jdbc.password", Context.getInstance().getSetting(strVersion + ".jdbc.password")));
 
         try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSourceMd))
         {
-            syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strBizObjAsComponentSQL, strClassSQL, strPropertySQL, strEnumAsClass, strEnumValueSQL);
+            syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strBizObjAsComponentSQL, strClassSQL, strPropertySQL, strEnumAsClass,
+                strEnumValueSQL);
         }
-
-        /* List<ClassVO> listClassVO = new ArrayList<>();
-
-        try
-        {
-            listClassVO = (List<ClassVO>) sqlExecutorTarget.executeQuery(sqlExecutorTarget.getSQLSelect(ClassVO.class), new BeanListProcessor<>(ClassVO.class));
-        }
-        catch (SQLException ex)
-        {
-            throw new RuntimeException(ex);
-        }
-
-        Map<String, List<ClassVO>> mapClassVOByComponentId = listClassVO.stream().collect(Collectors.groupingBy(ClassVO::getComponentId));
-
-        List<ClassVO> listChangedClassVO = new ArrayList<>();
-
-        for (Map.Entry<String, List<ClassVO>> listEntry : mapClassVOByComponentId.entrySet())
-        {
-            List<ClassVO> listClassVO2 = listEntry.getValue();
-            if (listClassVO2 == null || listClassVO2.isEmpty())
-            {
-                continue;
-            }
-
-            boolean blHasPrimaryClass = listClassVO2.stream().anyMatch(ClassVO::isPrimaryClass);
-
-            if (!blHasPrimaryClass)
-            {
-                listClassVO2.get(0).setPrimaryClass(true);
-
-                listChangedClassVO.add(listClassVO2.get(0));
-            }
-        }
-
-        try
-        {
-            sqlExecutorTarget.updateVO(listChangedClassVO.toArray(new ClassVO[listChangedClassVO.size()]), "primary_class");
-        }
-        catch (SQLException ex)
-        {
-            throw new RuntimeException(ex);
-        } */
     }
 
     /***************************************************************************
@@ -1364,7 +1335,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
         String strModuleSQL = "select distinct id,name,displayname,parentmoduleid,help,versiontype," + strOtherSQL + " from md_module order by name";
 
         String strComponentSQL =
-            "select id as original_id,name,displayname,ownmodule,namespace,help,isbizmodel as biz_model,version,versiontype," + strOtherSQL + " from md_component";
+            "select id as original_id,name,displayname,ownmodule,namespace,help,isbizmodel as biz_model,version,versiontype," + strOtherSQL +
+                " from md_component";
 
         String strClassSQL = "select id,name,displayname,defaulttablename as table_name,fullclassname,keyattribute,componentid,classtype,isprimary,help" +
             ",accessorclassname,bizitfimpclassname,refmodelname,returntype,isauthen,versiontype," + strOtherSQL + " from md_class order by defaulttablename";
@@ -1376,8 +1348,8 @@ public class SyncDBSchemaAction implements IAction, Closeable
             ",b.pkey key_prop,a.versiontype," + strOtherSQL +
             " from md_property a left join md_column b on a.name=b.name and b.tableid=? where classid=? order by b.pkey desc,a.attrsequence";
 
-        String strEnumValueSQL =
-            "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherSQL + " from md_enumvalue order by id,enumsequence";
+        String strEnumValueSQL = "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherSQL +
+            " from md_enumvalue order by id,enumsequence";
 
         Properties dbPropSource2 = (Properties) propDBSource.clone();
 

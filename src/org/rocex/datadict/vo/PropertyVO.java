@@ -10,7 +10,8 @@ import javax.persistence.Table;
  * @since 2020-4-21 13:44:18
  ***************************************************************************/
 @Table(name = "md_property", indexes = {@Index(name = "i_md_property_class_id", columnList = "class_id"),
-    @Index(name = "i_md_property_data_type_style", columnList = "data_type_style"), @Index(name = "i_md_property_class_id_sequence", columnList = "class_id,attr_sequence"),
+    @Index(name = "i_md_property_data_type_style", columnList = "data_type_style"),
+    @Index(name = "i_md_property_class_id_sequence", columnList = "class_id,attr_sequence"),
     @Index(name = "i_md_property_ddc_version", columnList = "ddc_version")})
 public class PropertyVO extends MetaVO
 {
