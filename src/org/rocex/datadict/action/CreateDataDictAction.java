@@ -978,13 +978,14 @@ public class CreateDataDictAction implements IAction
             @Override
             public void doAction(EventObject evt)
             {
+                int iPageIndex = ((PagingEventObject) evt).getPageIndex();
+
                 List<FullTextItem> listVO = (List<FullTextItem>) evt.getSource();
-                int iPage = ((PagingEventObject) evt).getPage();
 
                 FullText fullText = new FullText();
                 fullText.setData(listVO.toArray(new FullTextItem[0]));
 
-                String strFullTextFileName = StringHelper.leftPad(String.valueOf(iPage), "0", 2);
+                String strFullTextFileName = StringHelper.leftPad(String.valueOf(iPageIndex), "0", 2);
                 listIndex.add(strFullTextFileName);
 
                 jacksonHelper.serializeThread(fullText, Path.of(strOutputRootDir, "scripts", "full-text-" + strFullTextFileName + ".json"));
