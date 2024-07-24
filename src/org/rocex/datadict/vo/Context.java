@@ -7,9 +7,9 @@ import org.rocex.utils.FileHelper;
 
 public class Context
 {
-    private static Properties settings;
-
     private static Context context;
+
+    private static Properties settings;
 
     private Context()
     {

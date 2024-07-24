@@ -11,14 +11,14 @@ public class FullTextItem extends SuperVO
         return strId;
     }
 
-    public void setId(String id)
-    {
-        strId = id;
-    }
-
     public String getName()
     {
         return strName;
+    }
+
+    public void setId(String id)
+    {
+        strId = id;
     }
 
     public void setName(String name)

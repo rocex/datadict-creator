@@ -225,217 +225,6 @@ public class SyncDBSchemaAction implements IAction, Closeable
         Logger.getLogger().end("after sync ncc data");
     }
 
-    /****************************************************************************
-     * {@inheritDoc}<br>
-     * @see IAction#doAction(EventObject)
-     * @author Rocex Wang
-     * @since 2021-10-28 14:17:51
-     ****************************************************************************/
-    @Override
-    public void doAction(EventObject evt)
-    {
-        Logger.getLogger().begin("sync db schema and meta data");
-
-        if (!isNeedSyncData())
-        {
-            return;
-        }
-
-        sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, DictJsonVO.class);
-
-        beforeSyncDataBip();
-
-        if (isCreateDbDdc)
-        {
-            syncDBMeta();
-        }
-
-        if (isBIP)
-        {
-            syncMetaDataBip();
-
-            afterSyncDataBip();
-        }
-        else
-        {
-            syncMetaDataNcc();
-
-            afterSyncDataNcc();
-        }
-
-        Logger.getLogger().end("sync db schema and meta data");
-    }
-
-    protected String getDataTypeSqlBip(PropertyVO propertyVO)
-    {
-        if (!isBIP)
-        {
-            return propertyVO.getDataTypeSql();
-        }
-
-        PropertyVO tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + propertyVO.getName());
-        if (tableNamePropertyVO == null)
-        {
-            tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.camelToUnderline(propertyVO.getName()));
-            if (tableNamePropertyVO == null)
-            {
-                tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.underlineToCamel(propertyVO.getName()));
-            }
-        }
-
-        if (tableNamePropertyVO != null)
-        {
-            String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
-
-            propertyVO.setColumnCode(tableNamePropertyVO.getName());
-
-            if (StringHelper.isNotBlank(strDataTypeSql))
-            {
-                propertyVO.setDataTypeSql(strDataTypeSql);
-
-                return strDataTypeSql;
-            }
-        }
-
-        String strDataType = propertyVO.getDataType() == null ? "varchar" : propertyVO.getDataType();
-        if (strDataType.contains("text"))
-        {
-            propertyVO.setDataTypeSql("varchar");
-        }
-        else
-        {
-            propertyVO.setDataTypeSql(strDataType);
-        }
-
-        // 参照-305,枚举-203
-        if (strDataType.length() == 19 &&
-            ((propertyVO.getDataTypeStyle() == 305 && propertyVO.getRefModelName() != null) || propertyVO.getDataTypeStyle() == 203))
-        {
-            propertyVO.setDataTypeSql("varchar");
-
-            if (propertyVO.getAttrLength() == null)
-            {
-                propertyVO.setAttrLength(22);
-            }
-        }
-
-        return getDataTypeSql(propertyVO);
-    }
-
-    /***************************************************************************
-     * 返回数据库类型定义
-     * @param propertyVO
-     * @return String
-     * @author Rocex Wang
-     * @since 2020-4-28 10:14:34
-     ***************************************************************************/
-    protected String getDataTypeSql(PropertyVO propertyVO)
-    {
-        if (propertyVO.getDataTypeSql() == null && (propertyVO.getDataType().length() == 20 || propertyVO.getDataType().length() == 36))
-        {
-            propertyVO.setDataTypeSql("char");
-        }
-
-        String strDbType = propertyVO.getDataTypeSql().toLowerCase();
-
-        if ((strDbType.contains("char") || strDbType.contains("text")) && propertyVO.getAttrLength() != null)
-        {
-            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ")";
-        }
-        else if ((strDbType.contains("decimal") || strDbType.contains("number")) && propertyVO.getAttrLength() != null)
-        {
-            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ", " + propertyVO.getPrecise() + ")";
-        }
-
-        propertyVO.setDataTypeSql(strDbType);
-
-        return strDbType;
-    }
-
-    /***************************************************************************
-     * @param classVO
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:47:11
-     ***************************************************************************/
-    protected synchronized String getMappedClassId(ClassVO classVO)
-    {
-        return getMappedId("class", classVO.getId());
-    }
-
-    /***************************************************************************
-     * @param strType
-     * @param strId
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:47:06
-     ***************************************************************************/
-    protected synchronized String getMappedId(String strType, String strId)
-    {
-        if (strId != null && strId.length() < 24)
-        {
-            return strId;
-        }
-
-        String strKey = strType + "_" + strId;
-
-        String strValue = mapId.get(strKey);
-
-        if (strValue != null)
-        {
-            return strValue;
-        }
-
-        String strMapId = StringHelper.getId();
-
-        mapId.put(strKey, strMapId);
-
-        return strMapId;
-    }
-
-    /***************************************************************************
-     * @param moduleVO
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:46:54
-     ***************************************************************************/
-    protected synchronized String getMappedModuleId(ModuleVO moduleVO)
-    {
-        return getMappedId("module", moduleVO.getId());
-    }
-
-    /***************************************************************************
-     * 根据数据库特性一次性读取所有表的主键，如果不能确定数据库，还是按照jdbc的api每次只取一个表的主键
-     * @param strTableName
-     * @param mapPrimaryKey
-     * @return String
-     * @throws Exception
-     * @author Rocex Wang
-     * @since 2020-5-22 14:03:59
-     ***************************************************************************/
-    protected String getPrimaryKeys(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, String strTableName,
-        Map<String, String> mapPrimaryKey) throws Exception
-    {
-        List<String> listPk = new ArrayList<>();
-
-        // 找到表的主键
-        try (Connection connection = sqlExecutorSource.getConnection();
-             ResultSet rsPkColumns = connection.getMetaData().getPrimaryKeys(strDBCatalog, strDBSchema, strTableName))
-        {
-            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapPrimaryKey, "name").doAction(rsPkColumns);
-
-            for (PropertyVO propertyVO : listPkPropertyVO)
-            {
-                if (propertyVO.getName() != null)
-                {
-                    listPk.add(propertyVO.getName().toLowerCase());
-                }
-            }
-        }
-
-        return String.join(";", listPk);
-    }
-
     void beforeSyncDataBip()
     {
         Logger.getLogger().begin("before sync bip data");
@@ -823,6 +612,230 @@ public class SyncDBSchemaAction implements IAction, Closeable
         }
 
         Logger.getLogger().end("before sync bip data");
+    }
+
+    @Override
+    public void close()
+    {
+        mapId.clear();
+        propDBSource.clear();
+        propCodeName.clear();
+        listNeedSyncTableName.clear();
+        mapPrimaryKeyByTableName.clear();
+        mapPropertyVOByTableName.clear();
+
+        sqlExecutorTarget.close();
+    }
+
+    /****************************************************************************
+     * {@inheritDoc}<br>
+     * @see IAction#doAction(EventObject)
+     * @author Rocex Wang
+     * @since 2021-10-28 14:17:51
+     ****************************************************************************/
+    @Override
+    public void doAction(EventObject evt)
+    {
+        Logger.getLogger().begin("sync db schema and meta data");
+
+        if (!isNeedSyncData())
+        {
+            return;
+        }
+
+        sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, DictJsonVO.class);
+
+        beforeSyncDataBip();
+
+        if (isCreateDbDdc)
+        {
+            syncDBMeta();
+        }
+
+        if (isBIP)
+        {
+            syncMetaDataBip();
+
+            afterSyncDataBip();
+        }
+        else
+        {
+            syncMetaDataNcc();
+
+            afterSyncDataNcc();
+        }
+
+        Logger.getLogger().end("sync db schema and meta data");
+    }
+
+    /***************************************************************************
+     * 返回数据库类型定义
+     * @param propertyVO
+     * @return String
+     * @author Rocex Wang
+     * @since 2020-4-28 10:14:34
+     ***************************************************************************/
+    protected String getDataTypeSql(PropertyVO propertyVO)
+    {
+        if (propertyVO.getDataTypeSql() == null && (propertyVO.getDataType().length() == 20 || propertyVO.getDataType().length() == 36))
+        {
+            propertyVO.setDataTypeSql("char");
+        }
+
+        String strDbType = propertyVO.getDataTypeSql().toLowerCase();
+
+        if ((strDbType.contains("char") || strDbType.contains("text")) && propertyVO.getAttrLength() != null)
+        {
+            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ")";
+        }
+        else if ((strDbType.contains("decimal") || strDbType.contains("number")) && propertyVO.getAttrLength() != null)
+        {
+            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ", " + propertyVO.getPrecise() + ")";
+        }
+
+        propertyVO.setDataTypeSql(strDbType);
+
+        return strDbType;
+    }
+
+    protected String getDataTypeSqlBip(PropertyVO propertyVO)
+    {
+        if (!isBIP)
+        {
+            return propertyVO.getDataTypeSql();
+        }
+
+        PropertyVO tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + propertyVO.getName());
+        if (tableNamePropertyVO == null)
+        {
+            tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.camelToUnderline(propertyVO.getName()));
+            if (tableNamePropertyVO == null)
+            {
+                tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.underlineToCamel(propertyVO.getName()));
+            }
+        }
+
+        if (tableNamePropertyVO != null)
+        {
+            String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
+
+            propertyVO.setColumnCode(tableNamePropertyVO.getName());
+
+            if (StringHelper.isNotBlank(strDataTypeSql))
+            {
+                propertyVO.setDataTypeSql(strDataTypeSql);
+
+                return strDataTypeSql;
+            }
+        }
+
+        String strDataType = propertyVO.getDataType() == null ? "varchar" : propertyVO.getDataType();
+        if (strDataType.contains("text"))
+        {
+            propertyVO.setDataTypeSql("varchar");
+        }
+        else
+        {
+            propertyVO.setDataTypeSql(strDataType);
+        }
+
+        // 参照-305,枚举-203
+        if (strDataType.length() == 19 &&
+            ((propertyVO.getDataTypeStyle() == 305 && propertyVO.getRefModelName() != null) || propertyVO.getDataTypeStyle() == 203))
+        {
+            propertyVO.setDataTypeSql("varchar");
+
+            if (propertyVO.getAttrLength() == null)
+            {
+                propertyVO.setAttrLength(22);
+            }
+        }
+
+        return getDataTypeSql(propertyVO);
+    }
+
+    /***************************************************************************
+     * @param classVO
+     * @return mappedId
+     * @author Rocex Wang
+     * @since 2020-4-30 13:47:11
+     ***************************************************************************/
+    protected synchronized String getMappedClassId(ClassVO classVO)
+    {
+        return getMappedId("class", classVO.getId());
+    }
+
+    /***************************************************************************
+     * @param strType
+     * @param strId
+     * @return mappedId
+     * @author Rocex Wang
+     * @since 2020-4-30 13:47:06
+     ***************************************************************************/
+    protected synchronized String getMappedId(String strType, String strId)
+    {
+        if (strId != null && strId.length() < 24)
+        {
+            return strId;
+        }
+
+        String strKey = strType + "_" + strId;
+
+        String strValue = mapId.get(strKey);
+
+        if (strValue != null)
+        {
+            return strValue;
+        }
+
+        String strMapId = StringHelper.getId();
+
+        mapId.put(strKey, strMapId);
+
+        return strMapId;
+    }
+
+    /***************************************************************************
+     * @param moduleVO
+     * @return mappedId
+     * @author Rocex Wang
+     * @since 2020-4-30 13:46:54
+     ***************************************************************************/
+    protected synchronized String getMappedModuleId(ModuleVO moduleVO)
+    {
+        return getMappedId("module", moduleVO.getId());
+    }
+
+    /***************************************************************************
+     * 根据数据库特性一次性读取所有表的主键，如果不能确定数据库，还是按照jdbc的api每次只取一个表的主键
+     * @param strTableName
+     * @param mapPrimaryKey
+     * @return String
+     * @throws Exception
+     * @author Rocex Wang
+     * @since 2020-5-22 14:03:59
+     ***************************************************************************/
+    protected String getPrimaryKeys(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, String strTableName,
+        Map<String, String> mapPrimaryKey) throws Exception
+    {
+        List<String> listPk = new ArrayList<>();
+
+        // 找到表的主键
+        try (Connection connection = sqlExecutorSource.getConnection();
+             ResultSet rsPkColumns = connection.getMetaData().getPrimaryKeys(strDBCatalog, strDBSchema, strTableName))
+        {
+            List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapPrimaryKey, "name").doAction(rsPkColumns);
+
+            for (PropertyVO propertyVO : listPkPropertyVO)
+            {
+                if (propertyVO.getName() != null)
+                {
+                    listPk.add(propertyVO.getName().toLowerCase());
+                }
+            }
+        }
+
+        return String.join(";", listPk);
     }
 
     /***************************************************************************
@@ -1357,18 +1370,5 @@ public class SyncDBSchemaAction implements IAction, Closeable
         {
             syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, null, strClassSQL, strPropertySQL, null, strEnumValueSQL);
         }
-    }
-
-    @Override
-    public void close()
-    {
-        mapId.clear();
-        propDBSource.clear();
-        propCodeName.clear();
-        listNeedSyncTableName.clear();
-        mapPrimaryKeyByTableName.clear();
-        mapPropertyVOByTableName.clear();
-
-        sqlExecutorTarget.close();
     }
 }

@@ -51,6 +51,12 @@ public class CreateDataDictAction implements IAction
     protected Boolean isBIP;
     protected Boolean isCreateDbDdc;
 
+    protected JacksonHelper jacksonHelper = new JacksonHelper().exclude(ClassVO.class, "accessorClassname", "authen", "bizItfImpClassname", "bizObjectId",
+            "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute", "mainClassId", "name", "refModelName", "returnType", "ts", "versionType")
+        .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence", "calculation", "classId", "customAttr",
+            "ddcVersion", "dynamicAttr", "fixedLength", "hidden", "notSerialize", "id", "precise", "readOnly", "refModelName", "ts", "versionType",
+            "refClassPathHref");
+
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();       // component id 和 component 内所有 class 链接的对应关系
     protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();       // component id 和 主实体 id 的对应关系
     protected Map<String, String> mapEnumString = new HashMap<>();                      // enum id 和 enum name and value 的对应关系
@@ -62,24 +68,16 @@ public class CreateDataDictAction implements IAction
 
     protected String strClassListHrefTemplate = "<a href=\"javascript:void(0);\" onClick=loadDataDict(\"%s\"); class=\"%s\">%s</a>";    // 左上角实体列表链接
     protected String strCreateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
-
     // 自定义项字段名前缀
     protected String[] strCustomPatterns = {"def", "vdef", "vfree", "vbdef", "vsndef", "vbfree", "vbcdef", "defitem", "vpfree", "zyx", "vuserdef", "obmdef",
         "hvdef", "vbodyuserdef", "vhdef", "vgdef", "hdef", "vstbdef", "vpdef", "vbprodbatdef", "vheaduserdef", "bc_vdef", "vsdef", "vhodef", "vstdef",
         "vbatchdef", "bdef", "freevalue", "h_def", "vrcdef", "des_freedef", "src_freedef", "vprodbatdef", "factor", "free", "nfactor", "glbdef", "jobglbdef",
         "vcostfree"};
-
+    protected String strFullTextFileIndex;  // 全文检索文件名序号，英文逗号分割
     protected String strOutputDictDir;      // 输出数据字典文件目录
     protected String strOutputRootDir;      // 输出文件根目录
     protected String strPropertySQL;        // 在多线程中使用，提取出来
     protected String strVersion;            // 数据字典版本
-    protected String strFullTextFileIndex;  // 全文检索文件名序号，英文逗号分割
-
-    protected JacksonHelper jacksonHelper = new JacksonHelper().exclude(ClassVO.class, "accessorClassname", "authen", "bizItfImpClassname", "bizObjectId",
-            "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute", "mainClassId", "name", "refModelName", "returnType", "ts", "versionType")
-        .exclude(PropertyVO.class, "accessorClassname", "accessPower", "accessPowerGroup", "attrLength", "attrSequence", "calculation", "classId", "customAttr",
-            "ddcVersion", "dynamicAttr", "fixedLength", "hidden", "notSerialize", "id", "precise", "readOnly", "refModelName", "ts", "versionType",
-            "refClassPathHref");
 
     /***************************************************************************
      * @author Rocex Wang
@@ -635,6 +633,66 @@ public class CreateDataDictAction implements IAction
         Logger.getLogger().end("empty target folder " + strOutputRootDir);
     }
 
+    protected void exportFullText()
+    {
+        String strSQL = "select class_id as id,group_concat(replace(name,'\"',''''),'|')||'|'||group_concat(replace(display_name,'\"',''''),'|') as name" +
+            " from md_property group by class_id order by class_id";
+
+        strSQL = """
+            select class_id as id,group_concat(replace(name,'"',''''),'|')||'|'||group_concat(replace(display_name,'"',''''),'|') as name
+            from md_property group by class_id order by class_id""";
+
+        class FullText
+        {
+            private FullTextItem[] data;
+
+            public FullTextItem[] getData()
+            {
+                return data;
+            }
+
+            public void setData(FullTextItem[] data)
+            {
+                this.data = data;
+            }
+        }
+
+        List<String> listIndex = new ArrayList<>();
+
+        PagingAction pagingFullTextAction = new PagingAction()
+        {
+            @Override
+            public void doAction(EventObject evt)
+            {
+                int iPageIndex = ((PagingEventObject) evt).getPageIndex();
+
+                List<FullTextItem> listVO = (List<FullTextItem>) evt.getSource();
+
+                FullText fullText = new FullText();
+                fullText.setData(listVO.toArray(new FullTextItem[0]));
+
+                String strFullTextFileName = StringHelper.leftPad(String.valueOf(iPageIndex), "0", 2);
+                listIndex.add(strFullTextFileName);
+
+                jacksonHelper.serializeThread(fullText, Path.of(strOutputRootDir, "scripts", "full-text-" + strFullTextFileName + ".json"));
+            }
+        };
+
+        try
+        {
+            BeanListProcessor<FullTextItem> processor = new BeanListProcessor<>(FullTextItem.class);
+            processor.setPagingAction(pagingFullTextAction.setPageSize(10000));
+
+            List<FullTextItem> listMetaVO = (List<FullTextItem>) sqlExecutor.executeQuery(strSQL, null, processor);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+
+        strFullTextFileIndex = String.join(",", listIndex);
+    }
+
     /***************************************************************************
      * 实体文件全路径的绝对路径
      * @param classVO
@@ -945,65 +1003,5 @@ public class CreateDataDictAction implements IAction
     protected void writeDataDictFile(ClassVO classVO)
     {
         jacksonHelper.serializeThread(classVO, getClassFilePath(classVO));
-    }
-
-    protected void exportFullText()
-    {
-        String strSQL = "select class_id as id,group_concat(replace(name,'\"',''''),'|')||'|'||group_concat(replace(display_name,'\"',''''),'|') as name" +
-            " from md_property group by class_id order by class_id";
-
-        strSQL = """
-            select class_id as id,group_concat(replace(name,'"',''''),'|')||'|'||group_concat(replace(display_name,'"',''''),'|') as name
-            from md_property group by class_id order by class_id""";
-
-        class FullText
-        {
-            private FullTextItem[] data;
-
-            public FullTextItem[] getData()
-            {
-                return data;
-            }
-
-            public void setData(FullTextItem[] data)
-            {
-                this.data = data;
-            }
-        }
-
-        List<String> listIndex = new ArrayList<>();
-
-        PagingAction pagingFullTextAction = new PagingAction()
-        {
-            @Override
-            public void doAction(EventObject evt)
-            {
-                int iPageIndex = ((PagingEventObject) evt).getPageIndex();
-
-                List<FullTextItem> listVO = (List<FullTextItem>) evt.getSource();
-
-                FullText fullText = new FullText();
-                fullText.setData(listVO.toArray(new FullTextItem[0]));
-
-                String strFullTextFileName = StringHelper.leftPad(String.valueOf(iPageIndex), "0", 2);
-                listIndex.add(strFullTextFileName);
-
-                jacksonHelper.serializeThread(fullText, Path.of(strOutputRootDir, "scripts", "full-text-" + strFullTextFileName + ".json"));
-            }
-        };
-
-        try
-        {
-            BeanListProcessor<FullTextItem> processor = new BeanListProcessor<>(FullTextItem.class);
-            processor.setPagingAction(pagingFullTextAction.setPageSize(10000));
-
-            List<FullTextItem> listMetaVO = (List<FullTextItem>) sqlExecutor.executeQuery(strSQL, null, processor);
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
-
-        strFullTextFileIndex = String.join(",", listIndex);
     }
 }

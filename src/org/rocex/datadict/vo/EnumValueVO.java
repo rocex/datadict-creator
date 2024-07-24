@@ -9,15 +9,15 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @since 2020-4-23 13:35:11
  ***************************************************************************/
-@Table(name = "md_enumvalue", indexes = { @Index(name = "i_md_enumvalue_class_id", columnList = "class_id,enum_sequence"),
-        @Index(name = "i_md_enumvalue_ddc_version", columnList = "ddc_version") })
+@Table(name = "md_enumvalue", indexes = {@Index(name = "i_md_enumvalue_class_id", columnList = "class_id,enum_sequence"),
+    @Index(name = "i_md_enumvalue_ddc_version", columnList = "ddc_version")})
 public class EnumValueVO extends MetaVO
 {
     private Integer iEnumSequence;
-    
+
     private String strClassId;
     private String strEnumValue;
-    
+
     /***************************************************************************
      * @return the classId
      * @author Rocex Wang
@@ -28,7 +28,7 @@ public class EnumValueVO extends MetaVO
     {
         return strClassId;
     }
-    
+
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datadict.vo.MetaVO#getDisplayName()
@@ -41,7 +41,7 @@ public class EnumValueVO extends MetaVO
     {
         return super.getDisplayName();
     }
-    
+
     /***************************************************************************
      * @return the enumSequence
      * @author Rocex Wang
@@ -51,7 +51,7 @@ public class EnumValueVO extends MetaVO
     {
         return iEnumSequence;
     }
-    
+
     /***************************************************************************
      * @return the value
      * @author Rocex Wang
@@ -61,7 +61,7 @@ public class EnumValueVO extends MetaVO
     {
         return strEnumValue;
     }
-    
+
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datadict.vo.MetaVO#getHelp()
@@ -74,14 +74,14 @@ public class EnumValueVO extends MetaVO
     {
         return super.getHelp();
     }
-    
+
     @Override
     @Column(insertable = false, updatable = false)
     public String getModelType()
     {
         return super.getModelType();
     }
-    
+
     /***************************************************************************
      * @param classId the classId to set
      * @author Rocex Wang
@@ -91,7 +91,7 @@ public class EnumValueVO extends MetaVO
     {
         strClassId = classId;
     }
-    
+
     /***************************************************************************
      * @param enumSequence the enumSequence to set
      * @author Rocex Wang
@@ -101,7 +101,7 @@ public class EnumValueVO extends MetaVO
     {
         iEnumSequence = enumSequence;
     }
-    
+
     /***************************************************************************
      * @param value the value to set
      * @author Rocex Wang

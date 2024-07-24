@@ -30,9 +30,9 @@ public class PropertyVO extends MetaVO
     private Integer iAttrSequence;
     private Integer iDataTypeStyle;     // 999 - 数据库字段
     private Integer iPrecise;
-
-    private String strAccessorClassname;
+    
     private String strAccessPowerGroup;
+    private String strAccessorClassname;
     private String strAttrMaxValue;
     private String strAttrMinValue;
     private String strClassId;
@@ -44,19 +44,9 @@ public class PropertyVO extends MetaVO
     private String strDataTypeSql;
     private String strDefaultValue;
     private String strDynamicTable;
-    private String strTableName;
     private String strRefModelName;
     private String strRemarks;
-
-    /***************************************************************************
-     * @return the accessorClassname
-     * @author Rocex Wang
-     * @since 2021-11-16 04:05:17
-     ***************************************************************************/
-    public String getAccessorClassname()
-    {
-        return strAccessorClassname;
-    }
+    private String strTableName;
 
     /***************************************************************************
      * @return the accessPowerGroup
@@ -67,6 +57,16 @@ public class PropertyVO extends MetaVO
     public String getAccessPowerGroup()
     {
         return strAccessPowerGroup;
+    }
+
+    /***************************************************************************
+     * @return the accessorClassname
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public String getAccessorClassname()
+    {
+        return strAccessorClassname;
     }
 
     /***************************************************************************
@@ -120,6 +120,15 @@ public class PropertyVO extends MetaVO
     public String getClassId()
     {
         return strClassId;
+    }
+
+    /***************************************************************************
+     * @author Rocex Wang
+     * @since 2024-05-07 11:10:20
+     ***************************************************************************/
+    public String getColumnCode()
+    {
+        return strColumnCode;
     }
 
     /***************************************************************************
@@ -239,11 +248,6 @@ public class PropertyVO extends MetaVO
         return strTableName;
     }
 
-    public void setTableName(String tableName)
-    {
-        strTableName = tableName;
-    }
-
     /***************************************************************************
      * @return the accessPower
      * @author Rocex Wang
@@ -345,16 +349,6 @@ public class PropertyVO extends MetaVO
     }
 
     /***************************************************************************
-     * @param accessorClassname the accessorClassname to set
-     * @author Rocex Wang
-     * @since 2021-11-16 04:05:17
-     ***************************************************************************/
-    public void setAccessorClassname(String accessorClassname)
-    {
-        strAccessorClassname = accessorClassname;
-    }
-
-    /***************************************************************************
      * @param accessPower the accessPower to set
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
@@ -372,6 +366,16 @@ public class PropertyVO extends MetaVO
     public void setAccessPowerGroup(String accessPowerGroup)
     {
         strAccessPowerGroup = accessPowerGroup;
+    }
+
+    /***************************************************************************
+     * @param accessorClassname the accessorClassname to set
+     * @author Rocex Wang
+     * @since 2021-11-16 04:05:17
+     ***************************************************************************/
+    public void setAccessorClassname(String accessorClassname)
+    {
+        strAccessorClassname = accessorClassname;
     }
 
     /***************************************************************************
@@ -432,6 +436,16 @@ public class PropertyVO extends MetaVO
     public void setClassId(String classId)
     {
         strClassId = classId;
+    }
+
+    /***************************************************************************
+     * @param columnCode the column code to set
+     * @author Rocex Wang
+     * @since 2024-05-07 11:10:10
+     ***************************************************************************/
+    public void setColumnCode(String columnCode)
+    {
+        strColumnCode = columnCode;
     }
 
     /***************************************************************************
@@ -624,22 +638,8 @@ public class PropertyVO extends MetaVO
         this.strRemarks = strRemarks;
     }
 
-    /***************************************************************************
-     * @author Rocex Wang
-     * @since 2024-05-07 11:10:20
-     ***************************************************************************/
-    public String getColumnCode()
+    public void setTableName(String tableName)
     {
-        return strColumnCode;
-    }
-
-    /***************************************************************************
-     * @param columnCode the column code to set
-     * @author Rocex Wang
-     * @since 2024-05-07 11:10:10
-     ***************************************************************************/
-    public void setColumnCode(String columnCode)
-    {
-        strColumnCode = columnCode;
+        strTableName = tableName;
     }
 }
