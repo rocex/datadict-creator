@@ -19,7 +19,7 @@ public class DataDictCreator
     /***************************************************************************
      * @param args String[]
      * @author Rocex Wang
-     * @since 2020-4-21 15:43:05 
+     * @since 2020-4-21 15:43:05
      ***************************************************************************/
     public static void main(String[] args)
     {
