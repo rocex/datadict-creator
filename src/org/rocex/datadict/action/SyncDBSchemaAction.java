@@ -815,14 +815,13 @@ public class SyncDBSchemaAction implements IAction, Closeable
      * @author Rocex Wang
      * @since 2020-5-22 14:03:59
      ***************************************************************************/
-    protected String getPrimaryKeys(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, String strTableName,
+    protected String getPrimaryKeys(Connection connSource, String strDBCatalog, String strDBSchema, String strTableName,
         Map<String, String> mapPrimaryKey) throws Exception
     {
         List<String> listPk = new ArrayList<>();
 
         // 找到表的主键
-        try (Connection connection = sqlExecutorSource.getConnection();
-             ResultSet rsPkColumns = connection.getMetaData().getPrimaryKeys(strDBCatalog, strDBSchema, strTableName))
+        try (ResultSet rsPkColumns = connSource.getMetaData().getPrimaryKeys(strDBCatalog, strDBSchema, strTableName))
         {
             List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapPrimaryKey, "name").doAction(rsPkColumns);
 
@@ -970,7 +969,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
      * @author Rocex Wang
      * @since 2021-11-15 13:59:54
      ***************************************************************************/
-    protected void syncDBField(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, ClassVO classVO) throws SQLException
+    protected void syncDBField(Connection connSource, String strDBCatalog, String strDBSchema, ClassVO classVO) throws SQLException
     {
         PagingAction pagingFieldAction = new PagingAction()
         {
@@ -1031,8 +1030,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
             return listNeedSyncTableName.contains(strTableName) && isTableNameValid(strTableName);
         });
 
-        try (Connection connection = sqlExecutorSource.getConnection();
-             ResultSet rsColumns = connection.getMetaData().getColumns(strDBCatalog, strDBSchema, classVO.getTableName(), null))
+        try (ResultSet rsColumns = connSource.getMetaData().getColumns(strDBCatalog, strDBSchema, classVO.getTableName(), null))
         {
             processor.setPagingAction(pagingFieldAction);
 
@@ -1060,13 +1058,13 @@ public class SyncDBSchemaAction implements IAction, Closeable
             dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", strSrcDBSchema));
 
             try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);
-                 Connection connection = sqlExecutorSource.getConnection())
+                 Connection connSource = sqlExecutorSource.getConnection())
             {
-                String strSrcDBCatalog = connection.getCatalog();
+                String strSrcDBCatalog = connSource.getCatalog();
 
                 initTableFiltersWithTempTableName(sqlExecutorSource);
 
-                syncDBTable(sqlExecutorSource, strSrcDBCatalog, strSrcDBSchema, "db__" + strSrcDBSchema);
+                syncDBTable(connSource, strSrcDBCatalog, strSrcDBSchema, "db__" + strSrcDBSchema);
             }
             catch (SQLException ex)
             {
@@ -1083,7 +1081,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
      * @since 2020-5-11 11:19:19
      * @throws Exception
      ***************************************************************************/
-    protected void syncDBTable(SQLExecutor sqlExecutorSource, String strDBCatalog, String strDBSchema, String strComponentId) throws SQLException
+    protected void syncDBTable(Connection connSource, String strDBCatalog, String strDBSchema, String strComponentId) throws SQLException
     {
         String strMsg = "sync all tables and fields from schema [%s]".formatted(strDBSchema);
 
@@ -1119,7 +1117,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
                 {
                     try
                     {
-                        syncDBField(sqlExecutorSource, strDBCatalog, strDBSchema, classVO);
+                        syncDBField(connSource, strDBCatalog, strDBSchema, classVO);
                     }
                     catch (SQLException ex)
                     {
@@ -1159,7 +1157,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
 
             try
             {
-                String strPrimaryKeys = getPrimaryKeys(sqlExecutorSource, strDBCatalog, strDBSchema, strTableName, mapPrimaryKey);
+                String strPrimaryKeys = getPrimaryKeys(connSource, strDBCatalog, strDBSchema, strTableName, mapPrimaryKey);
 
                 classVO.setKeyAttribute(strPrimaryKeys);
 
@@ -1175,8 +1173,7 @@ public class SyncDBSchemaAction implements IAction, Closeable
             return true;
         }, "TableName", "ClassListUrl", "Remarks");
 
-        try (Connection connection = sqlExecutorSource.getConnection();
-             ResultSet rsTable = connection.getMetaData().getTables(strDBCatalog, strDBSchema, "%", new String[]{"TABLE"}))
+        try (ResultSet rsTable = connSource.getMetaData().getTables(strDBCatalog, strDBSchema, "%", new String[]{"TABLE"}))
         {
             processor.setPagingAction(pagingAction);
             processor.doAction(rsTable);
