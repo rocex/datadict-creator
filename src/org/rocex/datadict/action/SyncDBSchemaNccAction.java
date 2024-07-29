@@ -5,7 +5,7 @@ import java.util.Properties;
 import org.rocex.db.SQLExecutor;
 import org.rocex.utils.Logger;
 
-public class SyncDBSchemaNccAction extends SyncDBSchemaAction2
+public class SyncDBSchemaNccAction extends SyncDBSchemaAction
 {
     public SyncDBSchemaNccAction(String strVersion)
     {

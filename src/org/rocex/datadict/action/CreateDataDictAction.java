@@ -48,7 +48,6 @@ import org.rocex.vo.IAction;
  ***************************************************************************/
 public class CreateDataDictAction implements IAction
 {
-    protected Boolean isBIP;
     protected Boolean isCreateDbDdc;
 
     protected JacksonHelper jacksonHelper = new JacksonHelper().exclude(ClassVO.class, "accessorClassname", "authen", "bizItfImpClassname", "bizObjectId",
@@ -89,7 +88,6 @@ public class CreateDataDictAction implements IAction
 
         this.strVersion = strVersion;
 
-        isBIP = Boolean.valueOf(Context.getInstance().getVersionSetting(strVersion, "isBIP", "true"));
         isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getVersionSetting(strVersion, "createDbDdc", "true"));
 
         strOutputRootDir = Context.getInstance().getVersionSetting(strVersion, "OutputDir");
@@ -683,7 +681,7 @@ public class CreateDataDictAction implements IAction
             BeanListProcessor<FullTextItem> processor = new BeanListProcessor<>(FullTextItem.class);
             processor.setPagingAction(pagingFullTextAction.setPageSize(10000));
 
-            List<FullTextItem> listMetaVO = (List<FullTextItem>) sqlExecutor.executeQuery(strSQL, null, processor);
+            sqlExecutor.executeQuery(strSQL, null, processor);
         }
         catch (Exception ex)
         {

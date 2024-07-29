@@ -6,10 +6,12 @@ import java.util.Properties;
 import org.rocex.datadict.vo.ClassVO;
 import org.rocex.datadict.vo.Context;
 import org.rocex.datadict.vo.MetaVO;
+import org.rocex.datadict.vo.PropertyVO;
 import org.rocex.db.SQLExecutor;
 import org.rocex.utils.Logger;
+import org.rocex.utils.StringHelper;
 
-public class SyncDBSchemaBipAction extends SyncDBSchemaAction2
+public class SyncDBSchemaBipAction extends SyncDBSchemaAction
 {
     public SyncDBSchemaBipAction(String strVersion)
     {
@@ -479,6 +481,57 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction2
         }
 
         Logger.getLogger().end("before sync data");
+    }
+
+    protected String getDataTypeSql(PropertyVO propertyVO)
+    {
+        PropertyVO tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + propertyVO.getName());
+        if (tableNamePropertyVO == null)
+        {
+            tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.camelToUnderline(propertyVO.getName()));
+            if (tableNamePropertyVO == null)
+            {
+                tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.underlineToCamel(propertyVO.getName()));
+            }
+        }
+
+        if (tableNamePropertyVO != null)
+        {
+            String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
+
+            propertyVO.setColumnCode(tableNamePropertyVO.getName());
+
+            if (StringHelper.isNotBlank(strDataTypeSql))
+            {
+                propertyVO.setDataTypeSql(strDataTypeSql);
+
+                return strDataTypeSql;
+            }
+        }
+
+        String strDataType = propertyVO.getDataType() == null ? "varchar" : propertyVO.getDataType();
+        if (strDataType.contains("text"))
+        {
+            propertyVO.setDataTypeSql("varchar");
+        }
+        else
+        {
+            propertyVO.setDataTypeSql(strDataType);
+        }
+
+        // 参照-305,枚举-203
+        if (strDataType.length() == 19 &&
+            ((propertyVO.getDataTypeStyle() == 305 && propertyVO.getRefModelName() != null) || propertyVO.getDataTypeStyle() == 203))
+        {
+            propertyVO.setDataTypeSql("varchar");
+
+            if (propertyVO.getAttrLength() == null)
+            {
+                propertyVO.setAttrLength(22);
+            }
+        }
+
+        return getDataTypeSql(propertyVO);
     }
 
     public void syncMetaData()

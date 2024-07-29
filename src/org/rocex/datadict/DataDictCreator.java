@@ -5,6 +5,8 @@ import java.nio.file.Path;
 
 import org.rocex.datadict.action.CreateDataDictAction;
 import org.rocex.datadict.action.SyncDBSchemaAction;
+import org.rocex.datadict.action.SyncDBSchemaBipAction;
+import org.rocex.datadict.action.SyncDBSchemaNccAction;
 import org.rocex.datadict.vo.Context;
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
@@ -42,7 +44,9 @@ public class DataDictCreator
                 throw new RuntimeException(ex);
             }
 
-            SyncDBSchemaAction syncDBSchemaAction = new SyncDBSchemaAction(strVersion);
+            boolean isBIP = Boolean.valueOf(Context.getInstance().getVersionSetting(strVersion, "isBIP", "true"));
+
+            SyncDBSchemaAction syncDBSchemaAction = isBIP ? new SyncDBSchemaBipAction(strVersion) : new SyncDBSchemaNccAction(strVersion);
             syncDBSchemaAction.doAction(null);
 
             syncDBSchemaAction.close();
