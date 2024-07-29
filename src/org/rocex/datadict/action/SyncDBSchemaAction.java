@@ -666,8 +666,8 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
                 for (PropertyVO propertyVO : listVO)
                 {
                     propertyVO.setId(StringHelper.getId());
-                    propertyVO.setDisplayName(StringHelper.removeCRLF(propertyVO.getDisplayName()));
                     propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
+                    propertyVO.setDisplayName(StringHelper.removeCRLF(propertyVO.getDisplayName()));
                 }
 
                 try

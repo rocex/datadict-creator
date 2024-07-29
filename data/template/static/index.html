@@ -2,11 +2,11 @@
 <html lang="zh">
 
 <head>
-    <meta charset="UTF-8"/>
+    <meta charset="UTF-8" />
     <title>YonBIP 数据字典</title>
-    <link href="./favicon.ico" rel="shortcut icon"/>
-    <link href="./scripts/style.css" rel="stylesheet" type="text/css"/>
-    <link href="./scripts/zTreeStyle.css" rel="stylesheet" type="text/css"/>
+    <link href="./favicon.ico" rel="shortcut icon" />
+    <link href="./scripts/style.css" rel="stylesheet" type="text/css" />
+    <link href="./scripts/zTreeStyle.css" rel="stylesheet" type="text/css" />
 
     <script src="./scripts/data-dict-tree.js" type="text/javascript"></script>
     <script src="./scripts/jquery.min.js" type="text/javascript"></script>
@@ -17,89 +17,77 @@
 </head>
 
 <body style="overflow-x: hidden; overflow-y: hidden">
-<div id="container" style="height: calc(100% - 1px)">
-    <div class="left" id="left">
+    <div id="container" style="height: calc(100% - 1px)">
+        <div class="left" id="left">
             <div class="input-with-clear-div" style="width: calc(100% - 110px)">
                 <input class="input-with-clear" id="searchKey" required placeholder="至少3个字符进行搜索，英文反斜杆(\)获取焦点" />
-            <div class="clear-box" onclick="clearSearchKey(); return false;"></div>
-        </div>
+                <div class="clear-box" onclick="clearSearchKey(); return false;"></div>
+            </div>
             <input type="checkbox" id="chckFullText" name="chckFullText" disabled style="position: absolute; right: 80px; top: 5px" title="搜索属性编码和名称" onclick="searchUse();" />
             <label for="chckFullText" style="position: absolute; top: 6px; right: 38px; font-size: 13px" title="搜索属性编码和名称">全文搜</label>
 
             <img class="refreshDdc" onclick="searchUse();" src="./scripts/img/refresh.png" />
-        <ul class="ztree" id="dataDictTree"></ul>
-        <!-- <span class="splitter" id="splitter"></span> -->
-    </div>
+            <ul class="ztree" id="dataDictTree"></ul>
+            <!-- <span class="splitter" id="splitter"></span> -->
+        </div>
 
-    <div class="right" id="right">
-        <div class="title" id="title">
+        <div class="right" id="right">
+            <div class="title" id="title">
                 <span>
                     <span id="classDisplayName" style="font-size: xx-large; font-weight: bold">YonBIP 数据字典</span>
                     <span id="classTableName" style="font-size: x-large"></span>
                 </span>
-            <span class="rightVersion" id="rightVersion">
-                    <select id="ddcVersion" name="ddcVersion">
-                        <option value="2312-bip">YonBIP V3.0 (R5_2312_1) 旗舰版</option>
-                        <option value="2312">YonBIP V3.0 (R5_2312_1) 高级版</option>
-                        <option value="2305">YonBIP V3.0 (R1_2207_1_sp20230530) 高级版</option>
-                        <option value="2207">YonBIP V3.0 (R1_2207_1) 高级版</option>
-                        <option value="2111">NC Cloud 2021.11</option>
-                        <option value="2105">NC Cloud 2021.05</option>
-                        <option value="2005">NC Cloud 2020.05</option>
-                        <option value="1909">NC Cloud 1909</option>
-                        <option value="1903">NC Cloud 1903</option>
-                        <option value="1811">NC Cloud 1811</option>
-                        <option value="0065">NC 65</option>
-                    </select>
+                <span class="rightVersion" id="rightVersion">
+                    <span id="ddcVersion" name="ddcVersion"></span>
                 </span>
-        </div>
-        <div id="intro" style="overflow-x: auto; overflow-y: auto; align-self: center">
-            <div style="margin-top: 10%; font-size: large">
-                <br/>
-                <b style="color: red">
-                    依据公司安全规范，数据字典属于公司核心资产。<br/>
-                    数据字典版权归属于 用友网络科技股份有限公司。<br/> </b><br/><br/>
+            </div>
+            <div id="intro" style="overflow-x: auto; overflow-y: auto; align-self: center">
+                <div style="margin-top: 10%; font-size: large">
+                    <br />
+                    <b style="color: red">
+                        依据公司安全规范，数据字典属于公司核心资产。<br />
+                        数据字典版权归属于 用友网络科技股份有限公司。<br /> </b><br /><br />
 
-                <b>说明：</b><br/><br/>
+                    <b>说明：</b><br /><br />
 
-                1、数据字典数据来源于已发布的元数据，元数据上的字段名、数据类型、长度、引用实体、枚举等都是组成数据字典的必要数据；<br/>
-                2、数据字典上没有体现出来的信息，首先应该检查下元数据上是否有对应的属性设置；<br/>
-                3、数据字典页面左上角有时会出现多个实体链接，表明这是一个聚合实体，第一个实体是主实体，其它都是子实体，这里体现不出来孙实体；<br/>
-                4、数据字典左侧树上模块下显示的是主实体，展开后显示的是子实体。<br/>
+                    1、数据字典数据来源于已发布的元数据，元数据上的字段名、数据类型、长度、引用实体、枚举等都是组成数据字典的必要数据；<br />
+                    2、数据字典上没有体现出来的信息，首先应该检查下元数据上是否有对应的属性设置；<br />
+                    3、数据字典页面左上角有时会出现多个实体链接，表明这是一个聚合实体，第一个实体是主实体，其它都是子实体，这里体现不出来孙实体；<br />
+                    4、数据字典左侧树上模块下显示的是主实体，展开后显示的是子实体。<br />
 
-                <br/><br/><br/>
+                    <br /><br /><br />
                     YonBIP旗舰版离线数据字典<a href="https://ikm.yonyou.com/share?shareid=978626776b0ea1e00eea4cf8373a7314" rel="noopener noreferrer" target="_blank">一键获取</a>，让实施开发更高效!
+                </div>
+            </div>
+            <div class="dataDictArea" id="dataDictArea" style="display: none">
+                <div class="classList" id="classList"></div>
+                <div id="dataDictContainer" style="width: 100%; height: calc(100% - 2em); overflow: auto">
+                    <table class="js-sort-table" id="dataDictTable">
+                        <thead style="position: sticky; top: 0">
+                            <tr>
+                                <th class="js-sort-number" id="number" width="1%">序号</th>
+                                <th id="PropName" width="10%">属性名称</th>
+                                <th id="propCode" width="10%">属性编码</th>
+                                <th id="columnCode" width="10%">字段编码</th>
+                                <th id="columnType" width="10%">字段类型</th>
+                                <th id="notNull" width="1%">是否必输</th>
+                                <th id="refType" width="20%">引用模型</th>
+                                <th id="defaultValue" width="15%">默认值</th>
+                                <th id="enumValue" width="15%">取值范围/枚举</th>
+                                <th id="help">标签/扩展表名</th>
+                            </tr>
+                        </thead>
+                        <tbody id="dataDictTableBody"></tbody>
+                    </table>
+                </div>
             </div>
         </div>
-        <div class="dataDictArea" id="dataDictArea" style="display: none">
-            <div class="classList" id="classList"></div>
-            <div id="dataDictContainer" style="width: 100%; height: calc(100% - 2em); overflow: auto">
-                <table class="js-sort-table" id="dataDictTable">
-                    <thead style="position: sticky; top: 0">
-                    <tr>
-                        <th class="js-sort-number" id="number" width="1%">序号</th>
-                        <th id="PropName" width="10%">属性名称</th>
-                        <th id="propCode" width="10%">属性编码</th>
-                        <th id="columnCode" width="10%">字段编码</th>
-                        <th id="columnType" width="10%">字段类型</th>
-                        <th id="notNull" width="1%">是否必输</th>
-                        <th id="refType" width="20%">引用模型</th>
-                        <th id="defaultValue" width="15%">默认值</th>
-                        <th id="enumValue" width="15%">取值范围/枚举</th>
-                        <th id="help">标签/扩展表名</th>
-                    </tr>
-                    </thead>
-                    <tbody id="dataDictTableBody"></tbody>
-                </table>
-            </div>
-        </div>
-    </div>
 
-    <div class="footer" id="footer">
-        <a href="https://www.yonyou.com" rel="noopener noreferrer" target="_blank">&copy;用友网络科技股份有限公司</a> @wpz
-        <span id="ddcCreateTime"></span>
+        <div class="footer" id="footer">
+            <a href="https://www.yonyou.com" rel="noopener noreferrer" target="_blank">&copy;用友网络科技股份有限公司</a> @wpz
+            <span id="ddcCreateTime"></span>
+        </div>
     </div>
-</div>
     <input type="hidden" id="fullTextIndex" />
 </body>
 

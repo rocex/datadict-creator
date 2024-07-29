@@ -36,17 +36,6 @@ window.onload = function () {
         orientation: "horizontal",
         limit: 100,
     });
-
-    // 版本号切换
-    let ddcVersionSelect = document.getElementById("ddcVersion");
-    ddcVersionSelect.addEventListener("change", function (evt) {
-        var value = this.value;
-
-        // 跳转到对应的链接
-        window.open("/datadict/datadict-" + value + "/index.html");
-
-        ddcVersionSelect.value = ddcVersion;
-    });
 };
 
 /**********************************************************************
@@ -328,7 +317,7 @@ function initUI() {
 
             // 设置当前选中版本
             document.title = data.ddcTitle;
-            document.getElementById("ddcVersion").value = data.ddcVersion;
+            document.getElementById("ddcVersion").innerText = data.ddcTitle;
             document.getElementById("ddcCreateTime").innerText = data.ddcTs;
             document.getElementById("fullTextIndex").value = data.fullTextIndex;
         },

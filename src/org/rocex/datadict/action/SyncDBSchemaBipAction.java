@@ -531,7 +531,7 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             }
         }
 
-        return getDataTypeSql(propertyVO);
+        return super.getDataTypeSql(propertyVO);
     }
 
     public void syncMetaData()
