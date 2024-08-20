@@ -1,5 +1,6 @@
 package org.rocex.datadict.action;
 
+import java.io.Closeable;
 import java.io.IOException;
 import java.nio.file.Files;
 import java.nio.file.Path;
@@ -46,7 +47,7 @@ import org.rocex.vo.IAction;
  * @author Rocex Wang
  * @since 2020-4-22 14:10:00
  ***************************************************************************/
-public class CreateDataDictAction implements IAction
+public class CreateDataDictAction implements IAction, Closeable
 {
     protected Boolean isCreateDbDdc;
 
@@ -247,6 +248,19 @@ public class CreateDataDictAction implements IAction
         Logger.getLogger().end("build map: " + listMetaVO.get(0).getClass().getSimpleName());
 
         return mapMetaVO;
+    }
+
+    @Override
+    public void close() throws IOException
+    {
+        mapClassVOByComponent.clear();
+        mapComponentIdPrimaryClassId.clear();
+        mapEnumString.clear();
+        mapIdClassVO.clear();
+        mapIdComponentVO.clear();
+        mapIdModuleVO.clear();
+
+        sqlExecutor.close();
     }
 
     /***************************************************************************
