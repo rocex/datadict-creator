@@ -44,7 +44,7 @@ public class DataDictCreator
                 throw new RuntimeException(ex);
             }
 
-            boolean isBIP = Boolean.valueOf(Context.getInstance().getVersionSetting(strVersion, "isBIP", "true"));
+            boolean isBIP = Boolean.parseBoolean(Context.getInstance().getVersionSetting(strVersion, "isBIP", "true"));
 
             SyncDBSchemaAction syncDBSchemaAction = isBIP ? new SyncDBSchemaBipAction(strVersion) : new SyncDBSchemaNccAction(strVersion);
             syncDBSchemaAction.doAction(null);

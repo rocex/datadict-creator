@@ -251,7 +251,7 @@ public class CreateDataDictAction implements IAction, Closeable
     }
 
     @Override
-    public void close() throws IOException
+    public void close()
     {
         mapClassVOByComponent.clear();
         mapComponentIdPrimaryClassId.clear();

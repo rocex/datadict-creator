@@ -88,6 +88,7 @@
                 </executions>
                 <configuration>
                     <mainClass>org.rocex.datadict.DataDictCreator</mainClass>
+                    <cleanupDaemonThreads>false</cleanupDaemonThreads>
                 </configuration>
             </plugin>
         </plugins>
