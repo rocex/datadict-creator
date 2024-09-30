@@ -18,6 +18,7 @@
         <version_jdbc_mysql>9.0.0</version_jdbc_mysql>
         <version_jdbc_ojdbc11>23.5.0.24.07</version_jdbc_ojdbc11>
         <version_jdbc_sqlite>3.46.0.1</version_jdbc_sqlite>
+        <version_jdbc_dameng>8.1.3.140</version_jdbc_dameng>
     </properties>
 
     <dependencies>
@@ -56,6 +57,11 @@
             <artifactId>sqlite-jdbc</artifactId>
             <version>${version_jdbc_sqlite}</version>
             <scope>runtime</scope>
+        </dependency>
+        <dependency>
+            <groupId>com.dameng</groupId>
+            <artifactId>DmJdbcDriver18</artifactId>
+            <version>${version_jdbc_dameng}</version>
         </dependency>
     </dependencies>
 

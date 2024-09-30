@@ -2,7 +2,7 @@
 *.class
 /out/
 /dist/
-/front-*
+/src-front-*
 
 # Log file
 *.log
