@@ -87,6 +87,7 @@
                 <version>3.3.0</version>
                 <executions>
                     <execution>
+                        <phase>test</phase>
                         <goals>
                             <goal>java</goal>
                         </goals>
@@ -94,6 +95,7 @@
                 </executions>
                 <configuration>
                     <mainClass>org.rocex.datadict.DataDictCreator</mainClass>
+                    <commandlineArgs>-Dfile.encoding=UTF-8</commandlineArgs>
                     <cleanupDaemonThreads>false</cleanupDaemonThreads>
                 </configuration>
             </plugin>
