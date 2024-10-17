@@ -404,7 +404,7 @@ var _hmt = _hmt || [];
 (function () {
     var baiduScript = document.createElement("script");
 
-    baiduScript.src = "https://hm.baidu.com/hm.js?5db3a9b186d5e3bb0c6e427b56570e2e";
+    baiduScript.src = "https://hm.baidu.com/hm.js?79cba97204629d9fcf1ed81661fa43d3";
 
     var scripts = document.getElementsByTagName("script")[0];
 
