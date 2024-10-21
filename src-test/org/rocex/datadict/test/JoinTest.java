@@ -30,7 +30,7 @@ public class JoinTest
         Logger.getLogger().end("for +"); */
 
         //
-        Logger.getLogger().begin("for StringBuffer");
+        Logger.getLogger().start("for StringBuffer");
         StringBuilder strbuff = new StringBuilder();
         for (String s : strTest)
         {
@@ -39,10 +39,10 @@ public class JoinTest
 
         str = strbuff.substring(1);
 
-        Logger.getLogger().end("for StringBuffer");
+        Logger.getLogger().stop("for StringBuffer");
 
         //
-        Logger.getLogger().begin("for StringBuilder");
+        Logger.getLogger().start("for StringBuilder");
         StringBuilder strbuilder = new StringBuilder();
         for (String s : strTest)
         {
@@ -51,24 +51,24 @@ public class JoinTest
 
         str = strbuilder.substring(1);
 
-        Logger.getLogger().end("for StringBuilder");
+        Logger.getLogger().stop("for StringBuilder");
 
         //
-        Logger.getLogger().begin("String.join");
+        Logger.getLogger().start("String.join");
 
         str = String.join(",", strTest);
 
-        Logger.getLogger().end("String.join");
+        Logger.getLogger().stop("String.join");
 
         //
-        Logger.getLogger().begin("stream");
+        Logger.getLogger().start("stream");
 
         String collect = Arrays.asList(strTest).stream().collect(Collectors.joining(","));
 
-        Logger.getLogger().end("stream");
+        Logger.getLogger().stop("stream");
 
         //
-        Logger.getLogger().begin("StringJoiner");
+        Logger.getLogger().start("StringJoiner");
         StringJoiner strJoiner = new StringJoiner(",");
         for (String s : strTest)
         {
@@ -76,6 +76,6 @@ public class JoinTest
         }
 
         str = strJoiner.toString();
-        Logger.getLogger().end("StringJoiner");
+        Logger.getLogger().stop("StringJoiner");
     }
 }

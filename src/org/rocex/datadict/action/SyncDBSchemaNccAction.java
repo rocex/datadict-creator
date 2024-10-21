@@ -19,7 +19,7 @@ public class SyncDBSchemaNccAction extends SyncDBSchemaAction
      ***************************************************************************/
     public void afterSyncData()
     {
-        Logger.getLogger().begin("after sync data");
+        Logger.getLogger().start("after sync data");
 
         String[] strSQLs = {"update md_class set name='Memo' where id='BS000010000100001030' and name='MEMO'",
             "update md_class set name='MultiLangText' where id='BS000010000100001058' and name='MULTILANGTEXT'",
@@ -41,7 +41,7 @@ public class SyncDBSchemaNccAction extends SyncDBSchemaAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end("after sync data");
+        Logger.getLogger().stop("after sync data");
     }
 
     /***************************************************************************

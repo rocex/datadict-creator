@@ -25,7 +25,7 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        Logger.getLogger().begin("create all data dictionary");
+        Logger.getLogger().start("create all data dictionary");
 
         String strDataDictVersionList = Context.getInstance().getSetting("DataDictVersionList");
 
@@ -61,6 +61,6 @@ public class DataDictCreator
             Logger.getLogger().debug("\n");
         }
 
-        Logger.getLogger().end("create all data dictionary");
+        Logger.getLogger().stop("create all data dictionary");
     }
 }

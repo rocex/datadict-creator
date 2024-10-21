@@ -6,6 +6,7 @@ import java.util.Properties;
 import org.rocex.datadict.vo.ClassVO;
 import org.rocex.datadict.vo.Context;
 import org.rocex.datadict.vo.MetaVO;
+import org.rocex.datadict.vo.MetaVO.ModelType;
 import org.rocex.datadict.vo.PropertyVO;
 import org.rocex.db.SQLExecutor;
 import org.rocex.utils.Logger;
@@ -20,7 +21,7 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
 
     public void afterSyncData()
     {
-        Logger.getLogger().begin("after sync data");
+        Logger.getLogger().start("after sync data");
 
         String[] strSQLs = {//"update md_class set table_name='' where (table_name is null or table_name in ('null','NULL'))",
             "update md_module set parent_module_id='md__am' where model_type='md' and id in('adc','aim','ambd','ampub','ams','aom','apm','asp','aum','eiot','iass','lim','lom','mim','omm','pam','pvm','rmm','saa','sem','sim','som','spp');",
@@ -95,12 +96,12 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end("after sync data");
+        Logger.getLogger().stop("after sync data");
     }
 
     public void beforeSyncData()
     {
-        Logger.getLogger().begin("before sync data");
+        Logger.getLogger().start("before sync data");
 
         String[] strDBModuleSQLs = {
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__iuap', 'bip__version', '技术应用平台', 'md', 'iuap', 'md_clazz');",
@@ -501,54 +502,51 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             throw new RuntimeException(ex);
         }
 
-        Logger.getLogger().end("before sync data");
+        Logger.getLogger().stop("before sync data");
     }
 
     protected String getDataTypeSql(PropertyVO propertyVO)
     {
-        PropertyVO tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + propertyVO.getName());
-        if (tableNamePropertyVO == null)
+        // 旗舰版的元数据中没有数据库字段类型，需要跟数据库对比找下类型
+        if (ModelType.md.name().equalsIgnoreCase(propertyVO.getModelType()))
         {
-            tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.camelToUnderline(propertyVO.getName()));
+            PropertyVO tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + propertyVO.getName());
             if (tableNamePropertyVO == null)
             {
-                tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.underlineToCamel(propertyVO.getName()));
+                tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.camelToUnderline(propertyVO.getName()));
+                if (tableNamePropertyVO == null)
+                {
+                    tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.underlineToCamel(propertyVO.getName()));
+                }
             }
-        }
 
-        if (tableNamePropertyVO != null)
-        {
-            String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
-
-            propertyVO.setColumnCode(tableNamePropertyVO.getName());
-
-            if (StringHelper.isNotBlank(strDataTypeSql))
+            if (tableNamePropertyVO != null)
             {
-                propertyVO.setDataTypeSql(strDataTypeSql);
+                String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
 
-                return strDataTypeSql;
+                propertyVO.setColumnCode(tableNamePropertyVO.getName());
+
+                if (StringHelper.isNotBlank(strDataTypeSql))
+                {
+                    propertyVO.setDataTypeSql(strDataTypeSql);
+
+                    return strDataTypeSql;
+                }
             }
-        }
 
-        String strDataType = propertyVO.getDataType() == null ? "varchar" : propertyVO.getDataType();
-        if (strDataType.contains("text"))
-        {
-            propertyVO.setDataTypeSql("varchar");
-        }
-        else
-        {
-            propertyVO.setDataTypeSql(strDataType);
-        }
+            String strDataType = propertyVO.getDataType() == null ? "varchar" : propertyVO.getDataType();
+            propertyVO.setDataTypeSql(strDataType.contains("text") ? "text" : strDataType);
 
-        // 参照-305,枚举-203
-        if (strDataType.length() == 19 &&
-            ((propertyVO.getDataTypeStyle() == 305 && propertyVO.getRefModelName() != null) || propertyVO.getDataTypeStyle() == 203))
-        {
-            propertyVO.setDataTypeSql("varchar");
-
-            if (propertyVO.getAttrLength() == null)
+            // 参照-305,枚举-203
+            if (strDataType.length() == 19 &&
+                ((propertyVO.getDataTypeStyle() == 305 && propertyVO.getRefModelName() != null) || propertyVO.getDataTypeStyle() == 203))
             {
-                propertyVO.setAttrLength(22);
+                propertyVO.setDataTypeSql("varchar");
+
+                if (propertyVO.getAttrLength() == null)
+                {
+                    propertyVO.setAttrLength(22);
+                }
             }
         }
 

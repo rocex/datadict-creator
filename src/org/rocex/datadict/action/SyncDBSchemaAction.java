@@ -137,7 +137,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
     @Override
     public void doAction(EventObject evt)
     {
-        Logger.getLogger().begin("sync db schema and meta data");
+        Logger.getLogger().start("sync db schema and meta data");
 
         if (!isNeedSyncData())
         {
@@ -157,7 +157,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
 
         afterSyncData();
 
-        Logger.getLogger().end("sync db schema and meta data");
+        Logger.getLogger().stop("sync db schema and meta data");
     }
 
     /***************************************************************************
@@ -174,20 +174,20 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             propertyVO.setDataTypeSql("char");
         }
 
-        String strDbType = propertyVO.getDataTypeSql().toLowerCase();
+        String strDbTypeSql = propertyVO.getDataTypeSql().toLowerCase();
 
-        if ((strDbType.contains("char") || strDbType.contains("text")) && propertyVO.getAttrLength() != null)
+        if ((strDbTypeSql.contains("char") || strDbTypeSql.contains("text")) && propertyVO.getAttrLength() != null)
         {
-            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ")";
+            strDbTypeSql = strDbTypeSql + "(" + propertyVO.getAttrLength() + ")";
         }
-        else if ((strDbType.contains("decimal") || strDbType.contains("number")) && propertyVO.getAttrLength() != null)
+        else if ((strDbTypeSql.contains("decimal") || strDbTypeSql.contains("number")) && propertyVO.getAttrLength() != null)
         {
-            strDbType = strDbType + "(" + propertyVO.getAttrLength() + ", " + propertyVO.getPrecise() + ")";
+            strDbTypeSql = strDbTypeSql + "(" + propertyVO.getAttrLength() + ", " + Objects.toString(propertyVO.getPrecise(), "0") + ")";
         }
 
-        propertyVO.setDataTypeSql(strDbType);
+        propertyVO.setDataTypeSql(strDbTypeSql);
 
-        return strDbType;
+        return strDbTypeSql;
     }
 
     /***************************************************************************
@@ -283,7 +283,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
     {
         if (sqlExecutorSource.getDBType() == DBType.Oracle)
         {
-            Logger.getLogger().begin("oracle query all temporary tables");
+            Logger.getLogger().start("oracle query all temporary tables");
 
             String strSQL = "select lower(table_name) from user_tables where temporary='Y' order by table_name";
 
@@ -307,7 +307,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
 
             strTableFilters = listTempTableName.toArray(new String[0]);
 
-            Logger.getLogger().end("oracle query all temporary tables");
+            Logger.getLogger().stop("oracle query all temporary tables");
         }
     }
 
@@ -379,7 +379,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
     protected List<? extends MetaVO> queryMetaVO(SQLExecutor sqlExecutorSource, Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param,
         PagingAction pagingAction)
     {
-        Logger.getLogger().begin("query " + metaVOClass.getSimpleName());
+        Logger.getLogger().start("query " + metaVOClass.getSimpleName());
 
         List<? extends MetaVO> listMetaVO = null;
 
@@ -395,7 +395,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end("query " + metaVOClass.getSimpleName());
+        Logger.getLogger().stop("query " + metaVOClass.getSimpleName());
 
         return listMetaVO;
     }
@@ -421,6 +421,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
 
                     String strPropLowerName = propertyVO.getName().toLowerCase();
 
+                    propertyVO.setModelType(ModelType.db.name());
                     propertyVO.setDataTypeStyle(ClassVO.ClassType.db.value());
                     propertyVO.setName(strPropLowerName);
                     propertyVO.setDdcVersion(strVersion);
@@ -480,7 +481,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
      ***************************************************************************/
     protected void syncDBMeta()
     {
-        Logger.getLogger().begin("sync database meta");
+        Logger.getLogger().start("sync database meta");
 
         String strSourceUrl = Context.getInstance().getSetting(strVersion + ".jdbc.url");
 
@@ -508,7 +509,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             }
         }
 
-        Logger.getLogger().end("sync database meta");
+        Logger.getLogger().stop("sync database meta");
     }
 
     /***************************************************************************
@@ -521,7 +522,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
     {
         String strMsg = "sync all tables and fields from schema [%s]".formatted(strDBSchema);
 
-        Logger.getLogger().begin(strMsg);
+        Logger.getLogger().start(strMsg);
 
         Map<String, String> mapTable = new HashMap<>();
         mapTable.put("TABLE_NAME", "TableName");
@@ -615,13 +616,13 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             processor.doAction(rsTable);
         }
 
-        Logger.getLogger().end(strMsg);
+        Logger.getLogger().stop(strMsg);
     }
 
     protected void syncMetaData(SQLExecutor sqlExecutorSource, String strModuleSQL, String strComponentSQL, String strBizObjAsComponentSQL, String strClassSQL,
         String strPropertySQL, String strEnumAsClass, String strEnumValueSQL)
     {
-        Logger.getLogger().begin("sync bip metadata");
+        Logger.getLogger().start("sync bip metadata");
 
         PagingAction pagingAction = new PagingAction()
         {
@@ -698,6 +699,6 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
 
         queryMetaVO(sqlExecutorSource, EnumValueVO.class, strEnumValueSQL, null, pagingAction);
 
-        Logger.getLogger().end("sync bip metadata");
+        Logger.getLogger().stop("sync bip metadata");
     }
 }

@@ -125,7 +125,7 @@ public class CreateDataDictAction implements IAction, Closeable
      ***************************************************************************/
     protected void buildClassVOMapByComponentId(List<ClassVO> listClassVO)
     {
-        Logger.getLogger().begin("build ClassVO map by componentId");
+        Logger.getLogger().start("build ClassVO map by componentId");
 
         for (ClassVO classVO : listClassVO)
         {
@@ -177,7 +177,7 @@ public class CreateDataDictAction implements IAction, Closeable
             }
         } */
 
-        Logger.getLogger().end("build ClassVO map by componentId");
+        Logger.getLogger().stop("build ClassVO map by componentId");
     }
 
     /***************************************************************************
@@ -187,7 +187,7 @@ public class CreateDataDictAction implements IAction, Closeable
      ***************************************************************************/
     protected void buildEnumMap()
     {
-        Logger.getLogger().begin("query and build enum map");
+        Logger.getLogger().start("query and build enum map");
 
         String strEnumValueSQL = "select class_id as id,name,enum_value,ddc_version from md_enumvalue where ddc_version=? order by class_id,enum_sequence";
 
@@ -224,7 +224,7 @@ public class CreateDataDictAction implements IAction, Closeable
             mapEnumString.put(enumValueVO.getId(), strEnum);
         }
 
-        Logger.getLogger().end("query and build enum map");
+        Logger.getLogger().stop("query and build enum map");
     }
 
     /***************************************************************************
@@ -241,11 +241,11 @@ public class CreateDataDictAction implements IAction, Closeable
             return new HashMap<>();
         }
 
-        Logger.getLogger().begin("build map: " + listMetaVO.get(0).getClass().getSimpleName());
+        Logger.getLogger().start("build map: " + listMetaVO.get(0).getClass().getSimpleName());
 
         Map<String, MetaVO> mapMetaVO = listMetaVO.stream().collect(Collectors.toMap(MetaVO::getId, Function.identity(), (key1, key2) -> key2));
 
-        Logger.getLogger().end("build map: " + listMetaVO.get(0).getClass().getSimpleName());
+        Logger.getLogger().stop("build map: " + listMetaVO.get(0).getClass().getSimpleName());
 
         return mapMetaVO;
     }
@@ -270,7 +270,7 @@ public class CreateDataDictAction implements IAction, Closeable
      ***************************************************************************/
     protected void copyStaticHtmlFiles()
     {
-        Logger.getLogger().begin("copy static files");
+        Logger.getLogger().start("copy static files");
 
         try
         {
@@ -281,9 +281,9 @@ public class CreateDataDictAction implements IAction, Closeable
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end("copy static files");
+        Logger.getLogger().stop("copy static files");
 
-        Logger.getLogger().begin("create ddc info file");
+        Logger.getLogger().start("create ddc info file");
 
         try
         {
@@ -299,7 +299,7 @@ public class CreateDataDictAction implements IAction, Closeable
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end("create ddc info file");
+        Logger.getLogger().stop("create ddc info file");
     }
 
     /***************************************************************************
@@ -376,7 +376,7 @@ public class CreateDataDictAction implements IAction, Closeable
             return;
         }
 
-        Logger.getLogger().begin("create data dict file: " + listClassVO.size());
+        Logger.getLogger().start("create data dict file: " + listClassVO.size());
 
         int[] iCount = {0, listClassVO.size()};
 
@@ -398,7 +398,7 @@ public class CreateDataDictAction implements IAction, Closeable
 
         Logger.getLogger().log2(Logger.iLoggerLevelDebug, iCount[0] + "/" + iCount[1] + "  done!\n");
 
-        Logger.getLogger().end("create data dict file: " + listClassVO.size());
+        Logger.getLogger().stop("create data dict file: " + listClassVO.size());
     }
 
     /***************************************************************************
@@ -411,7 +411,7 @@ public class CreateDataDictAction implements IAction, Closeable
      ***************************************************************************/
     protected void createDataDictTree(List<ModuleVO> listModuleVO, List<ComponentVO> listComponentVO, List<ClassVO> listClassVO, List<ClassVO> listTableVO)
     {
-        Logger.getLogger().begin("create data dict tree: " + (listClassVO.size() + listTableVO.size()));
+        Logger.getLogger().start("create data dict tree: " + (listClassVO.size() + listTableVO.size()));
 
         StringBuilder strModuleRows = new StringBuilder();          // 所有模块
         StringBuilder strComponentRows = new StringBuilder();       // 所有组件
@@ -566,7 +566,7 @@ public class CreateDataDictAction implements IAction, Closeable
         FileHelper.writeFileThread(Path.of(strOutputRootDir, "scripts", "data-dict-tree.js"),
             "var dataDictIndexData=[" + strModuleRows + strComponentRows + strClassRows + "];");
 
-        Logger.getLogger().end("create data dict tree: " + (listClassVO.size() + listTableVO.size()));
+        Logger.getLogger().stop("create data dict tree: " + (listClassVO.size() + listTableVO.size()));
     }
 
     /****************************************************************************
@@ -578,7 +578,7 @@ public class CreateDataDictAction implements IAction, Closeable
     @Override
     public void doAction(EventObject evt)
     {
-        Logger.getLogger().begin("create data dictionary " + strVersion);
+        Logger.getLogger().start("create data dictionary " + strVersion);
 
         emptyTargetDir();
 
@@ -609,18 +609,18 @@ public class CreateDataDictAction implements IAction, Closeable
         createDataDictFiles(listClassVO);
         createDataDictFiles(listTableVO);
 
-        Logger.getLogger().begin("save data dict json file to db: " + (listClassVO.size() + listTableVO.size()));
+        Logger.getLogger().start("save data dict json file to db: " + (listClassVO.size() + listTableVO.size()));
 
         saveToDictJson(listClassVO);
         saveToDictJson(listTableVO);
 
-        Logger.getLogger().end("save data dict json file to db: " + (listClassVO.size() + listTableVO.size()));
+        Logger.getLogger().stop("save data dict json file to db: " + (listClassVO.size() + listTableVO.size()));
 
         exportFullText();
 
         copyStaticHtmlFiles();
 
-        Logger.getLogger().end("create data dictionary " + strVersion);
+        Logger.getLogger().stop("create data dictionary " + strVersion);
     }
 
     /***************************************************************************
@@ -629,7 +629,7 @@ public class CreateDataDictAction implements IAction, Closeable
      ***************************************************************************/
     protected void emptyTargetDir()
     {
-        Logger.getLogger().begin("empty target folder " + strOutputRootDir);
+        Logger.getLogger().start("empty target folder " + strOutputRootDir);
 
         try
         {
@@ -642,7 +642,7 @@ public class CreateDataDictAction implements IAction, Closeable
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end("empty target folder " + strOutputRootDir);
+        Logger.getLogger().stop("empty target folder " + strOutputRootDir);
     }
 
     protected void exportFullText()
@@ -860,7 +860,7 @@ public class CreateDataDictAction implements IAction, Closeable
     {
         String strMessage = "query " + metaVOClass.getSimpleName();
 
-        Logger.getLogger().begin(strMessage);
+        Logger.getLogger().start(strMessage);
 
         List<? extends MetaVO> listMetaVO = null;
 
@@ -875,7 +875,7 @@ public class CreateDataDictAction implements IAction, Closeable
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().end(strMessage);
+        Logger.getLogger().stop(strMessage);
 
         return listMetaVO;
     }
