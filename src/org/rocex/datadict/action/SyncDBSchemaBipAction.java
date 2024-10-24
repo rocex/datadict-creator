@@ -22,7 +22,6 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
     public void afterSyncData()
     {
         Logger.getLogger().start("after sync data");
-
         String[] strSQLs = {//"update md_class set table_name='' where (table_name is null or table_name in ('null','NULL'))",
             "update md_module set parent_module_id='md__am' where model_type='md' and id in('adc','aim','ambd','ampub','ams','aom','apm','asp','aum','eiot','iass','lim','lom','mim','omm','pam','pvm','rmm','saa','sem','sim','som','spp');",
             "update md_module set parent_module_id='md__bztrc' where model_type='md' and id in('btis','commom','common','tenant');",
@@ -85,7 +84,9 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             "update md_property set data_type='1976686225086391947' where data_type='time_MDD' and ddc_version='" + strVersion + "';",
             "update md_property set data_type='1976686225086391948' where data_type='timestamp' and ddc_version='" + strVersion + "';",
             "update md_property set data_type='1976686225086391949' where data_type='UserDefine' and ddc_version='" + strVersion + "';",
-            "update md_property set default_value=null where default_value in('null','NULL');"};
+            "update md_property set default_value=null where default_value in('null','NULL');",
+            "update md_property set attr_min_value=null where attr_min_value in('','null','NULL');",
+            "update md_property set attr_max_value=null where attr_max_value in('','null','NULL');"};
 
         try
         {
