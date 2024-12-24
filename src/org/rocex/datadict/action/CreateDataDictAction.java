@@ -89,17 +89,17 @@ public class CreateDataDictAction implements IAction, Closeable
 
         this.strVersion = strVersion;
 
-        isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getVersionSetting(strVersion, "createDbDdc", "true"));
+        isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getSetting("createDbDdc", "true"));
 
-        strOutputRootDir = Context.getInstance().getVersionSetting(strVersion, "OutputDir");
+        strOutputRootDir = Path.of(Context.getInstance().getSetting("WorkDir"), "datadict-" + strVersion).toString();
         strOutputDictDir = Path.of(strOutputRootDir, "dict").toString();
 
         Properties dbProp = new Properties();
 
-        String strTargetUrl = Context.getInstance().getVersionSetting(strVersion, "target.jdbc.url");
-        String strTargetUser = Context.getInstance().getVersionSetting(strVersion, "target.jdbc.user");
-        String strTargetDriver = Context.getInstance().getVersionSetting(strVersion, "target.jdbc.driver");
-        String strTargetPassword = Context.getInstance().getVersionSetting(strVersion, "target.jdbc.password");
+        String strTargetUrl = Context.getInstance().getSetting("target.jdbc.url").replace("${version}", strVersion);
+        String strTargetUser = Context.getInstance().getSetting("target.jdbc.user");
+        String strTargetDriver = Context.getInstance().getSetting("target.jdbc.driver");
+        String strTargetPassword = Context.getInstance().getSetting("target.jdbc.password");
 
         dbProp.setProperty("jdbc.url", strTargetUrl);
         dbProp.setProperty("jdbc.user", strTargetUser);
@@ -289,8 +289,7 @@ public class CreateDataDictAction implements IAction, Closeable
         {
             String strInfoFile = Files.readString(Path.of("data", "template", "info.json"));
 
-            strInfoFile = strInfoFile.formatted(strCreateTime, Context.getInstance().getVersionSetting(strVersion, "DataDictVersion"), strVersion,
-                strFullTextFileIndex);
+            strInfoFile = strInfoFile.formatted(strCreateTime, Context.getInstance().getSetting("DataDictVersion"), strVersion, strFullTextFileIndex);
 
             FileHelper.writeFileThread(Path.of(strOutputRootDir, "info.json"), strInfoFile);
         }

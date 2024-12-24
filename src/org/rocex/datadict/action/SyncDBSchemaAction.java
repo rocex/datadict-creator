@@ -87,28 +87,28 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
 
         this.strVersion = strVersion;
 
-        isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getVersionSetting(strVersion, "createDbDdc", "true"));
+        isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getSetting("createDbDdc", "true"));
 
         propCodeName = FileHelper.load("data" + File.separator + "code-name.properties");
 
         // source
         propDBSource = new Properties();
-        propDBSource.setProperty("jdbc.url", Context.getInstance().getSetting(strVersion + ".jdbc.url"));
-        propDBSource.setProperty("jdbc.user", Context.getInstance().getSetting(strVersion + ".jdbc.user"));
-        propDBSource.setProperty("jdbc.driver", Context.getInstance().getSetting(strVersion + ".jdbc.driver"));
-        propDBSource.setProperty("jdbc.password", Context.getInstance().getSetting(strVersion + ".jdbc.password"));
+        propDBSource.setProperty("jdbc.url", Context.getInstance().getSetting("jdbc.url"));
+        propDBSource.setProperty("jdbc.user", Context.getInstance().getSetting("jdbc.user"));
+        propDBSource.setProperty("jdbc.driver", Context.getInstance().getSetting("jdbc.driver"));
+        propDBSource.setProperty("jdbc.password", Context.getInstance().getSetting("jdbc.password"));
 
         // target
         Properties dbPropTarget = new Properties();
 
-        dbPropTarget.setProperty("jdbc.url", Context.getInstance().getVersionSetting(strVersion, "target.jdbc.url"));
-        dbPropTarget.setProperty("jdbc.user", Context.getInstance().getVersionSetting(strVersion, "target.jdbc.user"));
-        dbPropTarget.setProperty("jdbc.driver", Context.getInstance().getVersionSetting(strVersion, "target.jdbc.driver"));
-        dbPropTarget.setProperty("jdbc.password", Context.getInstance().getVersionSetting(strVersion, "target.jdbc.password"));
+        dbPropTarget.setProperty("jdbc.url", Context.getInstance().getSetting("target.jdbc.url").replace("${version}", strVersion));
+        dbPropTarget.setProperty("jdbc.user", Context.getInstance().getSetting("target.jdbc.user"));
+        dbPropTarget.setProperty("jdbc.driver", Context.getInstance().getSetting("target.jdbc.driver"));
+        dbPropTarget.setProperty("jdbc.password", Context.getInstance().getSetting("target.jdbc.password"));
 
         sqlExecutorTarget = new SQLExecutor(dbPropTarget);
 
-        String strTableFilterPattern = Context.getInstance().getVersionSetting(strVersion, "exclude.tablePattern");
+        String strTableFilterPattern = Context.getInstance().getSetting("exclude.tablePattern");
         patternTableFilter = Pattern.compile(strTableFilterPattern, Pattern.CASE_INSENSITIVE);
     }
 
@@ -483,9 +483,9 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
     {
         Logger.getLogger().start("sync database meta");
 
-        String strSourceUrl = Context.getInstance().getSetting(strVersion + ".jdbc.url");
+        String strSourceUrl = Context.getInstance().getSetting("jdbc.url");
 
-        String strSrcDBSchemaList = Context.getInstance().getVersionSetting(strVersion, "jdbc.schemas");
+        String strSrcDBSchemaList = Context.getInstance().getSetting("jdbc.schemas");
 
         String[] strSrcDBSchemas = StringHelper.isEmpty(strSrcDBSchemaList) ? new String[]{""} : strSrcDBSchemaList.split(",");
 

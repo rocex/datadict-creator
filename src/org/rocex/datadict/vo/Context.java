@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.Properties;
 
 import org.rocex.utils.FileHelper;
+import org.rocex.utils.StringHelper;
 
 public class Context
 {
@@ -13,7 +14,7 @@ public class Context
 
     private Context()
     {
-        settings = FileHelper.load("data" + File.separator + "settings.properties");
+        resetVersion(null);
     }
 
     public static Context getInstance()
@@ -36,14 +37,14 @@ public class Context
         return settings.getProperty(strKey, strDefaultValue);
     }
 
-    public String getVersionSetting(String strVersion, String strKey)
+    public void resetVersion(String strVersion)
     {
-        return getSetting(strVersion + "." + strKey, getSetting(strKey));
-    }
+        settings = FileHelper.load("data" + File.separator + "settings.properties");
 
-    public String getVersionSetting(String strVersion, String strKey, String strDefaultValue)
-    {
-        return getSetting(strVersion + "." + strKey, getSetting(strKey, strDefaultValue));
+        if (StringHelper.isNotBlank(strVersion))
+        {
+            settings = FileHelper.load("data" + File.separator + "settings-" + strVersion + ".properties", settings);
+        }
     }
 
     public void setSetting(String strKey, String strValue)

@@ -607,14 +607,11 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
 
         Properties dbPropSourceMd = new Properties();
 
-        String strUrl = Context.getInstance().getSetting(strVersion + ".md.jdbc.url", Context.getInstance().getSetting(strVersion + ".jdbc.url"));
+        String strUrl = Context.getInstance().getSetting("md.jdbc.url", Context.getInstance().getSetting("jdbc.url"));
         dbPropSourceMd.setProperty("jdbc.url", strUrl.replace("${schema}", "iuap_metadata_base"));
-        dbPropSourceMd.setProperty("jdbc.user",
-            Context.getInstance().getSetting(strVersion + ".md.jdbc.user", Context.getInstance().getSetting(strVersion + ".jdbc.user")));
-        dbPropSourceMd.setProperty("jdbc.driver",
-            Context.getInstance().getSetting(strVersion + ".md.jdbc.driver", Context.getInstance().getSetting(strVersion + ".jdbc.driver")));
-        dbPropSourceMd.setProperty("jdbc.password",
-            Context.getInstance().getSetting(strVersion + ".md.jdbc.password", Context.getInstance().getSetting(strVersion + ".jdbc.password")));
+        dbPropSourceMd.setProperty("jdbc.user", Context.getInstance().getSetting("md.jdbc.user", Context.getInstance().getSetting("jdbc.user")));
+        dbPropSourceMd.setProperty("jdbc.driver", Context.getInstance().getSetting("md.jdbc.driver", Context.getInstance().getSetting("jdbc.driver")));
+        dbPropSourceMd.setProperty("jdbc.password", Context.getInstance().getSetting("md.jdbc.password", Context.getInstance().getSetting("jdbc.password")));
 
         try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSourceMd))
         {

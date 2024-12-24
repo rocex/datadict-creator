@@ -88,29 +88,29 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
 
         this.strVersion = strVersion;
 
-        isBIP = Boolean.valueOf(Context.getInstance().getVersionSetting(strVersion, "isBIP", "true"));
-        isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getVersionSetting(strVersion, "createDbDdc", "true"));
+        isBIP = Boolean.valueOf(Context.getInstance().getSetting("isBIP", "true"));
+        isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getSetting("createDbDdc", "true"));
 
         propCodeName = FileHelper.load("data" + File.separator + "code-name.properties");
 
         // source
         propDBSource = new Properties();
-        propDBSource.setProperty("jdbc.url", Context.getInstance().getSetting(strVersion + ".jdbc.url"));
-        propDBSource.setProperty("jdbc.user", Context.getInstance().getSetting(strVersion + ".jdbc.user"));
-        propDBSource.setProperty("jdbc.driver", Context.getInstance().getSetting(strVersion + ".jdbc.driver"));
-        propDBSource.setProperty("jdbc.password", Context.getInstance().getSetting(strVersion + ".jdbc.password"));
+        propDBSource.setProperty("jdbc.url", Context.getInstance().getSetting("jdbc.url"));
+        propDBSource.setProperty("jdbc.user", Context.getInstance().getSetting("jdbc.user"));
+        propDBSource.setProperty("jdbc.driver", Context.getInstance().getSetting("jdbc.driver"));
+        propDBSource.setProperty("jdbc.password", Context.getInstance().getSetting("jdbc.password"));
 
         // target
         Properties dbPropTarget = new Properties();
 
-        dbPropTarget.setProperty("jdbc.url", Context.getInstance().getVersionSetting(strVersion, "target.jdbc.url"));
-        dbPropTarget.setProperty("jdbc.user", Context.getInstance().getVersionSetting(strVersion, "target.jdbc.user"));
-        dbPropTarget.setProperty("jdbc.driver", Context.getInstance().getVersionSetting(strVersion, "target.jdbc.driver"));
-        dbPropTarget.setProperty("jdbc.password", Context.getInstance().getVersionSetting(strVersion, "target.jdbc.password"));
+        dbPropTarget.setProperty("jdbc.url", Context.getInstance().getSetting("target.jdbc.url").replace("${version}", strVersion));
+        dbPropTarget.setProperty("jdbc.user", Context.getInstance().getSetting("target.jdbc.user"));
+        dbPropTarget.setProperty("jdbc.driver", Context.getInstance().getSetting("target.jdbc.driver"));
+        dbPropTarget.setProperty("jdbc.password", Context.getInstance().getSetting("target.jdbc.password"));
 
         sqlExecutorTarget = new SQLExecutor(dbPropTarget);
 
-        String strTableFilterPattern = Context.getInstance().getVersionSetting(strVersion, "exclude.tablePattern");
+        String strTableFilterPattern = Context.getInstance().getSetting("exclude.tablePattern");
         patternTableFilter = Pattern.compile(strTableFilterPattern, Pattern.CASE_INSENSITIVE);
     }
 
@@ -1046,9 +1046,9 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
     {
         Logger.getLogger().start("sync database meta");
 
-        String strSourceUrl = Context.getInstance().getSetting(strVersion + ".jdbc.url");
+        String strSourceUrl = Context.getInstance().getSetting("jdbc.url");
 
-        String strSrcDBSchemaList = Context.getInstance().getVersionSetting(strVersion, "jdbc.schemas");
+        String strSrcDBSchemaList = Context.getInstance().getSetting("jdbc.schemas");
 
         String[] strSrcDBSchemas = StringHelper.isEmpty(strSrcDBSchemaList) ? new String[]{""} : strSrcDBSchemaList.split(",");
 
@@ -1318,14 +1318,11 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
 
         Properties dbPropSourceMd = new Properties();
 
-        String strUrl = Context.getInstance().getSetting(strVersion + ".md.jdbc.url", Context.getInstance().getSetting(strVersion + ".jdbc.url"));
+        String strUrl = Context.getInstance().getSetting("md.jdbc.url", Context.getInstance().getSetting("jdbc.url"));
         dbPropSourceMd.setProperty("jdbc.url", strUrl.replace("${schema}", "iuap_metadata_base"));
-        dbPropSourceMd.setProperty("jdbc.user",
-            Context.getInstance().getSetting(strVersion + ".md.jdbc.user", Context.getInstance().getSetting(strVersion + ".jdbc.user")));
-        dbPropSourceMd.setProperty("jdbc.driver",
-            Context.getInstance().getSetting(strVersion + ".md.jdbc.driver", Context.getInstance().getSetting(strVersion + ".jdbc.driver")));
-        dbPropSourceMd.setProperty("jdbc.password",
-            Context.getInstance().getSetting(strVersion + ".md.jdbc.password", Context.getInstance().getSetting(strVersion + ".jdbc.password")));
+        dbPropSourceMd.setProperty("jdbc.user", Context.getInstance().getSetting("md.jdbc.user", Context.getInstance().getSetting("jdbc.user")));
+        dbPropSourceMd.setProperty("jdbc.driver", Context.getInstance().getSetting("md.jdbc.driver", Context.getInstance().getSetting("jdbc.driver")));
+        dbPropSourceMd.setProperty("jdbc.password", Context.getInstance().getSetting("md.jdbc.password", Context.getInstance().getSetting("jdbc.password")));
 
         try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSourceMd))
         {

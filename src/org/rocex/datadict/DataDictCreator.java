@@ -33,18 +33,18 @@ public class DataDictCreator
 
         for (String strVersion : strDataDictVersions)
         {
-            String strOutputRootDir = Context.getInstance().getVersionSetting(strVersion, "OutputDir");
+            Context.getInstance().resetVersion(strVersion);
 
             try
             {
-                FileHelper.checkAndCreatePath(Path.of(strOutputRootDir));
+                FileHelper.checkAndCreatePath(Path.of(Context.getInstance().getSetting("WorkDir"), "datadict-" + strVersion));
             }
             catch (IOException ex)
             {
                 throw new RuntimeException(ex);
             }
 
-            boolean isBIP = Boolean.parseBoolean(Context.getInstance().getVersionSetting(strVersion, "isBIP", "true"));
+            boolean isBIP = Boolean.parseBoolean(Context.getInstance().getSetting("isBIP", "true"));
 
             SyncDBSchemaAction syncDBSchemaAction = isBIP ? new SyncDBSchemaBipAction(strVersion) : new SyncDBSchemaNccAction(strVersion);
             syncDBSchemaAction.doAction(null);
