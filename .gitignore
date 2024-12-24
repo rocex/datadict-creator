@@ -28,6 +28,7 @@ hs_err_pid*
 
 .data/
 settings.properties
+settings-*.properties
 
 .idea/
 *.iml
