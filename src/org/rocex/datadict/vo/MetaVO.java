@@ -36,7 +36,8 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @since 2022-08-01 01:42:04
      ***************************************************************************/
-    @Column(length = 4)
+    @Id(order = 2)
+    @Column(nullable = false, length = 4)
     public String getDdcVersion()
     {
         return strDdcVersion;
@@ -68,7 +69,7 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @since 2020-4-21 13:45:33
      ***************************************************************************/
-    @Id
+    @Id(order = 0)
     @Column(nullable = false, length = 50)
     public String getId()
     {

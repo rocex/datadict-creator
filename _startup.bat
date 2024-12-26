@@ -7,3 +7,6 @@ set java_exec=java
 set class_path=%ddc_home%\lib\*
 
 %java_exec% -Dfile.encoding=UTF-8 -cp "%class_path%" org.rocex.datadict.DataDictCreator
+
+
+::mvn clean compile exec:java
