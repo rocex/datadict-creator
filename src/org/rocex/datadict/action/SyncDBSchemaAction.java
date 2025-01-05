@@ -8,6 +8,7 @@ import java.sql.SQLException;
 import java.text.SimpleDateFormat;
 import java.util.ArrayList;
 import java.util.Arrays;
+import java.util.Comparator;
 import java.util.Date;
 import java.util.EventObject;
 import java.util.HashMap;
@@ -18,6 +19,7 @@ import java.util.Properties;
 import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
+import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.regex.Pattern;
 import java.util.stream.Collectors;
 
@@ -26,6 +28,7 @@ import org.rocex.datadict.vo.ComponentVO;
 import org.rocex.datadict.vo.Context;
 import org.rocex.datadict.vo.DictJsonVO;
 import org.rocex.datadict.vo.EnumValueVO;
+import org.rocex.datadict.vo.IndexVO;
 import org.rocex.datadict.vo.MetaVO;
 import org.rocex.datadict.vo.MetaVO.ModelType;
 import org.rocex.datadict.vo.ModuleVO;
@@ -65,16 +68,19 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
     protected SQLExecutor sqlExecutorTarget;
 
     // 排除的一些表名前缀
-    protected String[] strTableFilters = {"aqua_explain_", "gltmp_verdtlbal", "gl_tmp_table", "hr_temptable", "ic_temp_", "iufo_measpub_", "iufo_measure_data_",
-        "iufo_tmp_pub_", "ntb_tmp_formual_", "obsclass", "pitemid", "pkjkbx", "sm_securitylog_", "sm_securitylog_", "ssccm_adjustlog_b_", "ssccm_adjust_log_",
-        "szxmid", "tb_cell_wbk", "tb_fd_sht", "tb_fd_sht", "tb_tmp_", "tb_tmp_tcheck", "tb_tmp_tcheck_", "tb_tt_", "tb_tt_gh_budgetmodle", "temp000",
-        "temppkts", "temptable_", "temp_", "temp_bd_", "temp_fa_", "temp_ia_", "temp_ic_", "temp_pam_", "temp_scacosts_", "temp_scas", "temq_", "temq_",
-        "tmpbd_", "tmpin", "tmpina", "tmpinb", "tmpinpk_", "tmpins", "tmpinsrc_", "tmpintop_", "tmpub_calog_temp", "tmp_", "tmp_arap_", "tmp_gl_", "tmp_po_",
-        "tmp_scmf", "tmp_so_", "tm_mqsend_success_", "transf2pcm", "t_ationid", "t_emplate", "t_laterow", "t_laterow", "uidbcache_temp_", "uidbcache_temp_",
-        "wa_temp_", "zdp_"};
+    protected String[] strTableBeginFilters = {"aqua_explain_", "gltmp_verdtlbal", "gl_tmp_table", "hr_temptable", "ic_temp_", "iufo_measpub_",
+        "iufo_measure_data_", "iufo_tmp_pub_", "ntb_tmp_formual_", "obsclass", "pitemid", "pkjkbx", "sm_securitylog_", "sm_securitylog_", "ssccm_adjustlog_b_",
+        "ssccm_adjust_log_", "szxmid", "tb_cell_wbk", "tb_fd_sht", "tb_fd_sht", "tb_tmp_", "tb_tmp_tcheck", "tb_tmp_tcheck_", "tb_tt_", "tb_tt_gh_budgetmodle",
+        "temp000", "temppkts", "temptable_", "temp_", "temp_bd_", "temp_fa_", "temp_ia_", "temp_ic_", "temp_pam_", "temp_scacosts_", "temp_scas", "temq_",
+        "tempx_", "tmpbd_", "tmpin", "tmpina", "tmpinb", "tmpinpk_", "tmpins", "tmpinsrc_", "tmpintop_", "tmpub_calog_temp", "tmp_", "tmp_arap_", "tmp_gl_",
+        "tmp_po_", "tmp_scmf", "tmp_so_", "tm_mqsend_success_", "transf2pcm", "t_ationid", "t_emplate", "t_laterow", "t_laterow", "uidbcache_temp_",
+        "uidbcache_temp_", "wa_temp_", "zdp_"};
+
+    protected String[] strTableEndFilters = {};     // 排除的一些表名后缀
+    protected String[] strTableIncludeFilters = {}; // 排除的一些包含表名
 
     protected String strTs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ").format(new Date());
-    protected String strVersion;              // 数据字典版本
+    protected String strVersion;                    // 数据字典版本
 
     /***************************************************************************
      * @param strVersion
@@ -144,7 +150,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             return;
         }
 
-        sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, DictJsonVO.class);
+        sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, DictJsonVO.class, IndexVO.class);
 
         beforeSyncData();
 
@@ -303,9 +309,9 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
                 }
             });
 
-            listTempTableName.addAll(Arrays.asList(strTableFilters));
+            listTempTableName.addAll(Arrays.asList(strTableBeginFilters));
 
-            strTableFilters = listTempTableName.toArray(new String[0]);
+            strTableBeginFilters = listTempTableName.toArray(new String[0]);
 
             Logger.getLogger().stop("oracle query all temporary tables");
         }
@@ -354,9 +360,25 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
      ***************************************************************************/
     protected boolean isTableNameValid(String strTableName)
     {
-        for (String strTableFilter : strTableFilters)
+        for (String strTableFilter : strTableBeginFilters)
         {
             if (strTableName.startsWith(strTableFilter))
+            {
+                return false;
+            }
+        }
+
+        for (String strTableFilter : strTableEndFilters)
+        {
+            if (strTableName.endsWith(strTableFilter))
+            {
+                return false;
+            }
+        }
+
+        for (String strTableFilter : strTableIncludeFilters)
+        {
+            if (strTableName.contains(strTableFilter))
             {
                 return false;
             }
@@ -460,7 +482,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
         mapColumn.put("DECIMAL_DIGITS", "Precise");
         mapColumn.put("NULLABLE", "Nullable");
 
-        BeanListProcessor<? extends MetaVO> processor = new BeanListProcessor<>(PropertyVO.class, mapColumn, propertyVO ->
+        BeanListProcessor<PropertyVO> processor = new BeanListProcessor<>(PropertyVO.class, mapColumn, propertyVO ->
         {
             String strTableName = propertyVO.getTableName().toLowerCase();
 
@@ -472,6 +494,70 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             processor.setPagingAction(pagingFieldAction);
 
             processor.doAction(rsColumns);
+        }
+    }
+
+    protected void syncDBIndex(Connection connSource, String strSrcDBCatalog, String strSrcDBSchema, ClassVO classVO) throws SQLException
+    {
+        PagingAction pagingFieldAction = new PagingAction()
+        {
+            @Override
+            public void doAction(EventObject evt)
+            {
+                List<IndexVO> listNewIndexVO = new ArrayList<>();
+                List<IndexVO> listIndexVO = (List<IndexVO>) evt.getSource();
+
+                Map<String, List<IndexVO>> mapIndex = listIndexVO.stream().filter(indexVO -> indexVO.getIndexName() != null && indexVO.getColumnName() != null)
+                    .collect(Collectors.groupingBy(IndexVO::getIndexName));
+
+                for (Map.Entry<String, List<IndexVO>> entry : mapIndex.entrySet())
+                {
+                    AtomicBoolean isNonUnique = new AtomicBoolean(false);
+
+                    String strColumns = entry.getValue().stream().sorted(Comparator.comparingInt(IndexVO::getOrdinalPosition)).map(indexVO ->
+                    {
+                        isNonUnique.set(indexVO.isNonUnique());
+
+                        return indexVO.getColumnName().toLowerCase() + ("D".equalsIgnoreCase(indexVO.getAscOrDesc()) ? " desc" : "");
+                    }).collect(Collectors.joining(","));
+
+                    String strIndexSQL = "create%s index %s on %s.%s (%s)".formatted(isNonUnique.get() ? "" : " unique", entry.getKey().toLowerCase(),
+                        strSrcDBSchema, classVO.getTableName(), strColumns);
+
+                    // Logger.getLogger().debug(strIndexSQL);
+
+                    IndexVO indexVO = entry.getValue().get(0);
+                    indexVO.setDdcVersion(strVersion);
+                    indexVO.setSchema(strSrcDBSchema);
+                    indexVO.setId(StringHelper.getId());
+                    indexVO.setClassId(classVO.getId());
+                    indexVO.setTableName(classVO.getTableName());
+                    indexVO.setIndexSql(strIndexSQL.toLowerCase());
+                    indexVO.setIndexName(indexVO.getIndexName().toLowerCase());
+
+                    listNewIndexVO.add(indexVO);
+                }
+
+                try
+                {
+                    sqlExecutorTarget.insertVO(listNewIndexVO.toArray(new IndexVO[0]));
+                }
+                catch (SQLException ex)
+                {
+                    Logger.getLogger().error(ex.getMessage(), ex);
+                }
+            }
+        };
+
+        pagingFieldAction.setPageSize(Integer.MAX_VALUE);
+
+        BeanListProcessor<IndexVO> processor = new BeanListProcessor<>(IndexVO.class);
+
+        try (ResultSet rsIndex = connSource.getMetaData().getIndexInfo(strSrcDBCatalog, strSrcDBSchema, classVO.getTableName(), false, true))
+        {
+            processor.setPagingAction(pagingFieldAction);
+
+            processor.doAction(rsIndex);
         }
     }
 
@@ -518,9 +604,9 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
      * @since 2020-5-11 11:19:19
      * @throws Exception
      ***************************************************************************/
-    protected void syncDBTable(Connection connSource, String strDBCatalog, String strDBSchema, String strComponentId) throws SQLException
+    protected void syncDBTable(Connection connSource, String strSrcDBCatalog, String strSrcDBSchema, String strComponentId) throws SQLException
     {
-        String strMsg = "sync all tables and fields from schema [%s]".formatted(strDBSchema);
+        String strMsg = "sync all tables, fields and index from schema [%s]".formatted(strSrcDBSchema);
 
         Logger.getLogger().start(strMsg);
 
@@ -554,7 +640,16 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
                 {
                     try
                     {
-                        syncDBField(connSource, strDBCatalog, strDBSchema, classVO);
+                        syncDBField(connSource, strSrcDBCatalog, strSrcDBSchema, classVO);
+                    }
+                    catch (SQLException ex)
+                    {
+                        Logger.getLogger().error(ex.getMessage(), ex);
+                    }
+
+                    try
+                    {
+                        syncDBIndex(connSource, strSrcDBCatalog, strSrcDBSchema, classVO);
                     }
                     catch (SQLException ex)
                     {
@@ -594,7 +689,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
 
             try
             {
-                String strPrimaryKeys = getPrimaryKeys(connSource, strDBCatalog, strDBSchema, strTableName, mapPrimaryKey);
+                String strPrimaryKeys = getPrimaryKeys(connSource, strSrcDBCatalog, strSrcDBSchema, strTableName, mapPrimaryKey);
 
                 classVO.setKeyAttribute(strPrimaryKeys);
 
@@ -610,7 +705,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             return true;
         }, "TableName", "ClassListUrl", "Remarks");
 
-        try (ResultSet rsTable = connSource.getMetaData().getTables(strDBCatalog, strDBSchema, "%", new String[]{"TABLE"}))
+        try (ResultSet rsTable = connSource.getMetaData().getTables(strSrcDBCatalog, strSrcDBSchema, "%", new String[]{"TABLE"}))
         {
             processor.setPagingAction(pagingAction);
             processor.doAction(rsTable);
