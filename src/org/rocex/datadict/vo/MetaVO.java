@@ -1,8 +1,5 @@
 package org.rocex.datadict.vo;
 
-import java.text.SimpleDateFormat;
-import java.util.Date;
-
 import javax.persistence.Column;
 import javax.persistence.Id;
 
@@ -20,11 +17,9 @@ public class MetaVO extends SuperVO
     private String strDdcVersion;
     private String strDisplayName;
     private String strHelp;
-    private String strId;
     private String strModelType = ModelType.md.name();
     private String strName;
     private String strPath;
-    private String strTs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ").format(new Date());
 
     public enum ModelType
     {
@@ -64,18 +59,6 @@ public class MetaVO extends SuperVO
         return strHelp;
     }
 
-    /***************************************************************************
-     * @return the id
-     * @author Rocex Wang
-     * @since 2020-4-21 13:45:33
-     ***************************************************************************/
-    @Id(order = 0)
-    @Column(nullable = false, length = 50)
-    public String getId()
-    {
-        return strId;
-    }
-
     @Column(length = 2)
     public String getModelType()
     {
@@ -97,17 +80,6 @@ public class MetaVO extends SuperVO
     public String getPath()
     {
         return strPath;
-    }
-
-    /***************************************************************************
-     * @return the ts
-     * @author Rocex Wang
-     * @since 2022-08-02 02:08:30
-     ***************************************************************************/
-    @Column(length = 19)
-    public String getTs()
-    {
-        return strTs;
     }
 
     /***************************************************************************
@@ -150,16 +122,6 @@ public class MetaVO extends SuperVO
         strHelp = help;
     }
 
-    /***************************************************************************
-     * @param id the id to set
-     * @author Rocex Wang
-     * @since 2020-4-21 13:45:33
-     ***************************************************************************/
-    public void setId(String id)
-    {
-        strId = id;
-    }
-
     public void setModelType(String modelType)
     {
         strModelType = modelType;
@@ -178,16 +140,6 @@ public class MetaVO extends SuperVO
     public void setPath(String path)
     {
         strPath = path;
-    }
-
-    /***************************************************************************
-     * @param ts the ts to set
-     * @author Rocex Wang
-     * @since 2022-08-02 02:08:30
-     ***************************************************************************/
-    public void setTs(String ts)
-    {
-        strTs = ts;
     }
 
     /***************************************************************************

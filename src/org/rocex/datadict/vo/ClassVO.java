@@ -12,8 +12,8 @@ import javax.persistence.Table;
  * @since 2020-4-21 13:20:06
  ***************************************************************************/
 @Table(name = "md_class", indexes = {@Index(name = "i_md_class_component_id", columnList = "component_id"),
-    @Index(name = "i_md_class_table_name", columnList = "table_name"), @Index(name = "i_md_class_class_type", columnList = "class_type"),
-    @Index(name = "i_md_class_ddc_version", columnList = "ddc_version")})
+    @Index(name = "i_md_class_table_name", columnList = "table_name"), @Index(name = "i_md_class_name", columnList = "name"),
+    @Index(name = "i_md_class_class_type", columnList = "class_type"), @Index(name = "i_md_class_ddc_version", columnList = "ddc_version")})
 public class ClassVO extends MetaVO
 {
     private Boolean blAuthen;
