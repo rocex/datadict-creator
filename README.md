@@ -39,7 +39,16 @@ insert into main.md_component(id,biz_model,ddc_version,display_name,help,model_t
 insert into main.md_class(id,accessor_classname,authen,biz_itf_imp_classname,biz_object_id,class_type,component_id,ddc_version,display_name,full_classname,help,key_attribute,main_class_id,model_type,name,own_module,primary_class,ref_model_name,return_type,table_name,ts,version_type) select id,accessor_classname,authen,biz_itf_imp_classname,biz_object_id,class_type,component_id,ddc_version,display_name,full_classname,help,key_attribute,main_class_id,model_type,name,own_module,primary_class,ref_model_name,return_type,table_name,ts,version_type from db2.md_class;
 insert into main.md_property(id,accessor_classname,access_power,access_power_group,attr_length,attr_max_value,attr_min_value,attr_sequence,calculation,class_id,column_code,custom_attr,data_type,data_type_sql,data_type_style,ddc_version,default_value,display_name,dynamic_attr,dynamic_table,fixed_length,help,hidden,key_prop,name,not_serialize,nullable,precise,read_only,ref_model_name,ts,version_type) select id,accessor_classname,access_power,access_power_group,attr_length,attr_max_value,attr_min_value,attr_sequence,calculation,class_id,column_code,custom_attr,data_type,data_type_sql,data_type_style,ddc_version,default_value,display_name,dynamic_attr,dynamic_table,fixed_length,help,hidden,key_prop,name,not_serialize,nullable,precise,read_only,ref_model_name,ts,version_type from db2.md_property;
 insert into main.md_enumvalue(id,class_id,ddc_version,enum_sequence,enum_value,name,ts,version_type) select id,class_id,ddc_version,enum_sequence,enum_value,name,ts,version_type from db2.md_enumvalue;
+insert into main.md_index(id,ddc_version,asc_or_desc,cardinality,class_id,filter_condition,index_name,index_qualifier,index_sql,non_unique,ordinal_position,pages,schema2,table_name,ts,type) select id,ddc_version,asc_or_desc,cardinality,class_id,filter_condition,index_name,index_qualifier,index_sql,non_unique,ordinal_position,pages,schema,table_name,ts,type from db2.md_index;
 
 insert into main.ddc_dict_json(id,class_id,ddc_version,dict_json,display_name,name,ts) select id,class_id,ddc_version,dict_json,display_name,name,ts from db2.ddc_dict_json;
+
+
+delete from md_module where model_type='md';
+delete from md_component where model_type='md';
+delete from md_property where class_id in(select id from md_class where model_type='md');
+delete from md_enumvalue where class_id in(select id from md_class where model_type='md');
+delete from md_class where model_type='md';
+
 
 ```
