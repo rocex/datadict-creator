@@ -32,7 +32,7 @@ public class MetaVO extends SuperVO
      * @since 2022-08-01 01:42:04
      ***************************************************************************/
     @Id(order = 2)
-    @Column(nullable = false, length = 4)
+    @Column(nullable = false, length = 32)
     public String getDdcVersion()
     {
         return strDdcVersion;
@@ -43,6 +43,7 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @since 2020-4-21 13:45:48
      ***************************************************************************/
+    @Column(length = 1024)
     public String getDisplayName()
     {
         return strDisplayName;
@@ -53,7 +54,7 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @since 2022-08-02 02:08:30
      ***************************************************************************/
-    @Column(length = 80)
+    @Column(length = 256)
     public String getHelp()
     {
         return strHelp;
@@ -107,6 +108,7 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @since 2020-4-21 13:45:48
      ***************************************************************************/
+    @Column(length = 1024)
     public void setDisplayName(String displayName)
     {
         strDisplayName = displayName;

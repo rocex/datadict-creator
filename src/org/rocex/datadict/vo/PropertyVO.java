@@ -191,7 +191,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2020-4-22 15:00:08
      ***************************************************************************/
-    @Column(length = 80)
+    @Column(length = 256)
     public String getDefaultValue()
     {
         return strDefaultValue;
@@ -202,7 +202,7 @@ public class PropertyVO extends MetaVO
      * @author Rocex Wang
      * @since 2021-11-16 04:05:17
      ***************************************************************************/
-    @Column(length = 50)
+    @Column(length = 64)
     public String getDynamicTable()
     {
         return strDynamicTable;

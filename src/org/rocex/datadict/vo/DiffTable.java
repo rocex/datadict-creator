@@ -4,13 +4,13 @@ import org.rocex.vo.SuperVO;
 
 public class DiffTable extends SuperVO
 {
-    private String schema;
+    private String schema2;
     private String tableName;
     private String tableShowName;
 
-    public String getSchema()
+    public String getSchema2()
     {
-        return schema;
+        return schema2;
     }
 
     public String getTableName()
@@ -23,9 +23,9 @@ public class DiffTable extends SuperVO
         return tableShowName;
     }
 
-    public void setSchema(String schema)
+    public void setSchema2(String schema2)
     {
-        this.schema = schema;
+        this.schema2 = schema2;
     }
 
     public void setTableName(String tableName)

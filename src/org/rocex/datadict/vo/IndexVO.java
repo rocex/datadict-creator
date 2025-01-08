@@ -27,7 +27,7 @@ public class IndexVO extends SuperVO
     private String strIndexName;
     private String strIndexQualifier;
     private String strIndexSql;
-    private String strSchema;
+    private String strSchema2;
     private String strTableName;
 
     public String getAscOrDesc()
@@ -53,7 +53,7 @@ public class IndexVO extends SuperVO
     }
 
     @Id(order = 2)
-    @Column(nullable = false, length = 4)
+    @Column(nullable = false, length = 32)
     public String getDdcVersion()
     {
         return strDdcVersion;
@@ -91,9 +91,9 @@ public class IndexVO extends SuperVO
         return lPages;
     }
 
-    public String getSchema()
+    public String getSchema2()
     {
-        return strSchema;
+        return strSchema2;
     }
 
     public String getTableName()
@@ -171,9 +171,9 @@ public class IndexVO extends SuperVO
         this.lPages = lPages;
     }
 
-    public void setSchema(String schema)
+    public void setSchema2(String schema2)
     {
-        strSchema = schema;
+        strSchema2 = schema2;
     }
 
     public void setTableName(String tableName)

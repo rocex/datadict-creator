@@ -32,7 +32,7 @@ public class DictJsonVO extends MetaVO
      * @author Rocex Wang
      * @since 2022-08-01 05:37:02
      ***************************************************************************/
-    @Column(columnDefinition = "longtext")
+    @Column(columnDefinition = "text")
     public Object getDictJson()
     {
         return strDictJson;

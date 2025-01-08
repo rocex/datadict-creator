@@ -126,7 +126,7 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @since 2020-4-22 14:32:45
      ***************************************************************************/
-    @Column(length = 50)
+    @Column(length = 128)
     public String getKeyAttribute()
     {
         return strKeyAttribute;
@@ -186,7 +186,7 @@ public class ClassVO extends MetaVO
      * @author Rocex Wang
      * @since 2020-4-22 10:39:06
      ***************************************************************************/
-    @Column(length = 50)
+    @Column(length = 128)
     public String getTableName()
     {
         return strTableName;
