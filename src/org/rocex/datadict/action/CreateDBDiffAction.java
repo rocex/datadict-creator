@@ -63,17 +63,17 @@ public class CreateDBDiffAction implements IAction
     {
         // @formatter:off
         String[] strSQLs = {
-            "alter table md_property add column schema varchar(128)",
-            "create index i_md_property_schema on md_property(schema)",
-            "update md_property set schema=(select b.name from md_component b,md_class c where b.id=c.component_id and md_property.class_id=c.id)",
+            "alter table md_property add column schema2 varchar(128)",
+            "update md_property set schema2=(select b.name from md_component b,md_class c where b.id=c.component_id and md_property.class_id=c.id)",
+            "create index i_md_property_schema on md_property(schema2)",
 
             "alter table md_property add column merge1 varchar(256)",
+            "update md_property set merge1=(select schema2||'.'||b.table_name||'.'||md_property.name from md_class b where md_property.class_id=b.id)",
             "create index i_md_property_merge1 on md_property(merge1)",
-            "update md_property set merge1=(select schema||'.'||b.table_name||'.'||md_property.name from md_class b where md_property.class_id=b.id)",
 
             "alter table md_property add column merge2 varchar(256)",
-            "create index i_md_property_merge2 on md_property(merge2)",
             "update md_property set merge2=(coalesce(data_type_sql,'')||(case when nullable=0 then ' not null' when nullable=1 then '' end)||(case when default_value is not null and data_type in(-16,-15,-9,-1,1,12) then ' default '||''''||default_value||'''' when default_value is not null then ' default '||default_value else '' end))",
+            "create index i_md_property_merge2 on md_property(merge2)",
 
             "create table md_property2 as select * from md_property where ddc_version='" + strVersion1 + "'",
             "create table md_property3 as select * from md_property where ddc_version='" + strVersion2 + "'"};
@@ -109,10 +109,26 @@ public class CreateDBDiffAction implements IAction
             listContent.add(diffToString.toString(diff));
         }
 
-        Path pathFile = Path.of(strOutputDiffDir, strFileName);
-        FileHelper.writeFile(pathFile, listContent);
+        writeFile(listContent, strFileName);
 
         return listDiff;
+    }
+
+    private void createDropTableSQLFile(List<DiffTable> listTable, String strFileName)
+    {
+        if (listTable == null || listTable.isEmpty())
+        {
+            return;
+        }
+
+        List<String> listContent = new ArrayList<>();
+
+        for (DiffTable diffTable : listTable)
+        {
+            listContent.add("drop table %s.%s".formatted(diffTable.getSchema2(), diffTable.getTableName()));
+        }
+
+        writeFile(listContent, strFileName);
     }
 
     private void createNewColumnSQLFile(List<DiffColumn> listDiffColumn, String strFileName)
@@ -126,13 +142,12 @@ public class CreateDBDiffAction implements IAction
 
         for (DiffColumn diff : listDiffColumn)
         {
-            String strSQL = "alter table %s.%s add column %s %s comment '%s';".formatted(diff.getSchema(), diff.getTableName(), diff.getColumnName(),
+            String strSQL = "alter table %s.%s add column %s %s comment '%s';".formatted(diff.getSchema2(), diff.getTableName(), diff.getColumnName(),
                 diff.getMerge1(), Objects.toString(diff.getColumnShowName(), ""));
             listContent.add(strSQL);
         }
 
-        Path pathFile = Path.of(strOutputDiffDir, strFileName);
-        FileHelper.writeFile(pathFile, listContent);
+        writeFile(listContent, strFileName);
     }
 
     private void createNewIndexSQLFile(String strNewIndexSQL, SQLParameter sqlParam, String strFileName)
@@ -151,8 +166,7 @@ public class CreateDBDiffAction implements IAction
             listContent.add(indexVO.getIndexSql());
         }
 
-        Path pathFile = Path.of(strOutputDiffDir, strFileName);
-        FileHelper.writeFile(pathFile, listContent);
+        writeFile(listContent, strFileName);
     }
 
     private void createNewTableSQLFile(String strNewTableColumn, SQLParameter sqlParam, String strFileName)
@@ -180,7 +194,7 @@ public class CreateDBDiffAction implements IAction
 
             // 临时在merge1里面放着主键列表
             String strPkColumns = entry.getValue().get(0).getMerge1().replace(";", ",");
-            String strSchema = entry.getValue().get(0).getSchema();
+            String strSchema = entry.getValue().get(0).getSchema2();
             String strTableShowName = entry.getValue().get(0).getTableShowName();
 
             String strSQL = "create table %s.%s\n(\n%s,\n\tprimary key (%s)\n) comment='%s';\n".formatted(strSchema, strTableName, strColumns, strPkColumns,
@@ -189,25 +203,24 @@ public class CreateDBDiffAction implements IAction
             listContent.add(strSQL);
         }
 
-        Path pathFile = Path.of(strOutputDiffDir, strFileName);
-        FileHelper.writeFile(pathFile, listContent);
+        writeFile(listContent, strFileName);
     }
 
     @Override
     public void doAction(EventObject evt)
     {
-        // adjustData();
+        adjustData();
 
         // 新增表，schema+tablename
         String strTableSQL = """
-            select a.component_id as schema,a.display_name as table_show_name,a.table_name from md_class a where a.ddc_version=?
+            select replace(a.component_id,'db__','') as schema2,a.display_name as table_show_name,a.table_name from md_class a where a.ddc_version=?
              and a.component_id||a.table_name not in(select b.component_id||b.table_name from md_class b where b.ddc_version=?)
              order by a.component_id,a.table_name
             """;
 
         // 新增表的字段，不包含已存在表的新增字段
         String strNewTableColumn = """
-            select a.schema,b.display_name as table_show_name,a.display_name as column_show_name,b.table_name,a.name as column_name,a.data_type_sql,a.nullable,a.default_value,a.merge2,b.key_attribute merge1
+            select a.schema2,b.display_name as table_show_name,a.display_name as column_show_name,b.table_name,a.name as column_name,a.data_type_sql,a.nullable,a.default_value,a.merge2,b.key_attribute merge1
              from md_property a,md_class b where a.ddc_version=? and a.ddc_version=b.ddc_version and a.class_id=b.id
              and a.merge1 not in(select c.merge1 from md_property c,md_class d where c.ddc_version=? and c.ddc_version=d.ddc_version and c.class_id=d.id)
              and b.id in(select a.id from md_class a where a.ddc_version=? and a.component_id||a.table_name not in(select b.component_id||b.table_name from md_class b where b.ddc_version=?))
@@ -216,7 +229,7 @@ public class CreateDBDiffAction implements IAction
 
         // 新增字段，schema+tablename+columnname，并且不在新增表里的字段
         String strColumnSQL = """
-            select a.schema,b.display_name as table_show_name,a.display_name as column_show_name,b.table_name,a.name as column_name
+            select a.schema2,b.display_name as table_show_name,a.display_name as column_show_name,b.table_name,a.name as column_name
             ,a.data_type_sql,a.nullable,a.default_value,a.merge2 merge1
              from md_property a,md_class b where a.ddc_version=? and a.ddc_version=b.ddc_version and a.class_id=b.id
              and a.merge1 not in(select c.merge1 from md_property c,md_class d where c.ddc_version=? and c.ddc_version=d.ddc_version and c.class_id=d.id)
@@ -226,15 +239,15 @@ public class CreateDBDiffAction implements IAction
 
         // 变更字段，schema+tablename+columnname相等，但是data_type_sql||nullable||default_value不等
         String strChangedColumnSQL = """
-            select a.schema,b.display_name as table_show_name,b.table_name,a.display_name as column_show_name,a.name as column_name,a.merge2 merge1,c.merge2
+            select a.schema2,b.display_name as table_show_name,b.table_name,a.display_name as column_show_name,a.name as column_name,a.merge2 merge1,c.merge2
              from md_property2 a,md_class b inner join md_property3 c on a.merge1=c.merge1 and c.ddc_version=? and a.merge2!=c.merge2
-             where a.ddc_version=b.ddc_version and a.class_id=b.id and a.ddc_version=? order by a.schema,b.table_name,a.name
+             where a.ddc_version=b.ddc_version and a.class_id=b.id and a.ddc_version=? order by a.schema2,b.table_name,a.name
             """;
 
         // 新增索引，schema+tablename+indexname
         String strNewIndexSQL = """
             select * from md_index where class_id in(select a.id from md_class a where a.ddc_version=?
-             and a.component_id||a.table_name not in(select b.component_id||b.table_name from md_class b where b.ddc_version=?)) order by schema,table_name
+             and a.component_id||a.table_name not in(select b.component_id||b.table_name from md_class b where b.ddc_version=?)) order by schema2,table_name
             """;
 
         // 01 新增表
@@ -247,11 +260,12 @@ public class CreateDBDiffAction implements IAction
         // 15 变更索引
         String strFileName = strVersion1 + " 比 " + strVersion2 + " ";
 
-        List<DiffTable> listDiffTable1 = createDiff(DiffTable.class, strTableSQL, new SQLParameter(strVersion1, strVersion2), new DiffToStringTable(),
-            "01 " + strFileName + "新增表.txt");
+        createDiff(DiffTable.class, strTableSQL, new SQLParameter(strVersion1, strVersion2), new DiffToStringTable(), "01 " + strFileName + "新增表.txt");
         createNewTableSQLFile(strNewTableColumn, new SQLParameter(strVersion1, strVersion2, strVersion1, strVersion2), "02 " + strFileName + "新增表.sql");
 
-        createDiff(DiffTable.class, strTableSQL, new SQLParameter(strVersion2, strVersion1), new DiffToStringTable(), "03 " + strFileName + "删除表.txt");
+        List<DiffTable> listDiffTable1 = createDiff(DiffTable.class, strTableSQL, new SQLParameter(strVersion2, strVersion1), new DiffToStringTable(),
+            "03 " + strFileName + "删除表.txt");
+        createDropTableSQLFile(listDiffTable1, "04 " + strFileName + "删除表.sql");
 
         List<DiffColumn> listDiffColumn1 = createDiff(DiffColumn.class, strColumnSQL, new SQLParameter(strVersion1, strVersion2, strVersion1, strVersion2),
             new DiffToStringColumn(), "05 " + strFileName + "新增字段.txt");
@@ -265,7 +279,7 @@ public class CreateDBDiffAction implements IAction
 
         createNewIndexSQLFile(strNewIndexSQL, new SQLParameter(strVersion1, strVersion2), "12 " + strFileName + "新增索引.sql");
 
-        // recoverData();
+        // todo recoverData();
     }
 
     private <T extends SuperVO> List<T> queryDiff(Class<T> clazz, String strDiffSQL, SQLParameter sqlParam)
@@ -296,7 +310,7 @@ public class CreateDBDiffAction implements IAction
             , "drop index i_md_property_merge1"
             , "drop index i_md_property_merge2"
             , "drop index i_md_property_schema"
-            , "alter table md_property drop column schema"
+            , "alter table md_property drop column schema2"
             , "alter table md_property drop column merge1"
             , "alter table md_property drop column merge2"
             , "vacuum"};
@@ -315,6 +329,12 @@ public class CreateDBDiffAction implements IAction
         }
     }
 
+    private void writeFile(List<String> listContent, String strFileName)
+    {
+        Path pathFile = Path.of(strOutputDiffDir, strFileName);
+        FileHelper.writeFile(pathFile, listContent);
+    }
+
     interface DiffToString<T extends SuperVO>
     {
         String getTitle();
@@ -331,7 +351,7 @@ public class CreateDBDiffAction implements IAction
 
         public String toString(DiffColumn diffColumn)
         {
-            return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}", strSeperator, diffColumn.getSchema(), diffColumn.getTableShowName(),
+            return MessageFormat.format("{1}{0}{2}{0}{3}{0}{4}{0}{5}{0}{6}", strSeperator, diffColumn.getSchema2(), diffColumn.getTableShowName(),
                 diffColumn.getTableName(), diffColumn.getColumnShowName(), diffColumn.getColumnName(), diffColumn.getMerge1());
         }
     }
@@ -366,7 +386,7 @@ public class CreateDBDiffAction implements IAction
 
         public String toString(DiffTable diffTable)
         {
-            return MessageFormat.format("{1}{0}{2}{0}{3}", strSeperator, diffTable.getSchema(), diffTable.getTableShowName(), diffTable.getTableName());
+            return MessageFormat.format("{1}{0}{2}{0}{3}", strSeperator, diffTable.getSchema2(), diffTable.getTableShowName(), diffTable.getTableName());
         }
     }
 }
