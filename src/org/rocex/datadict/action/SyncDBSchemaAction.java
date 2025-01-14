@@ -16,7 +16,6 @@ import java.util.List;
 import java.util.Map;
 import java.util.Objects;
 import java.util.Properties;
-import java.util.Vector;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Executors;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -53,8 +52,6 @@ import org.rocex.vo.IAction;
 public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBSchemaAction
 {
     protected Boolean isCreateDbDdc;
-
-    protected List<String> listNeedSyncTableName = new Vector<>();                  // 要同步的表名
 
     protected Map<String, String> mapId = new HashMap<>();                          // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, String> mapPrimaryKeyByTableName = new HashMap<>();       // 表名和表主键列表的对应关系，多个主键用；分隔，表名用全小写
@@ -126,8 +123,6 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
         propDBSource.clear();
         propCodeName.clear();
 
-        listNeedSyncTableName.clear();
-
         mapPrimaryKeyByTableName.clear();
         mapPropertyVOByTableName.clear();
 
@@ -150,7 +145,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             return;
         }
 
-        sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, DictJsonVO.class, IndexVO.class);
+        sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, IndexVO.class, DictJsonVO.class);
 
         beforeSyncData();
 
@@ -482,12 +477,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
         mapColumn.put("DECIMAL_DIGITS", "Precise");
         mapColumn.put("NULLABLE", "Nullable");
 
-        BeanListProcessor<PropertyVO> processor = new BeanListProcessor<>(PropertyVO.class, mapColumn, propertyVO ->
-        {
-            String strTableName = propertyVO.getTableName().toLowerCase();
-
-            return listNeedSyncTableName.contains(strTableName) && isTableNameValid(strTableName);
-        });
+        BeanListProcessor<PropertyVO> processor = new BeanListProcessor<>(PropertyVO.class, mapColumn);
 
         try (ResultSet rsColumns = connSource.getMetaData().getColumns(strDBCatalog, strDBSchema, classVO.getTableName(), null))
         {
@@ -528,7 +518,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
 
                     IndexVO indexVO = entry.getValue().get(0);
                     indexVO.setDdcVersion(strVersion);
-                    indexVO.setSchema(strSrcDBSchema);
+                    indexVO.setSchema2(strSrcDBSchema);
                     indexVO.setId(StringHelper.getId());
                     indexVO.setClassId(classVO.getId());
                     indexVO.setTableName(classVO.getTableName());
@@ -672,7 +662,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
         {
             String strTableName = Objects.toString(classVO.getTableName(), "").toLowerCase();
 
-            if (!"table".equalsIgnoreCase(classVO.getClassListUrl()) || !isTableNameValid(strTableName) || listNeedSyncTableName.contains(strTableName))
+            if (!"table".equalsIgnoreCase(classVO.getClassListUrl()) || !isTableNameValid(strTableName))
             {
                 return false;
             }
@@ -699,8 +689,6 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             {
                 Logger.getLogger().error(ex.getMessage(), ex);
             }
-
-            listNeedSyncTableName.add(strTableName);
 
             return true;
         }, "TableName", "ClassListUrl", "Remarks");
