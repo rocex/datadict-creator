@@ -1,6 +1,5 @@
 package org.rocex.datadict.action;
 
-import java.sql.Connection;
 import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
@@ -45,6 +44,17 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             "update md_module set parent_module_id='md__scm' where model_type='md' and id in('aa','b2bpricing','channeloperatecenter','invp','pe','portalmg','pu','quote','sact','sccs','scct','sce','scm','scmbd','scpcommon','scpda','scpdp','scppe','scpsnpio','sh','snp','st','stock','uit','uscmf','usp','ustock','voucher');",
             "update md_module set parent_module_id='md__szyx' where model_type='md' and id in('ausa','dsd','fsm','mkp');",
             "update md_module set parent_module_id='md__tax' where model_type='md' and id in('mdd','taxbd','taxpubdoc','taxspec','yonbip-fi-taxability','yonbip-fi-taxbd','yonbip-fi-taxbuilding','yonbip-fi-taxgateway','yonbip-fi-taxincome','yonbip-fi-taxinfra','yonbip-fi-taxit','yonbip-fi-taxot','yonbip-fi-taxoth','yonbip-fi-taxotypd','yonbip-fi-taxreturn');",
+
+            // 政务
+            "update md_module set parent_module_id='md__yondif_ai' where model_type='md' and id in('ci','ec','element_cluster');",
+            "update md_module set parent_module_id='md__yondif_ams' where model_type='md' and id in('amsauth','ybilldesigner','basparam','element','excelmanage','iem','imptools','indicatoracc','print','pwf','todomessage','workbenchextend','wtfk','ybill','ymm','yondif-ruleengine','yrule','yfile','conmanager','llm_watermanager','testbillcc','testconlist','unitfyenum','watermanager','zw-pwf','fbgbusi','fbgconf','glbindicatoracc');",
+            "update md_module set parent_module_id='md__yondif_bi' where model_type='md' and id in('auth','basbank','basbpm','baseorg','basesset','basexpcri','basorgset','baspro','baspub','basstaff','dhr','ele','fbdi','sal','unitfyenum','ydfpx');",
+            "update md_module set parent_module_id='md__yondif_fa' where model_type='md' and id in('fa');",
+            "update md_module set parent_module_id='md__yondif_fas' where model_type='md' and id in('dfas','fasi','fasitest');",
+            "update md_module set parent_module_id='md__yondif_ar' where model_type='md' and id in('arbusi','abm','aepay','ar','dk','rm','ebf');",
+            "update md_module set parent_module_id='md__yondif_be' where model_type='md' and id in('centerpay','cm','fi','frbs','income','incpay','pay','payconfig','plan','tlapp','unitfyenum','up','upbas');",
+            "update md_module set parent_module_id='md__yondif_bm' where model_type='md' and id in('ba','bgt','perf','pm','unitfyenum');",
+            "update md_module set parent_module_id='md__yondif_gla' where model_type='md' and id in('gla_gl','glb_gl','glf_gl');",
 
             "update md_class set display_name=name where (display_name is null or display_name in ('','null','NULL'));",
             "update md_class set primary_class='1' where id in(select main_class_id from md_class where main_class_id is not null);", // 设置同一个业务对象下的主实体
@@ -152,7 +162,38 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ec', 'bip__version', '协同云', 'db', 'ec', 'db_table');",
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__szyx', 'bip__version', '数字营销', 'db', 'szyx', 'db_table');",
             "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fkgxcz', 'bip__version', '费控共享财资云', 'db', 'fkgxcz', 'db_table');",
-            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ndi', 'bip__version', '国防工业云', 'db', 'ndi', 'db_table');"};
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ndi', 'bip__version', '国防工业云', 'db', 'ndi', 'db_table');",
+
+            // 政务
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ams', '2409-bip-gov', 'YonDiF-应用平台扩展', 'md', 'yondif_ams', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_bi', '2409-bip-gov', 'YonDiF-基础信息', 'md', 'yondif_bi', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ur', '2409-bip-gov', 'YonDiF-报表云', 'md', 'yondif_ur', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ai', '2409-bip-gov', 'YonDiF-智能平台扩展', 'md', 'yondif_ai', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_bm', '2409-bip-gov', 'YonDiF-预算管理', 'md', 'yondif_bm', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_be', '2409-bip-gov', 'YonDiF-预算执行', 'md', 'yondif_be', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ar', '2409-bip-gov', 'YonDiF-报销管理', 'md', 'yondif_ar', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_glf', '2409-bip-gov', 'YonDiF-财政总会计核算', 'md', 'yondif_glf', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_glb', '2409-bip-gov', 'YonDiF-预算指标核算', 'md', 'yondif_glb', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_gla', '2409-bip-gov', 'YonDiF-单位会计核算', 'md', 'yondif_gla', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_agcfs', '2409-bip-gov', 'YonDiF-政府财务报告', 'md', 'yondif_agcfs', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_agfa', '2409-bip-gov', 'YonDiF-财政总决算', 'md', 'yondif_agfa', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_fas', '2409-bip-gov', 'YonDiF-财会监督', 'md', 'yondif_fas', 'md_clazz');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_fa', '2409-bip-gov', 'YonDiF-资产管理', 'md', 'yondif_fa', 'md_clazz');",
+
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ams', 'bip__version', 'YonDiF-应用平台扩展', 'db', 'yondif_ams', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_bi', 'bip__version', 'YonDiF-基础信息', 'db', 'yondif_bi', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ur', 'bip__version', 'YonDiF-报表云', 'db', 'yondif_ur', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ai', 'bip__version', 'YonDiF-智能平台扩展', 'db', 'yondif_ai', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_bm', 'bip__version', 'YonDiF-预算管理', 'db', 'yondif_bm', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_be', 'bip__version', 'YonDiF-预算执行', 'db', 'yondif_be', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ar', 'bip__version', 'YonDiF-报销管理', 'db', 'yondif_ar', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_glf', 'bip__version', 'YonDiF-财政总会计核算', 'db', 'yondif_glf', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_glb', 'bip__version', 'YonDiF-预算指标核算', 'db', 'yondif_glb', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_gla', 'bip__version', 'YonDiF-单位会计核算', 'db', 'yondif_gla', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_agcfs', 'bip__version', 'YonDiF-政府财务报告', 'db', 'yondif_agcfs', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_agfa', 'bip__version', 'YonDiF-财政总决算', 'db', 'yondif_agfa', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_fas', 'bip__version', 'YonDiF-财会监督', 'db', 'yondif_fas', 'db_table');",
+            "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_fa', 'bip__version', 'YonDiF-资产管理', 'db', 'yondif_fa', 'db_table');"};
 
         String[] strDBComponentSQLs = {
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__amc_aim', 'bip__version', 'db', 'amc_aim', 'db__am');",
@@ -433,6 +474,7 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__logger', 'bip__version', 'db', 'logger', 'db__iuap');",
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__sys', 'bip__version', 'db', 'sys', 'db__iuap');",
 
+            // HR
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__hr_border', 'bip__version', 'db', 'hr_border', 'db__hr');",
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__yonbip_hr_common', 'bip__version', 'db', 'yonbip_hr_common', 'db__hr');",
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__yonbip_hr_dimp', 'bip__version', 'db', 'yonbip_hr_dimp', 'db__hr');",
@@ -443,7 +485,32 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__yonbip_ndi_extplugin', 'bip__version', 'db', 'yonbip_ndi_extplugin', 'db__ndi');",
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__yonbip_epm_abca', 'bip__version', 'db', 'yonbip_epm_abca', 'db__epm');",
             "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__yonbip_trst_ekdm', 'bip__version', 'db', 'yonbip_trst_ekdm', 'db__trst');",
-            "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__iuap_data_dolphinscheduler', 'bip__version', 'db', 'iuap_data_dolphinscheduler', 'db__iuap');"};
+            "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__iuap_data_dolphinscheduler', 'bip__version', 'db', 'iuap_data_dolphinscheduler', 'db__iuap');",
+
+            // 政务
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_ams_file_online', 'bip__version', 'db', 'yondif_ams_file_online', 'db__yondif_ams', '文件拓展');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_ams_online', 'bip__version', 'db', 'yondif_ams_online', 'db__yondif_ams', '应用基础');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_print_online', 'bip__version', 'db', 'yondif_print_online', 'db__yondif_ams', '打印');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_agfa_online', 'bip__version', 'db', 'yondif_agfa_online', 'db__yondif_agfa', '财政总决算');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_gar_agcfs_online', 'bip__version', 'db', 'yondif_gar_agcfs_online', 'db__yondif_agcfs', '政府财务报告');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_ai_adapter_online', 'bip__version', 'db', 'yondif_ai_adapter_online', 'db__yondif_ai', '大模型适配');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_ai_app_online', 'bip__version', 'db', 'yondif_ai_app_online', 'db__yondif_ai', '智能应用支撑');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_ai_law_online', 'bip__version', 'db', 'yondif_ai_law_online', 'db__yondif_ai', '智能法规库');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_dmp_dq_online', 'bip__version', 'db', 'yondif_dmp_dq_online', 'db__yondif_ai', '自助查询');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_pm_fa_online', 'bip__version', 'db', 'yondif_pm_fa_online', 'db__yondif_fa', '资产管理');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_fbdi_online', 'bip__version', 'db', 'yondif_fbdi_online', 'db__yondif_bi', '基础信息');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_ur_online', 'bip__version', 'db', 'yondif_ur_online', 'db__yondif_ur', '报表云');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_bm_online', 'bip__version', 'db', 'yondif_bm_online', 'db__yondif_bm', '预算管理');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_be_online', 'bip__version', 'db', 'yondif_be_online', 'db__yondif_be', '预算执行');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_ar2_online', 'bip__version', 'db', 'yondif_ar2_online', 'db__yondif_ar', '网上报销');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_vm_ebf_online', 'bip__version', 'db', 'yondif_vm_ebf_online', 'db__yondif_ar', '电子票夹');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_glf_online', 'bip__version', 'db', 'yondif_glf_online', 'db__yondif_glf', '财政总会计核算');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_glb_online', 'bip__version', 'db', 'yondif_glb_online', 'db__yondif_glb', '预算指标核算');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_gla_online', 'bip__version', 'db', 'yondif_gla_online', 'db__yondif_gla', '单位会计核算');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_fas_dfas_online', 'bip__version', 'db', 'yondif_fas_dfas_online', 'db__yondif_fas', '监督管理');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_fas_faae_online', 'bip__version', 'db', 'yondif_fas_faae_online', 'db__yondif_fas', '考核评价');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_fas_fasi_online', 'bip__version', 'db', 'yondif_fas_fasi_online', 'db__yondif_fas', '监督检查');",
+            "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_fas_psrc_online', 'bip__version', 'db', 'yondif_fas_psrc_online', 'db__yondif_fas', '监督规则中心');"};
 
         String[] strMDComponentSQLs = {
             "insert into md_component (id, biz_model, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391905', '0', '" +
@@ -492,9 +559,10 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391949', 1, '1976686225086391905', 'bip__version', '用户定义', 'md', 'UserDefine', null);"};
 
         // 把以上的ddc_version替换成正确的值
-        String[] strUpdateDdcVersionSQL = {"update md_module set ddc_version='" + strVersion + "' where ddc_version='bip__version';",
-            "update md_component set ddc_version='" + strVersion + "' where ddc_version='bip__version';",
-            "update md_class set ddc_version='" + strVersion + "' where ddc_version='bip__version';"};
+        strDBModuleSQLs = Arrays.stream(strDBModuleSQLs).map(strSQL -> strSQL.replace("'bip__version'", "'" + strVersion + "'")).toArray(String[]::new);
+        strDBComponentSQLs = Arrays.stream(strDBComponentSQLs).map(strSQL -> strSQL.replace("'bip__version'", "'" + strVersion + "'")).toArray(String[]::new);
+        strMDComponentSQLs = Arrays.stream(strMDComponentSQLs).map(strSQL -> strSQL.replace("'bip__version'", "'" + strVersion + "'")).toArray(String[]::new);
+        strMDClassSQLs = Arrays.stream(strMDClassSQLs).map(strSQL -> strSQL.replace("'bip__version'", "'" + strVersion + "'")).toArray(String[]::new);
 
         try
         {
@@ -503,8 +571,6 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
 
             sqlExecutorTarget.executeUpdate(strMDComponentSQLs);
             sqlExecutorTarget.executeUpdate(strMDClassSQLs);
-
-            sqlExecutorTarget.executeUpdate(strUpdateDdcVersionSQL);
         }
         catch (SQLException ex)
         {
@@ -568,8 +634,7 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
         Properties dbPropSource2 = (Properties) propDBSource.clone();
         dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", "iuap_uuas_usercenter"));
 
-        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2);
-             Connection connSource = sqlExecutorSource.getConnection())
+        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2))
         {
             // 所有表名中包含租户id的都不要
             String strSQL = "select tenant_id from iuap_uuas_usercenter.pub_tenant where tenant_id not in('super','default')";
