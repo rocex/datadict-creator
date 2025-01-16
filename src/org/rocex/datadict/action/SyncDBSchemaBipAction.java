@@ -26,7 +26,7 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
 
     public void afterSyncData()
     {
-        Logger.getLogger().start("after sync data");
+        Logger.getLogger().begin("after sync data");
         String[] strSQLs = {//"update md_class set table_name='' where (table_name is null or table_name in ('null','NULL'))",
             "update md_module set parent_module_id='md__am' where model_type='md' and id in('adc','aim','ambd','ampub','ams','aom','apm','asp','aum','eiot','iass','lim','lom','mim','omm','pam','pvm','rmm','saa','sem','sim','som','spp');",
             "update md_module set parent_module_id='md__bztrc' where model_type='md' and id in('btis','commom','common','tenant');",
@@ -113,12 +113,12 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().stop("after sync data");
+        Logger.getLogger().end("after sync data");
     }
 
     public void beforeSyncData()
     {
-        Logger.getLogger().start("before sync data");
+        Logger.getLogger().begin("before sync data");
 
         initTableFiltersTenantId();
 
@@ -577,7 +577,7 @@ public class SyncDBSchemaBipAction extends SyncDBSchemaAction
             throw new RuntimeException(ex);
         }
 
-        Logger.getLogger().stop("before sync data");
+        Logger.getLogger().end("before sync data");
     }
 
     protected String getDataTypeSql(PropertyVO propertyVO)

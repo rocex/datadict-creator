@@ -3,7 +3,9 @@ package org.rocex.datadict;
 import java.io.IOException;
 import java.nio.file.Path;
 
+import org.rocex.datadict.action.CreateDBDiffAction;
 import org.rocex.datadict.action.CreateDataDictAction;
+import org.rocex.datadict.action.MergeDBAction;
 import org.rocex.datadict.action.SyncDBSchemaAction;
 import org.rocex.datadict.action.SyncDBSchemaBipAction;
 import org.rocex.datadict.action.SyncDBSchemaNccAction;
@@ -25,7 +27,24 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        Logger.getLogger().start("create all data dictionary");
+        boolean blDiffEnable = !true;// Boolean.parseBoolean(Context.getInstance().getSetting("diff.enable", "false"));
+        boolean blMergeEnable = true;
+        boolean blSkipEnable = true;
+
+        if (blDiffEnable)
+        {
+            new CreateDBDiffAction().doAction(null);
+        }
+
+        if (blMergeEnable)
+        {
+            new MergeDBAction().doAction(null);
+        }
+
+        if (blSkipEnable)
+            return;
+
+        Logger.getLogger().begin("create all data dictionary");
 
         String strDataDictVersionList = Context.getInstance().getSetting("DataDictVersionList");
 
@@ -61,6 +80,6 @@ public class DataDictCreator
             Logger.getLogger().debug("\n");
         }
 
-        Logger.getLogger().stop("create all data dictionary");
+        Logger.getLogger().end("create all data dictionary");
     }
 }

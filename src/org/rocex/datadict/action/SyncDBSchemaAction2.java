@@ -116,7 +116,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
 
     protected void afterSyncDataBip()
     {
-        Logger.getLogger().start("after sync bip data");
+        Logger.getLogger().begin("after sync bip data");
 
         String[] strSQLs = {//"update md_class set table_name='' where (table_name is null or table_name in ('null','NULL'))",
             "update md_module set parent_module_id='md__am' where model_type='md' and id in('adc','aim','ambd','ampub','ams','aom','apm','asp','aum','eiot','iass','lim','lom','mim','omm','pam','pvm','rmm','saa','sem','sim','som','spp');",
@@ -190,7 +190,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().stop("after sync bip data");
+        Logger.getLogger().end("after sync bip data");
     }
 
     /***************************************************************************
@@ -200,7 +200,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
      ***************************************************************************/
     protected void afterSyncDataNcc()
     {
-        Logger.getLogger().start("after sync ncc data");
+        Logger.getLogger().begin("after sync ncc data");
 
         String[] strSQLs = {"update md_class set name='Memo' where id='BS000010000100001030' and name='MEMO'",
             "update md_class set name='MultiLangText' where id='BS000010000100001058' and name='MULTILANGTEXT'",
@@ -222,12 +222,12 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().stop("after sync ncc data");
+        Logger.getLogger().end("after sync ncc data");
     }
 
     void beforeSyncDataBip()
     {
-        Logger.getLogger().start("before sync bip data");
+        Logger.getLogger().begin("before sync bip data");
 
         if (!isBIP)
             return;
@@ -611,7 +611,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
             throw new RuntimeException(ex);
         }
 
-        Logger.getLogger().stop("before sync bip data");
+        Logger.getLogger().end("before sync bip data");
     }
 
     @Override
@@ -636,7 +636,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
     @Override
     public void doAction(EventObject evt)
     {
-        Logger.getLogger().start("sync db schema and meta data");
+        Logger.getLogger().begin("sync db schema and meta data");
 
         if (!isNeedSyncData())
         {
@@ -665,7 +665,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
             afterSyncDataNcc();
         }
 
-        Logger.getLogger().stop("sync db schema and meta data");
+        Logger.getLogger().end("sync db schema and meta data");
     }
 
     /***************************************************************************
@@ -847,7 +847,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
     {
         if (sqlExecutorSource.getDBType() == DBType.Oracle)
         {
-            Logger.getLogger().start("oracle query all temporary tables");
+            Logger.getLogger().begin("oracle query all temporary tables");
 
             String strSQL = "select lower(table_name) from user_tables where temporary='Y' order by table_name";
 
@@ -871,7 +871,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
 
             strTableFilters = listTempTableName.toArray(new String[0]);
 
-            Logger.getLogger().stop("oracle query all temporary tables");
+            Logger.getLogger().end("oracle query all temporary tables");
         }
     }
 
@@ -943,7 +943,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
     protected List<? extends MetaVO> queryMetaVO(SQLExecutor sqlExecutorSource, Class<? extends MetaVO> metaVOClass, String strSQL, SQLParameter param,
         PagingAction pagingAction)
     {
-        Logger.getLogger().start("query " + metaVOClass.getSimpleName());
+        Logger.getLogger().begin("query " + metaVOClass.getSimpleName());
 
         List<? extends MetaVO> listMetaVO = null;
 
@@ -959,7 +959,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
             Logger.getLogger().error(ex.getMessage(), ex);
         }
 
-        Logger.getLogger().stop("query " + metaVOClass.getSimpleName());
+        Logger.getLogger().end("query " + metaVOClass.getSimpleName());
 
         return listMetaVO;
     }
@@ -1044,7 +1044,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
      ***************************************************************************/
     protected void syncDBMeta()
     {
-        Logger.getLogger().start("sync database meta");
+        Logger.getLogger().begin("sync database meta");
 
         String strSourceUrl = Context.getInstance().getSetting("jdbc.url");
 
@@ -1072,7 +1072,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
             }
         }
 
-        Logger.getLogger().stop("sync database meta");
+        Logger.getLogger().end("sync database meta");
     }
 
     /***************************************************************************
@@ -1085,7 +1085,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
     {
         String strMsg = "sync all tables and fields from schema [%s]".formatted(strDBSchema);
 
-        Logger.getLogger().start(strMsg);
+        Logger.getLogger().begin(strMsg);
 
         PagingAction pagingAction = new PagingAction()
         {
@@ -1179,13 +1179,13 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
             processor.doAction(rsTable);
         }
 
-        Logger.getLogger().stop(strMsg);
+        Logger.getLogger().end(strMsg);
     }
 
     protected void syncMetaData(SQLExecutor sqlExecutorSource, String strModuleSQL, String strComponentSQL, String strBizObjAsComponentSQL, String strClassSQL,
         String strPropertySQL, String strEnumAsClass, String strEnumValueSQL)
     {
-        Logger.getLogger().start("sync bip metadata");
+        Logger.getLogger().begin("sync bip metadata");
 
         PagingAction pagingAction = new PagingAction()
         {
@@ -1262,7 +1262,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
 
         queryMetaVO(sqlExecutorSource, EnumValueVO.class, strEnumValueSQL, null, pagingAction);
 
-        Logger.getLogger().stop("sync bip metadata");
+        Logger.getLogger().end("sync bip metadata");
     }
 
     protected void syncMetaDataBip()

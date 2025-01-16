@@ -41,19 +41,19 @@ public class MergeDBAction implements IAction
     void clearData(String strVersion, Class clazz) throws SQLException
     {
         String strMessage = "delete data from " + sqlExecutorTarget.getTableNameFromClass(clazz);
-        Logger.getLogger().start(strMessage);
+        Logger.getLogger().begin(strMessage);
 
         String strDeleteSQL = sqlExecutorTarget.getSQLDelete(clazz) + " where ddc_version=?";
 
         sqlExecutorTarget.executeUpdate(strDeleteSQL, new SQLParameter(strVersion));
 
-        Logger.getLogger().stop(strMessage);
+        Logger.getLogger().end(strMessage);
     }
 
     <T extends SuperVO> void copyData(Class<T> clazz, SQLExecutor sqlExecutorSource) throws SQLException
     {
         String strMessage = "copy data from " + sqlExecutorTarget.getTableNameFromClass(clazz);
-        Logger.getLogger().start(strMessage);
+        Logger.getLogger().begin(strMessage);
 
         int[] iCount = {0, 0};
 
@@ -85,14 +85,14 @@ public class MergeDBAction implements IAction
         sqlExecutorSource.executeQuery(sqlExecutorSource.getSQLSelect(clazz), processor);
 
         Logger.getLogger().log2(Logger.iLoggerLevelDebug, iCount[0] + " batch, " + iCount[1] + " rows, done!\n");
-        Logger.getLogger().stop(strMessage);
+        Logger.getLogger().end(strMessage);
     }
 
     @Override
     public void doAction(EventObject evt)
     {
         String strMessage = "merge data";
-        Logger.getLogger().start(strMessage);
+        Logger.getLogger().begin(strMessage);
 
         String strMergeFromUrl = Context.getInstance().getSetting("target.jdbc.url");
         String strMergeFromUser = Context.getInstance().getSetting("target.jdbc.user");
@@ -112,7 +112,7 @@ public class MergeDBAction implements IAction
         for (String strVersion : strDataDictVersions)
         {
             Logger.getLogger().debug("");
-            Logger.getLogger().start("merge data from " + strVersion);
+            Logger.getLogger().begin("merge data from " + strVersion);
 
             dbProp.setProperty("jdbc.url", strMergeFromUrl.replace("${version}", strVersion));
 
@@ -132,9 +132,9 @@ public class MergeDBAction implements IAction
                 Logger.getLogger().error(ex.getMessage(), ex);
             }
 
-            Logger.getLogger().stop("merge data from " + strVersion);
+            Logger.getLogger().end("merge data from " + strVersion);
         }
 
-        Logger.getLogger().stop(strMessage);
+        Logger.getLogger().end(strMessage);
     }
 }
