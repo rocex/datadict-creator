@@ -11,18 +11,18 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @since 2020-4-21 13:20:26
  ***************************************************************************/
-@Table(name = "md_component", indexes = {@Index(name = "i_md_component_ddc_version", columnList = "ddc_version")})
+@Table(name = "md_component", indexes = { @Index(name = "i_md_component_ddc_version", columnList = "ddc_version") })
 public class ComponentVO extends MetaVO
 {
     private Boolean blBizModel;
-
+    
     private List<ClassVO> classVO;
-
+    
     private Integer iVersion;
-
+    
     private String strNamespace;
     private String strOwnModule;
-
+    
     /***************************************************************************
      * @return the classVO
      * @author Rocex Wang
@@ -33,7 +33,7 @@ public class ComponentVO extends MetaVO
     {
         return classVO;
     }
-
+    
     /***************************************************************************
      * @return the namespace
      * @author Rocex Wang
@@ -43,7 +43,7 @@ public class ComponentVO extends MetaVO
     {
         return strNamespace;
     }
-
+    
     /***************************************************************************
      * @return the ownModule
      * @author Rocex Wang
@@ -53,7 +53,7 @@ public class ComponentVO extends MetaVO
     {
         return strOwnModule;
     }
-
+    
     /***************************************************************************
      * @return the version
      * @author Rocex Wang
@@ -63,7 +63,7 @@ public class ComponentVO extends MetaVO
     {
         return iVersion;
     }
-
+    
     /***************************************************************************
      * @return the bizModel
      * @author Rocex Wang
@@ -73,7 +73,7 @@ public class ComponentVO extends MetaVO
     {
         return blBizModel;
     }
-
+    
     /***************************************************************************
      * @param bizModel the bizModel to set
      * @author Rocex Wang
@@ -83,7 +83,7 @@ public class ComponentVO extends MetaVO
     {
         blBizModel = bizModel;
     }
-
+    
     /***************************************************************************
      * @param classVO the classVO to set
      * @author Rocex Wang
@@ -93,7 +93,7 @@ public class ComponentVO extends MetaVO
     {
         this.classVO = classVO;
     }
-
+    
     /***************************************************************************
      * @param namespace the namespace to set
      * @author Rocex Wang
@@ -103,7 +103,7 @@ public class ComponentVO extends MetaVO
     {
         strNamespace = namespace;
     }
-
+    
     /***************************************************************************
      * @param ownModule the ownModule to set
      * @author Rocex Wang
@@ -113,7 +113,7 @@ public class ComponentVO extends MetaVO
     {
         strOwnModule = ownModule;
     }
-
+    
     /***************************************************************************
      * @param version the version to set
      * @author Rocex Wang

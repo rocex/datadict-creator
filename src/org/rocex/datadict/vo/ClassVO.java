@@ -11,18 +11,18 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @since 2020-4-21 13:20:06
  ***************************************************************************/
-@Table(name = "md_class", indexes = {@Index(name = "i_md_class_component_id", columnList = "component_id"),
-    @Index(name = "i_md_class_table_name", columnList = "table_name"), @Index(name = "i_md_class_name", columnList = "name"),
-    @Index(name = "i_md_class_class_type", columnList = "class_type"), @Index(name = "i_md_class_ddc_version", columnList = "ddc_version")})
+@Table(name = "md_class", indexes = { @Index(name = "i_md_class_component_id", columnList = "component_id"),
+        @Index(name = "i_md_class_table_name", columnList = "table_name"), @Index(name = "i_md_class_name", columnList = "name"),
+        @Index(name = "i_md_class_class_type", columnList = "class_type"), @Index(name = "i_md_class_ddc_version", columnList = "ddc_version") })
 public class ClassVO extends MetaVO
 {
     private Boolean blAuthen;
     private Boolean blPrimaryClass = false;
-
+    
     private Integer iClassType;     // 999 - 数据库表
-
+    
     private List<PropertyVO> propertyVO;
-
+    
     private String strAccessorClassname;
     private String strBizItfImpClassname;
     private String strBizObjectId;
@@ -36,24 +36,7 @@ public class ClassVO extends MetaVO
     private String strRemarks;
     private String strReturnType;
     private String strTableName;
-
-    public enum ClassType
-    {
-        clazz(201), enumeration(203), intface(206), db(999);
-
-        private final int iClassType;
-
-        ClassType(int iClassType)
-        {
-            this.iClassType = iClassType;
-        }
-
-        public int value()
-        {
-            return iClassType;
-        }
-    }
-
+    
     /***************************************************************************
      * @return the accessorClassname
      * @author Rocex Wang
@@ -63,7 +46,7 @@ public class ClassVO extends MetaVO
     {
         return strAccessorClassname;
     }
-
+    
     /***************************************************************************
      * @return the bizItfImpClassname
      * @author Rocex Wang
@@ -73,12 +56,12 @@ public class ClassVO extends MetaVO
     {
         return strBizItfImpClassname;
     }
-
+    
     public String getBizObjectId()
     {
         return strBizObjectId;
     }
-
+    
     /***************************************************************************
      * @return the classListUrl
      * @author Rocex Wang
@@ -89,7 +72,7 @@ public class ClassVO extends MetaVO
     {
         return strClassListUrl;
     }
-
+    
     /***************************************************************************
      * @return the classType
      * @author Rocex Wang
@@ -99,7 +82,7 @@ public class ClassVO extends MetaVO
     {
         return iClassType;
     }
-
+    
     /***************************************************************************
      * @return the componentId
      * @author Rocex Wang
@@ -110,7 +93,7 @@ public class ClassVO extends MetaVO
     {
         return strComponentId;
     }
-
+    
     /***************************************************************************
      * @return the fullClassname
      * @author Rocex Wang
@@ -120,7 +103,7 @@ public class ClassVO extends MetaVO
     {
         return strFullClassname;
     }
-
+    
     /***************************************************************************
      * @return the keyAttribute
      * @author Rocex Wang
@@ -131,17 +114,17 @@ public class ClassVO extends MetaVO
     {
         return strKeyAttribute;
     }
-
+    
     public String getMainClassId()
     {
         return strMainClassId;
     }
-
+    
     public String getOwnModule()
     {
         return strOwnModule;
     }
-
+    
     /***************************************************************************
      * @return the propertyVO
      * @author Rocex Wang
@@ -152,7 +135,7 @@ public class ClassVO extends MetaVO
     {
         return propertyVO;
     }
-
+    
     /***************************************************************************
      * @return the refModelName
      * @author Rocex Wang
@@ -163,13 +146,13 @@ public class ClassVO extends MetaVO
     {
         return strRefModelName;
     }
-
+    
     @Column(insertable = false, updatable = false)
     public String getRemarks()
     {
         return strRemarks;
     }
-
+    
     /***************************************************************************
      * @return the returnType
      * @author Rocex Wang
@@ -180,7 +163,7 @@ public class ClassVO extends MetaVO
     {
         return strReturnType;
     }
-
+    
     /***************************************************************************
      * @return the tableName
      * @author Rocex Wang
@@ -191,7 +174,7 @@ public class ClassVO extends MetaVO
     {
         return strTableName;
     }
-
+    
     /***************************************************************************
      * @return the isAuthen
      * @author Rocex Wang
@@ -201,7 +184,7 @@ public class ClassVO extends MetaVO
     {
         return blAuthen;
     }
-
+    
     /***************************************************************************
      * @return the isPrimary
      * @author Rocex Wang
@@ -211,7 +194,7 @@ public class ClassVO extends MetaVO
     {
         return blPrimaryClass;
     }
-
+    
     /***************************************************************************
      * @param accessorClassname the accessorClassname to set
      * @author Rocex Wang
@@ -221,7 +204,7 @@ public class ClassVO extends MetaVO
     {
         strAccessorClassname = accessorClassname;
     }
-
+    
     /***************************************************************************
      * @param isAuthen the isAuthen to set
      * @author Rocex Wang
@@ -231,7 +214,7 @@ public class ClassVO extends MetaVO
     {
         blAuthen = isAuthen;
     }
-
+    
     /***************************************************************************
      * @param bizItfImpClassname the bizItfImpClassname to set
      * @author Rocex Wang
@@ -241,12 +224,12 @@ public class ClassVO extends MetaVO
     {
         strBizItfImpClassname = bizItfImpClassname;
     }
-
+    
     public void setBizObjectId(String bizObjectId)
     {
         strBizObjectId = bizObjectId;
     }
-
+    
     /***************************************************************************
      * @param classListUrl the classListUrl to set
      * @author Rocex Wang
@@ -256,7 +239,7 @@ public class ClassVO extends MetaVO
     {
         strClassListUrl = classListUrl;
     }
-
+    
     /***************************************************************************
      * @param classType the classType to set
      * @author Rocex Wang
@@ -266,7 +249,7 @@ public class ClassVO extends MetaVO
     {
         iClassType = classType;
     }
-
+    
     /***************************************************************************
      * @param componentId the componentId to set
      * @author Rocex Wang
@@ -276,7 +259,7 @@ public class ClassVO extends MetaVO
     {
         strComponentId = componentId;
     }
-
+    
     /***************************************************************************
      * @param fullClassname the fullClassname to set
      * @author Rocex Wang
@@ -286,7 +269,7 @@ public class ClassVO extends MetaVO
     {
         strFullClassname = fullClassname;
     }
-
+    
     /***************************************************************************
      * @param keyAttribute the keyAttribute to set
      * @author Rocex Wang
@@ -296,17 +279,17 @@ public class ClassVO extends MetaVO
     {
         strKeyAttribute = keyAttribute;
     }
-
+    
     public void setMainClassId(String mainClassId)
     {
         strMainClassId = mainClassId;
     }
-
+    
     public void setOwnModule(String ownModule)
     {
         strOwnModule = ownModule;
     }
-
+    
     /***************************************************************************
      * @param isPrimaryClass the isPrimaryClass to set
      * @author Rocex Wang
@@ -316,7 +299,7 @@ public class ClassVO extends MetaVO
     {
         blPrimaryClass = isPrimaryClass;
     }
-
+    
     /***************************************************************************
      * @param propertyVO the propertyVO to set
      * @author Rocex Wang
@@ -326,7 +309,7 @@ public class ClassVO extends MetaVO
     {
         this.propertyVO = propertyVO;
     }
-
+    
     /***************************************************************************
      * @param refModelName the refModelName to set
      * @author Rocex Wang
@@ -336,12 +319,12 @@ public class ClassVO extends MetaVO
     {
         strRefModelName = refModelName;
     }
-
+    
     public void setRemarks(String strRemarks)
     {
         this.strRemarks = strRemarks;
     }
-
+    
     /***************************************************************************
      * @param returnType the returnType to set
      * @author Rocex Wang
@@ -351,7 +334,7 @@ public class ClassVO extends MetaVO
     {
         strReturnType = returnType;
     }
-
+    
     /***************************************************************************
      * @param tableName the tableName to set
      * @author Rocex Wang
@@ -360,5 +343,22 @@ public class ClassVO extends MetaVO
     public void setTableName(String tableName)
     {
         strTableName = tableName;
+    }
+    
+    public enum ClassType
+    {
+        clazz(201), db(999), enumeration(203), intface(206);
+        
+        private final int iClassType;
+        
+        ClassType(int iClassType)
+        {
+            this.iClassType = iClassType;
+        }
+        
+        public int value()
+        {
+            return iClassType;
+        }
     }
 }

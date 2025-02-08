@@ -13,19 +13,14 @@ import org.rocex.vo.SuperVO;
 public class MetaVO extends SuperVO
 {
     private Integer iVersionType;
-
+    
     private String strDdcVersion;
     private String strDisplayName;
     private String strHelp;
     private String strModelType = ModelType.md.name();
     private String strName;
     private String strPath;
-
-    public enum ModelType
-    {
-        db, md
-    }
-
+    
     /***************************************************************************
      * @return the dDCVersion
      * @author Rocex Wang
@@ -37,7 +32,7 @@ public class MetaVO extends SuperVO
     {
         return strDdcVersion;
     }
-
+    
     /***************************************************************************
      * @return the displayName
      * @author Rocex Wang
@@ -48,7 +43,7 @@ public class MetaVO extends SuperVO
     {
         return strDisplayName;
     }
-
+    
     /***************************************************************************
      * @return the help
      * @author Rocex Wang
@@ -59,13 +54,13 @@ public class MetaVO extends SuperVO
     {
         return strHelp;
     }
-
+    
     @Column(length = 2)
     public String getModelType()
     {
         return strModelType;
     }
-
+    
     /***************************************************************************
      * @return the name
      * @author Rocex Wang
@@ -76,13 +71,13 @@ public class MetaVO extends SuperVO
     {
         return strName;
     }
-
+    
     @Column(insertable = false, updatable = false)
     public String getPath()
     {
         return strPath;
     }
-
+    
     /***************************************************************************
      * @return the versionType
      * @author Rocex Wang
@@ -92,7 +87,7 @@ public class MetaVO extends SuperVO
     {
         return iVersionType;
     }
-
+    
     /***************************************************************************
      * @param dDCVersion the dDCVersion to set
      * @author Rocex Wang
@@ -102,7 +97,7 @@ public class MetaVO extends SuperVO
     {
         strDdcVersion = dDCVersion;
     }
-
+    
     /***************************************************************************
      * @param displayName the displayName to set
      * @author Rocex Wang
@@ -113,7 +108,7 @@ public class MetaVO extends SuperVO
     {
         strDisplayName = displayName;
     }
-
+    
     /***************************************************************************
      * @param help the help to set
      * @author Rocex Wang
@@ -123,12 +118,12 @@ public class MetaVO extends SuperVO
     {
         strHelp = help;
     }
-
+    
     public void setModelType(String modelType)
     {
         strModelType = modelType;
     }
-
+    
     /***************************************************************************
      * @param name the name to set
      * @author Rocex Wang
@@ -138,12 +133,12 @@ public class MetaVO extends SuperVO
     {
         strName = name;
     }
-
+    
     public void setPath(String path)
     {
         strPath = path;
     }
-
+    
     /***************************************************************************
      * @param versionType the versionType to set
      * @author Rocex Wang
@@ -152,5 +147,10 @@ public class MetaVO extends SuperVO
     public void setVersionType(Integer versionType)
     {
         iVersionType = versionType;
+    }
+    
+    public enum ModelType
+    {
+        db, md
     }
 }

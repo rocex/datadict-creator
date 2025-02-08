@@ -9,13 +9,13 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @since 2020-4-23 13:35:11
  ***************************************************************************/
-@Table(name = "ddc_dict_json", indexes = {@Index(name = "i_ddc_dict_json_ddc_version", columnList = "ddc_version")})
+@Table(name = "ddc_dict_json", indexes = { @Index(name = "i_ddc_dict_json_ddc_version", columnList = "ddc_version") })
 public class DictJsonVO extends MetaVO
 {
     private String strClassId;
-
+    
     private Object strDictJson;
-
+    
     /***************************************************************************
      * @return the classId
      * @author Rocex Wang
@@ -26,7 +26,7 @@ public class DictJsonVO extends MetaVO
     {
         return strClassId;
     }
-
+    
     /***************************************************************************
      * @return the dictJson
      * @author Rocex Wang
@@ -37,7 +37,7 @@ public class DictJsonVO extends MetaVO
     {
         return strDictJson;
     }
-
+    
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datadict.vo.MetaVO#getHelp()
@@ -50,14 +50,14 @@ public class DictJsonVO extends MetaVO
     {
         return super.getHelp();
     }
-
+    
     @Override
     @Column(insertable = false, updatable = false)
     public String getModelType()
     {
         return super.getModelType();
     }
-
+    
     /****************************************************************************
      * {@inheritDoc}<br>
      * @see org.rocex.datadict.vo.MetaVO#getVersionType()
@@ -70,7 +70,7 @@ public class DictJsonVO extends MetaVO
     {
         return super.getVersionType();
     }
-
+    
     /***************************************************************************
      * @param classId the classId to set
      * @author Rocex Wang
@@ -80,7 +80,7 @@ public class DictJsonVO extends MetaVO
     {
         strClassId = classId;
     }
-
+    
     /***************************************************************************
      * @param dictJson the dictJson to set
      * @author Rocex Wang
