@@ -12,7 +12,7 @@ import org.rocex.vo.SuperVO;
  ***************************************************************************/
 public class MetaVO extends SuperVO
 {
-    private Integer iVersionType;
+    private Integer iVersionType = 0;
     
     private String strDdcVersion;
     private String strDisplayName;

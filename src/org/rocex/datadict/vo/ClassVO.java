@@ -31,7 +31,7 @@ public class ClassVO extends MetaVO
     private String strFullClassname;
     private String strKeyAttribute;
     private String strMainClassId;
-    private String strOwnModule;
+    // private String strOwnModule;
     private String strRefModelName;
     private String strRemarks;
     private String strReturnType;
@@ -120,10 +120,10 @@ public class ClassVO extends MetaVO
         return strMainClassId;
     }
     
-    public String getOwnModule()
-    {
-        return strOwnModule;
-    }
+    // public String getOwnModule()
+    // {
+    // return strOwnModule;
+    // }
     
     /***************************************************************************
      * @return the propertyVO
@@ -285,10 +285,10 @@ public class ClassVO extends MetaVO
         strMainClassId = mainClassId;
     }
     
-    public void setOwnModule(String ownModule)
-    {
-        strOwnModule = ownModule;
-    }
+    // public void setOwnModule(String ownModule)
+    // {
+    // strOwnModule = ownModule;
+    // }
     
     /***************************************************************************
      * @param isPrimaryClass the isPrimaryClass to set
