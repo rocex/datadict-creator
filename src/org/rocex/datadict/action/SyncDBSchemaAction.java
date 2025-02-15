@@ -53,9 +53,9 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
 {
     protected Boolean isCreateDbDdc;
     
-    protected Map<String, String> mapId = new HashMap<>();                          // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     protected Map<String, String> mapPrimaryKeyByTableName = new HashMap<>();       // 表名和表主键列表的对应关系，多个主键用；分隔，表名用全小写
     protected Map<String, PropertyVO> mapPropertyVOByTableName = new HashMap<>();   // 表名+属性名 - PropertyVO
+    protected Map<String, String> mapTableInModule = new HashMap<>();               // 元数据中表名和对应的模块关系，用于归集表结构所属模块
     
     protected Pattern patternTableFilter;
     
@@ -116,8 +116,6 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
     @Override
     public void close()
     {
-        mapId.clear();
-        
         propDBSource.clear();
         propCodeName.clear();
         
@@ -190,73 +188,6 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
     }
     
     /***************************************************************************
-     * @param classVO
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:47:11
-     ***************************************************************************/
-    protected synchronized String getMappedClassId(ClassVO classVO)
-    {
-        return getMappedId("class", classVO.getId());
-    }
-    
-    protected synchronized String getMappedClassId(PropertyVO propertyVO)
-    {
-        return getMappedId("class", propertyVO.getClassId());
-    }
-    
-    protected synchronized String getMappedComponentId(ClassVO classVO)
-    {
-        return getMappedId("component", classVO.getComponentId());
-    }
-    
-    protected synchronized String getMappedComponentId(ComponentVO componentVO)
-    {
-        return getMappedId("component", componentVO.getId());
-    }
-    
-    /***************************************************************************
-     * @param strType
-     * @param strId
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:47:06
-     ***************************************************************************/
-    protected synchronized String getMappedId(String strType, String strId)
-    {
-        if (strId != null && strId.length() < 24)
-        {
-            return strId;
-        }
-        
-        String strKey = strType + "_" + strId;
-        
-        String strValue = mapId.get(strKey);
-        
-        if (strValue != null)
-        {
-            return strValue;
-        }
-        
-        String strMapId = StringHelper.getId();
-        
-        mapId.put(strKey, strMapId);
-        
-        return strMapId;
-    }
-    
-    /***************************************************************************
-     * @param moduleVO
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:46:54
-     ***************************************************************************/
-    protected synchronized String getMappedModuleId(ModuleVO moduleVO)
-    {
-        return getMappedId("module", moduleVO.getId());
-    }
-    
-    /***************************************************************************
      * 根据数据库特性一次性读取所有表的主键，如果不能确定数据库，还是按照jdbc的api每次只取一个表的主键
      * @param strTableName
      * @param mapPrimaryKey
@@ -272,7 +203,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
         
         // 找到表的主键
         try (Connection connSource = sqlExecutorSource.getConnection();
-                ResultSet rsPkColumns = connSource.getMetaData().getPrimaryKeys(strDBCatalog, strDBSchema, strTableName))
+                ResultSet rsPkColumns = connSource.getMetaData().getPrimaryKeys(strDBCatalog, strDBSchema, strTableName.toUpperCase()))
         {
             List<PropertyVO> listPkPropertyVO = (List<PropertyVO>) new BeanListProcessor<>(PropertyVO.class, mapPrimaryKey, "name").doAction(rsPkColumns);
             
@@ -414,10 +345,18 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
         
         List<? extends MetaVO> listMetaVO = null;
         
+        int iCount[] = new int[1];
+        
         try
         {
             BeanListProcessor<? extends MetaVO> processor = new BeanListProcessor<>(metaVOClass);
             processor.setPagingAction(pagingAction);
+            
+            processor.setFilter(t ->
+            {
+                Logger.getLogger().log2(Logger.iLoggerLevelDebug, ++iCount[0] + "");
+                return true;
+            });
             
             listMetaVO = (List<? extends MetaVO>) sqlExecutorSource.executeQuery(strSQL, param, processor);
         }
@@ -426,6 +365,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             Logger.getLogger().error(ex.getMessage(), ex);
         }
         
+        Logger.getLogger().log2(Logger.iLoggerLevelDebug, iCount[0] + " done!\n");
         Logger.getLogger().end("query " + metaVOClass.getSimpleName());
         
         return listMetaVO;
@@ -686,12 +626,12 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             classVO.setDdcVersion(strVersion);
             classVO.setId(StringHelper.getId());
             classVO.setName(strTableName);
-            classVO.setComponentId(strComponentId);
+            classVO.setComponentId(strComponentId == null ? "db__" + mapTableInModule.get(strTableName) : strComponentId);
             classVO.setModelType(ModelType.db.name());
             classVO.setTableName(strTableName);
             classVO.setClassType(ClassVO.ClassType.db.value());
-            classVO.setDisplayName(
-                    propCodeName.getProperty(strTableName, StringHelper.isEmpty(classVO.getRemarks()) ? "" : StringHelper.removeCRLF(classVO.getRemarks())));
+            classVO.setDisplayName(propCodeName.getProperty(strTableName,
+                    StringHelper.isEmpty(classVO.getRemarks()) ? strTableName : StringHelper.removeCRLF(classVO.getRemarks())));
             
             try
             {
@@ -711,16 +651,14 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
             return true;
         }, "TableName", "ClassListUrl", "Remarks");
         
-        pagingAction.setPageSize(10);
-        
         try (Connection connSource = sqlExecutorSource.getConnection();
-                ResultSet rsTable = connSource.getMetaData().getTables(strSrcDBCatalog, strSrcDBSchema, "%AA%", new String[] { "TABLE" }))
+                ResultSet rsTable = connSource.getMetaData().getTables(strSrcDBCatalog, strSrcDBSchema, "%AAA%", new String[] { "TABLE" }))
         {
             processor.setPagingAction(pagingAction);
             processor.doAction(rsTable);
         }
         
-        Logger.getLogger().log2(Logger.iLoggerLevelDebug, iCount[0] + "  done!\n");
+        Logger.getLogger().log2(Logger.iLoggerLevelDebug, iCount[0] + " done!\n");
         
         Logger.getLogger().end(strMsg);
     }
@@ -746,19 +684,9 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
                     
                     metaVO.setDisplayName(StringHelper.removeCRLF(metaVO.getDisplayName()));
                     
-                    if (metaVO instanceof ComponentVO componentVO)
+                    if (metaVO instanceof ClassVO classVO && StringHelper.isBlank(classVO.getKeyAttribute()))
                     {
-                        componentVO.setId(getMappedComponentId(componentVO));
-                    }
-                    else if (metaVO instanceof ClassVO classVO)
-                    {
-                        classVO.setId(getMappedClassId(classVO));
-                        classVO.setComponentId(getMappedComponentId(classVO));
-                        
-                        if (StringHelper.isBlank(classVO.getKeyAttribute()))
-                        {
-                            classVO.setKeyAttribute(mapPrimaryKeyByTableName.get(Objects.toString(classVO.getTableName(), "").toLowerCase()));
-                        }
+                        classVO.setKeyAttribute(mapPrimaryKeyByTableName.get(Objects.toString(classVO.getTableName(), "").toLowerCase()));
                     }
                 }
                 
@@ -783,7 +711,6 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
                 for (PropertyVO propertyVO : listVO)
                 {
                     propertyVO.setId(StringHelper.getId());
-                    propertyVO.setClassId(getMappedClassId(propertyVO));
                     propertyVO.setDataTypeSql(getDataTypeSql(propertyVO));
                     propertyVO.setDisplayName(StringHelper.removeCRLF(propertyVO.getDisplayName()));
                 }

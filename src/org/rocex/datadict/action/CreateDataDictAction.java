@@ -61,6 +61,8 @@ public class CreateDataDictAction implements IAction, Closeable
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();       // component id 和 component 内所有 class 链接的对应关系
     protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();       // component id 和 主实体 id 的对应关系
     protected Map<String, String> mapEnumString = new HashMap<>();                      // enum id 和 enum name and value 的对应关系
+    protected Map<String, String> mapId = new HashMap<>();                              // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
+    
     protected Map<String, ? extends MetaVO> mapIdClassVO = new HashMap<>();             // class id 和 class 的对应关系
     protected Map<String, ? extends MetaVO> mapIdComponentVO = new HashMap<>();         // component id 和 component 的对应关系
     protected Map<String, ? extends MetaVO> mapIdModuleVO = new HashMap<>();            // module id 和 module 的对应关系
@@ -69,11 +71,13 @@ public class CreateDataDictAction implements IAction, Closeable
     
     protected String strClassListHrefTemplate = "<a href=\"javascript:void(0);\" onClick=loadDataDict(\"%s\"); class=\"%s\">%s</a>";    // 左上角实体列表链接
     protected String strCreateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
+    
     // 自定义项字段名前缀
     protected String[] strCustomPatterns = { "def", "vdef", "vfree", "vbdef", "vsndef", "vbfree", "vbcdef", "defitem", "vpfree", "zyx", "vuserdef", "obmdef",
             "hvdef", "vbodyuserdef", "vhdef", "vgdef", "hdef", "vstbdef", "vpdef", "vbprodbatdef", "vheaduserdef", "bc_vdef", "vsdef", "vhodef", "vstdef",
             "vbatchdef", "bdef", "freevalue", "h_def", "vrcdef", "des_freedef", "src_freedef", "vprodbatdef", "factor", "free", "nfactor", "glbdef",
             "jobglbdef", "vcostfree" };
+    
     protected String strFullTextFileIndex;  // 全文检索文件名序号，英文逗号分割
     protected String strOutputDictDir;      // 输出数据字典文件目录
     protected String strOutputRootDir;      // 输出文件根目录
@@ -251,6 +255,8 @@ public class CreateDataDictAction implements IAction, Closeable
     @Override
     public void close()
     {
+        mapId.clear();
+        
         mapClassVOByComponent.clear();
         mapComponentIdPrimaryClassId.clear();
         mapEnumString.clear();
@@ -505,31 +511,42 @@ public class CreateDataDictAction implements IAction, Closeable
             {
                 ModuleVO moduleVO = getModuleVO(classVO);
                 
+                String strModuleId = null, strComponentId, strPath = ModuleVO.strDBRootId;
+                
                 if (moduleVO == null)
                 {
-                    Logger.getLogger().debug("Unable to find the module to which the class belongs:" + classVO);
-                    continue;
+                    Logger.getLogger()
+                            .debug("cannot find module: id=%s, name=%s, tablename=%s, componentid=%s, classtype=%s, modeltype=%s".formatted(classVO.getId(),
+                                    classVO.getName(), classVO.getTableName(), classVO.getComponentId(), classVO.getClassType(), classVO.getModelType()));
+                    // continue;
                 }
-                
-                // moduleVO.setPath(ModuleVO.strDBRootId + "," + moduleVO.getId());
+                else
+                {
+                    strModuleId = moduleVO.getId();
+                    strPath += "," + strModuleId;
+                    
+                    if (!listWithChildren.contains(strModuleId))
+                    {
+                        listWithChildren.add(strModuleId);
+                    }
+                }
                 
                 ComponentVO componentVO = (ComponentVO) mapIdComponentVO.get(classVO.getComponentId());
-                if (!listWithChildren.contains(componentVO.getId()))
+                if (componentVO != null)
                 {
-                    listWithChildren.add(componentVO.getId());
-                }
-                
-                String strModuleId = moduleVO.getId();
-                
-                if (!listWithChildren.contains(strModuleId))
-                {
-                    listWithChildren.add(strModuleId);
+                    strComponentId = componentVO.getId();
+                    strPath += "," + strComponentId;
+                    
+                    if (!listWithChildren.contains(strComponentId))
+                    {
+                        listWithChildren.add(strComponentId);
+                    }
                 }
                 
                 String strTableName = classVO.getTableName().toLowerCase();
                 
                 String strClassRow = strTreeDataClassTemplate.formatted(classVO.getId(), classVO.getComponentId(), strTableName,
-                        Objects.toString(classVO.getDisplayName(), ""), ModuleVO.strDBRootId + "," + strModuleId + "," + componentVO.getId());
+                        Objects.toString(classVO.getDisplayName(), ""), strPath);
                 strClassRows.append(strClassRow);
             }
             
@@ -769,6 +786,73 @@ public class CreateDataDictAction implements IAction, Closeable
     
     /***************************************************************************
      * @param classVO
+     * @return mappedId
+     * @author Rocex Wang
+     * @since 2020-4-30 13:47:11
+     ***************************************************************************/
+    protected synchronized String getMappedClassId(ClassVO classVO)
+    {
+        return getMappedId("class", classVO.getId());
+    }
+    
+    protected synchronized String getMappedClassId(PropertyVO propertyVO)
+    {
+        return getMappedId("class", propertyVO.getClassId());
+    }
+    
+    protected synchronized String getMappedComponentId(ClassVO classVO)
+    {
+        return getMappedId("component", classVO.getComponentId());
+    }
+    
+    protected synchronized String getMappedComponentId(ComponentVO componentVO)
+    {
+        return getMappedId("component", componentVO.getId());
+    }
+    
+    /***************************************************************************
+     * @param strType
+     * @param strId
+     * @return mappedId
+     * @author Rocex Wang
+     * @since 2020-4-30 13:47:06
+     ***************************************************************************/
+    protected synchronized String getMappedId(String strType, String strId)
+    {
+        if (strId != null && strId.length() < 24)
+        {
+            return strId;
+        }
+        
+        String strKey = strType + "_" + strId;
+        
+        String strValue = mapId.get(strKey);
+        
+        if (strValue != null)
+        {
+            return strValue;
+        }
+        
+        String strMapId = StringHelper.getId();
+        
+        mapId.put(strKey, strMapId);
+        
+        return strMapId;
+    }
+    
+    /***************************************************************************
+     * @param moduleVO
+     * @return mappedId
+     * @author Rocex Wang
+     * @since 2020-4-30 13:46:54
+     ***************************************************************************/
+    protected synchronized String getMappedModuleId(ModuleVO moduleVO)
+    {
+        return getMappedId("module", moduleVO.getId());
+    }
+    
+    /***************************************************************************
+     * @param classVO
      * @return ModuleVO
      * @author Rocex Wang
      * @since 2020-4-29 11:46:50
@@ -777,12 +861,14 @@ public class CreateDataDictAction implements IAction, Closeable
     {
         ComponentVO componentVO = (ComponentVO) mapIdComponentVO.get(classVO.getComponentId());
         
-        if (componentVO == null)
-        {
-            return null;
-        }
+        // TODO
+        // if (componentVO == null)
+        // {
+        // return null;
+        // }
         
-        ModuleVO moduleVO = (ModuleVO) mapIdModuleVO.get(componentVO.getOwnModule());
+        ModuleVO moduleVO = componentVO == null ? (ModuleVO) mapIdModuleVO.get(classVO.getComponentId())
+                : (ModuleVO) mapIdModuleVO.get(componentVO.getOwnModule());
         
         return moduleVO;
     }

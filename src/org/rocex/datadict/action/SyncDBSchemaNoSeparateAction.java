@@ -47,7 +47,7 @@ import org.rocex.vo.IAction;
  * @author Rocex Wang
  * @since 2021-10-28 02:17:34
  ***************************************************************************/
-public class SyncDBSchemaAction2 implements IAction, Closeable
+public class SyncDBSchemaNoSeparateAction implements IAction, Closeable
 {
     protected Boolean isBIP;
     protected Boolean isCreateDbDdc;
@@ -82,7 +82,7 @@ public class SyncDBSchemaAction2 implements IAction, Closeable
      * @author Rocex Wang
      * @since 2021-10-28 02:18:20
      ***************************************************************************/
-    public SyncDBSchemaAction2(String strVersion)
+    public SyncDBSchemaNoSeparateAction(String strVersion)
     {
         super();
         
