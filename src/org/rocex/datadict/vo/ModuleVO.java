@@ -9,14 +9,14 @@ import javax.persistence.Table;
  * @author Rocex Wang
  * @since 2020-4-21 16:22:12
  ***************************************************************************/
-@Table(name = "md_module", indexes = {@Index(name = "i_md_module_ddc_version", columnList = "ddc_version")})
+@Table(name = "md_module", indexes = { @Index(name = "i_md_module_ddc_version", columnList = "ddc_version") })
 public class ModuleVO extends MetaVO
 {
     public static final String strDBRootId = "db_table";
     public static final String strMDRootId = "md_clazz";
-
+    
     private String strParentModuleId;
-
+    
     /***************************************************************************
      * @return the parentModuleId
      * @author Rocex Wang
@@ -27,7 +27,7 @@ public class ModuleVO extends MetaVO
     {
         return strParentModuleId;
     }
-
+    
     /***************************************************************************
      * @param parentModuleId the parentModuleId to set
      * @author Rocex Wang
