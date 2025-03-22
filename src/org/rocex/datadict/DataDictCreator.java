@@ -27,33 +27,35 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        boolean blDiffEnable = !true;// Boolean.parseBoolean(Context.getInstance().getSetting("diff.enable", "false"));
+        boolean blDiffEnable = false;// Boolean.parseBoolean(Context.getInstance().getSetting("diff.enable", "false"));
         boolean blMergeEnable = true;
         boolean blSkipEnable = true;
-
+        
         if (blDiffEnable)
         {
             new CreateDBDiffAction().doAction(null);
         }
-
+        
         if (blMergeEnable)
         {
             new MergeDBAction().doAction(null);
         }
-
+        
         if (blSkipEnable)
+        {
             return;
-
+        }
+        
         Logger.getLogger().begin("create all data dictionary");
-
+        
         String strDataDictVersionList = Context.getInstance().getSetting("DataDictVersionList");
-
+        
         String[] strDataDictVersions = strDataDictVersionList.split(",");
-
+        
         for (String strVersion : strDataDictVersions)
         {
             Context.getInstance().resetVersion(strVersion);
-
+            
             try
             {
                 FileHelper.checkAndCreatePath(Path.of(Context.getInstance().getSetting("WorkDir"), "datadict-" + strVersion));
@@ -62,24 +64,38 @@ public class DataDictCreator
             {
                 throw new RuntimeException(ex);
             }
-
+            
             boolean isBIP = Boolean.parseBoolean(Context.getInstance().getSetting("isBIP", "true"));
-
-            SyncDBSchemaAction syncDBSchemaAction = isBIP ? new SyncDBSchemaBipAction(strVersion) : new SyncDBSchemaNccAction(strVersion);
-            syncDBSchemaAction.doAction(null);
-
-            syncDBSchemaAction.close();
-
-            System.gc();
-
-            CreateDataDictAction createDataDictAction = new CreateDataDictAction(strVersion);
-            createDataDictAction.doAction(null);
-
-            System.gc();
-
+            
+            try (SyncDBSchemaAction syncDBSchemaAction = isBIP ? new SyncDBSchemaBipAction(strVersion) : new SyncDBSchemaNccAction(strVersion))
+            {
+                syncDBSchemaAction.doAction(null);
+            }
+            catch (Exception ex)
+            {
+                throw new RuntimeException(ex);
+            }
+            finally
+            {
+                System.gc();
+            }
+            
+            try (CreateDataDictAction createDataDictAction = new CreateDataDictAction(strVersion))
+            {
+                createDataDictAction.doAction(null);
+            }
+            catch (Exception ex)
+            {
+                throw new RuntimeException(ex);
+            }
+            finally
+            {
+                System.gc();
+            }
+            
             Logger.getLogger().debug("\n");
         }
-
+        
         Logger.getLogger().end("create all data dictionary");
     }
 }
