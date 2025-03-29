@@ -27,7 +27,7 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        boolean blDiffEnable = false;// Boolean.parseBoolean(Context.getInstance().getSetting("diff.enable", "false"));
+        boolean blDiffEnable = Boolean.parseBoolean(Context.getInstance().getSetting("diff.enable", "false"));
         boolean blMergeEnable = true;
         boolean blSkipEnable = true;
         
@@ -67,21 +67,13 @@ public class DataDictCreator
             
             boolean isBIP = Boolean.parseBoolean(Context.getInstance().getSetting("isBIP", "true"));
             
-            try (SyncDBSchemaAction syncDBSchemaAction = isBIP ? new SyncDBSchemaBipAction(strVersion) : new SyncDBSchemaNccAction(strVersion))
+            try (SyncDBSchemaAction syncDBSchemaAction = isBIP ? new SyncDBSchemaBipAction(strVersion) : new SyncDBSchemaNccAction(strVersion);
+                    CreateDataDictAction createDataDictAction = new CreateDataDictAction(strVersion))
             {
                 syncDBSchemaAction.doAction(null);
-            }
-            catch (Exception ex)
-            {
-                throw new RuntimeException(ex);
-            }
-            finally
-            {
+                
                 System.gc();
-            }
-            
-            try (CreateDataDictAction createDataDictAction = new CreateDataDictAction(strVersion))
-            {
+                
                 createDataDictAction.doAction(null);
             }
             catch (Exception ex)
