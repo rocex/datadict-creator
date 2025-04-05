@@ -26,7 +26,8 @@ import org.rocex.datadict.vo.ComponentVO;
 import org.rocex.datadict.vo.Context;
 import org.rocex.datadict.vo.DictJsonVO;
 import org.rocex.datadict.vo.EnumValueVO;
-import org.rocex.datadict.vo.FullTextItem;
+import org.rocex.datadict.vo.FullText;
+import org.rocex.datadict.vo.FullText.FullTextItem;
 import org.rocex.datadict.vo.MetaVO;
 import org.rocex.datadict.vo.ModuleVO;
 import org.rocex.datadict.vo.PropertyVO;
@@ -649,21 +650,6 @@ public class CreateDataDictAction implements IAction, Closeable
         strSQL = """
                 select class_id as id,group_concat(replace(name,'"',''''),'|')||'|'||group_concat(replace(display_name,'"',''''),'|') as name
                 from md_property group by class_id order by class_id""";
-
-        class FullText
-        {
-            private FullTextItem[] data;
-
-            FullTextItem[] getData()
-            {
-                return data;
-            }
-
-            void setData(FullTextItem[] data)
-            {
-                this.data = data;
-            }
-        }
 
         List<String> listIndex = new ArrayList<>();
 
