@@ -1,6 +1,7 @@
 package org.rocex.datadict.vo;
 
 import javax.persistence.Column;
+import javax.persistence.Id;
 import javax.persistence.Index;
 import javax.persistence.Table;
 
@@ -16,6 +17,14 @@ public class ModuleVO extends MetaVO
     public static final String strMDRootId = "md_clazz";
     
     private String strParentModuleId;
+    
+    @Override
+    @Id(order = 3)
+    @Column(length = 2)
+    public String getModelType()
+    {
+        return super.getModelType();
+    }
     
     /***************************************************************************
      * @return the parentModuleId

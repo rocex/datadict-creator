@@ -83,6 +83,8 @@ public class MetaVO extends SuperVO
      * @author Rocex Wang
      * @since 2022-08-02 02:16:32
      ***************************************************************************/
+    @Id(order = 3)
+    @Column(nullable = false)
     public Integer getVersionType()
     {
         return iVersionType;
