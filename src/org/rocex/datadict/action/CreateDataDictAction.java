@@ -27,7 +27,7 @@ import org.rocex.datadict.vo.Context;
 import org.rocex.datadict.vo.DictJsonVO;
 import org.rocex.datadict.vo.EnumValueVO;
 import org.rocex.datadict.vo.FullText;
-import org.rocex.datadict.vo.FullText.FullTextItem;
+import org.rocex.datadict.vo.FullTextItem;
 import org.rocex.datadict.vo.MetaVO;
 import org.rocex.datadict.vo.ModuleVO;
 import org.rocex.datadict.vo.PropertyVO;
@@ -583,14 +583,14 @@ public class CreateDataDictAction implements IAction, Closeable
         
         String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " order by model_type";
         String strComponentSQL = sqlExecutor.getSQLSelect(ComponentVO.class) + " where " + strVersionSQL + " order by model_type,own_module,name";
-        String strClassSQL1 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='"
+        String strClassSQLMd = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='"
                 + MetaVO.ModelType.md.name() + "' order by primary_class desc,table_name";
-        String strClassSQL2 = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='"
+        String strClassSQLDb = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='"
                 + MetaVO.ModelType.db.name() + "' order by table_name";
         
         List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL);
         List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL);
-        List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL1);
+        List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQLMd);
         
         mapIdModuleVO = buildMap(listModuleVO);
         mapIdComponentVO = buildMap(listComponentVO);
@@ -599,7 +599,7 @@ public class CreateDataDictAction implements IAction, Closeable
         buildEnumMap();
         buildClassVOMapByComponentId(listClassVO);
         
-        List<ClassVO> listTableVO = isCreateDbDdc ? (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQL2) : new ArrayList<>();
+        List<ClassVO> listTableVO = isCreateDbDdc ? (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQLDb) : new ArrayList<>();
         
         createDataDictTree(listModuleVO, listComponentVO, listClassVO, listTableVO);
         
