@@ -28,8 +28,8 @@ public class DataDictCreator
     public static void main(String[] args)
     {
         boolean blDiffEnable = Boolean.parseBoolean(Context.getInstance().getSetting("diff.enable", "false"));
-        boolean blMergeEnable = true;
-        boolean blSkipEnable = true;
+        boolean blMergeEnable = false;
+        boolean blSkipEnable = false;
         
         if (blDiffEnable)
         {

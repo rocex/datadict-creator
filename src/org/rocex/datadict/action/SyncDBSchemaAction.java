@@ -86,8 +86,6 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
      ***************************************************************************/
     public SyncDBSchemaAction(String strVersion)
     {
-        super();
-        
         this.strVersion = strVersion;
         
         isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getSetting("createDbDdc", "true"));
@@ -328,7 +326,7 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
         
         try
         {
-            int iRecordCount = (Integer) this.sqlExecutorTarget.executeQuery(strSQL, new ResultSetProcessor()
+            int iRecordCount = (Integer) sqlExecutorTarget.executeQuery(strSQL, new ResultSetProcessor()
             {
                 @Override
                 protected Object processResultSet(ResultSet resultSet) throws SQLException
@@ -563,7 +561,8 @@ public abstract class SyncDBSchemaAction implements IAction, Closeable, ISyncDBS
         
         String strSrcDBSchemaList = Context.getInstance().getSetting("jdbc.schemas");
         
-        String[] strSrcDBSchemas = StringHelper.isEmpty(strSrcDBSchemaList) ? new String[] { "" } : strSrcDBSchemaList.split(",");
+        String[] strSrcDBSchemas = StringHelper.isEmpty(strSrcDBSchemaList) ? new String[] { Context.getInstance().getSetting("jdbc.user") }
+                : strSrcDBSchemaList.split(",");
         
         for (String strSrcDBSchema : strSrcDBSchemas)
         {

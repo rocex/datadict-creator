@@ -69,7 +69,8 @@ public class SyncDBSchemaNccAction extends SyncDBSchemaAction
                 + ",a.nullable as nullable,a.precise as precise,refmodelname,classid,accesspowergroup,accessorclassname,dynamictable"
                 + ",a.help,accesspower,calculation,dynamicattr,a.fixedlength,a.hided as hidden,a.notserialize,a.readonly,b.sqldatetype data_type_sql"
                 + ",b.pkey key_prop,a.versiontype," + strOtherSQL
-                + " from md_property a left join md_column b on a.name=b.name and b.tableid=? where classid=? order by b.pkey desc,a.attrsequence";
+                + " from md_property a left join md_column b on a.name=b.name and b.tableid=(select defaulttablename from md_class where id=classid)"
+                + " order by a.classid,b.pkey desc,a.attrsequence";
         
         String strEnumValueSQL = "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherSQL
                 + " from md_enumvalue order by id,enumsequence";
