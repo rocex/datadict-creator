@@ -19,6 +19,11 @@ import org.rocex.utils.StringHelper;
 
 public class SyncDBSchemaBipAction extends SyncDBSchemaAction
 {
+    /***************************************************************************
+     * @param strVersion
+     * @author Rocex Wang
+     * @since 2025-05-19 11:05:12
+     ***************************************************************************/
     public SyncDBSchemaBipAction(String strVersion)
     {
         super(strVersion);
