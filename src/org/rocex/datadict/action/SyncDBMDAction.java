@@ -74,12 +74,11 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
             "temp_scacosts_", "temp_scas", "temq_", "tempx_", "tmpbd_", "tmpin", "tmpina", "tmpinb", "tmpinpk_", "tmpins", "tmpinsrc_", "tmpintop_",
             "tmpub_calog_temp", "tmp_", "tmp_arap_", "tmp_gl_", "tmp_po_", "tmp_scmf", "tmp_so_", "tm_mqsend_success_", "transf2pcm", "t_ationid", "t_emplate",
             "t_laterow", "t_laterow", "uidbcache_temp_", "uidbcache_temp_", "wa_temp_", "zdp_" };
-    
-    protected String[] strTableEndFilters = {};     // 排除的一些表名后缀
-    protected String[] strTableIncludeFilters = {}; // 排除的一些包含表名
+    protected String[] strTableEndFilters = {};         // 排除的一些表名后缀
+    protected String[] strTableIncludeFilters = {};     // 排除的一些包含表名
     
     protected String strTs = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss.SSSZ").format(new Date());
-    protected String strVersion;                    // 数据字典版本
+    protected String strVersion;                        // 数据字典版本
     
     /***************************************************************************
      * @param strVersion
@@ -118,6 +117,66 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
     }
     
     @Override
+    public void beforeSyncMetaData()
+    {
+        List<String> listSQL = new ArrayList<>();
+        
+        if (isDropTables)
+        {
+            //@formatter:off
+            String strSQLs[] = {
+                    "drop table md_module",
+                    "drop table md_component",
+                    "drop table md_class",
+                    "drop table md_property",
+                    "drop table md_enumvalue",
+                    "drop table md_index",
+                    "drop table ddc_dict_json" };
+            //@formatter:on
+            
+            listSQL.addAll(Arrays.asList(strSQLs));
+        }
+        else
+        {
+            //@formatter:off
+            String strSQLs[] = {
+                    "delete from md_module where model_type='${model_type}'",
+                    "delete from md_component where model_type='${model_type}'",
+                    "delete from md_property where class_id in(select id from md_class where model_type='${model_type}')",
+                    "delete from md_class where model_type='${model_type}'",
+                    "delete from md_enumvalue",
+                    "delete from ddc_dict_json" };
+            //@formatter:on
+            
+            if (isSyncMD)
+            {
+                listSQL.addAll(replace2("${model_type}", MetaVO.ModelType.md.name(), strSQLs));
+            }
+            
+            if (isSyncDB)
+            {
+                listSQL.add("delete from md_index");
+                listSQL.addAll(replace2("${model_type}", MetaVO.ModelType.db.name(), strSQLs));
+            }
+        }
+        
+        try
+        {
+            sqlExecutorTarget.executeUpdate(listSQL.toArray(new String[0]));
+        }
+        catch (SQLException ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        
+        if (isDropTables)
+        {
+            sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, IndexVO.class,
+                    DictJsonVO.class);
+        }
+    }
+    
+    @Override
     public void close()
     {
         propDBSource.clear();
@@ -144,12 +203,6 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
         {
             Logger.getLogger().end("sync db schema and meta data", "isSyncDB=%s, isSyncMD=%s, skip...".formatted(isSyncDB, isSyncMD));
             return;
-        }
-        
-        if (isDropTables)
-        {
-            sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, IndexVO.class,
-                    DictJsonVO.class);
         }
         
         beforeSyncMetaData();
@@ -231,7 +284,7 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
      * @author Rocex Wang
      * @since 2020-5-22 14:03:59
      ***************************************************************************/
-    protected void initTableFiltersWithTempTableName(SQLExecutor sqlExecutorSource) throws SQLException
+    protected void initTableNameFilters(SQLExecutor sqlExecutorSource) throws SQLException
     {
         if (sqlExecutorSource.getDBType() == DBType.Oracle)
         {
@@ -555,7 +608,7 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
             {
                 beforeSyncDBMetaData(sqlExecutorSource);
                 
-                initTableFiltersWithTempTableName(sqlExecutorSource);
+                initTableNameFilters(sqlExecutorSource);
                 
                 syncDBTable(sqlExecutorSource, connSource.getCatalog(), connSource.getSchema(), "db__tables" + strSrcDBSchema);
                 
@@ -708,12 +761,13 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
     protected void syncMetaData(SQLExecutor sqlExecutorSource, String strModuleSQL, String strComponentSQL, String strBizObjAsComponentSQL, String strClassSQL,
             String strPropertySQL, String strEnumAsClass, String strEnumValueSQL)
     {
+        Logger.getLogger().begin("sync bip metadata");
+        
         if (!isSyncMD)
         {
+            Logger.getLogger().end("sync bip metadata", "isSyncMD=" + isSyncMD);
             return;
         }
-        
-        Logger.getLogger().begin("sync bip metadata");
         
         PagingAction pagingAction = new PagingAction()
         {

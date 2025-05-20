@@ -1,10 +1,10 @@
 package org.rocex.datadict.action;
 
-import java.sql.ResultSet;
 import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.List;
+import java.util.Map;
 import java.util.Properties;
 
 import org.rocex.datadict.vo.ClassVO;
@@ -13,7 +13,7 @@ import org.rocex.datadict.vo.MetaVO;
 import org.rocex.datadict.vo.MetaVO.ModelType;
 import org.rocex.datadict.vo.PropertyVO;
 import org.rocex.db.SQLExecutor;
-import org.rocex.db.processor.ResultSetProcessor;
+import org.rocex.db.processor.MapProcessor;
 import org.rocex.utils.Logger;
 import org.rocex.utils.StringHelper;
 
@@ -132,7 +132,7 @@ public class SyncDBMDBipAction extends SyncDBMDAction
     {
         Logger.getLogger().begin("before sync data");
         
-        initTableFiltersTenantId();
+        super.beforeSyncMetaData();
         
         String[] strDBModuleSQLs = {
                 "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__iuap', '${version}', '技术应用平台', 'md', 'iuap', 'md_clazz');",
@@ -640,7 +640,8 @@ public class SyncDBMDBipAction extends SyncDBMDAction
         return super.getDataTypeSql(propertyVO);
     }
     
-    protected void initTableFiltersTenantId()
+    @Override
+    protected void initTableNameFilters(SQLExecutor sqlExecutorSource2)
     {
         String strSourceUrl = Context.getInstance().getSetting("jdbc.url");
         Properties dbPropSource2 = (Properties) propDBSource.clone();
@@ -649,24 +650,13 @@ public class SyncDBMDBipAction extends SyncDBMDAction
         try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2))
         {
             // 所有表名中包含租户id的都不要
-            String strSQL = "select tenant_id from iuap_uuas_usercenter.pub_tenant where tenant_id not in('super','default')";
+            String strSQL = "select tenant_id,tenant_id from iuap_uuas_usercenter.pub_tenant where tenant_id not in('super','default')";
             
             List<String> listTenantId = new ArrayList<>();
             
-            sqlExecutorSource.executeQuery(strSQL, new ResultSetProcessor()
-            {
-                @Override
-                protected Object processResultSet(ResultSet resultSet) throws SQLException
-                {
-                    while (resultSet.next())
-                    {
-                        listTenantId.add(resultSet.getString(1));
-                    }
-                    
-                    return null;
-                }
-            });
+            Map<String, String> mapTable = (Map<String, String>) sqlExecutorSource.executeQuery(strSQL, new MapProcessor<>());
             
+            listTenantId.addAll(mapTable.keySet());
             listTenantId.addAll(Arrays.asList(strTableIncludeFilters));
             
             strTableIncludeFilters = listTenantId.toArray(new String[0]);

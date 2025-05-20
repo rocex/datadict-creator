@@ -34,7 +34,7 @@ public class SyncDBMDNccAction extends SyncDBMDAction
     @Override
     public void afterSyncMetaData()
     {
-        Logger.getLogger().begin("after sync data");
+        Logger.getLogger().begin("after sync meta data");
         
         // @formatter:off
         String[] strSQLs = {
@@ -74,12 +74,14 @@ public class SyncDBMDNccAction extends SyncDBMDAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
         
-        Logger.getLogger().end("after sync data");
+        Logger.getLogger().end("after sync meta data");
     }
     
     @Override
     public void beforeSyncMetaData()
     {
+        super.beforeSyncMetaData();
+        
         //@formatter:off
         String[] strModuleSQLs = {
             //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ae','${version}','md',0,'数据处理','ae','md_clazz')",
@@ -174,7 +176,7 @@ public class SyncDBMDNccAction extends SyncDBMDAction
         
         try (SQLExecutor sqlExecutorSource = new SQLExecutor(propDBSource); Connection connSource = sqlExecutorSource.getConnection())
         {
-            initTableFiltersWithTempTableName(sqlExecutorSource);
+            initTableNameFilters(sqlExecutorSource);
             
             if (isSyncMD)
             {
