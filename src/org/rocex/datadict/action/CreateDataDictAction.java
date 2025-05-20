@@ -50,7 +50,8 @@ import org.rocex.vo.IAction;
  ***************************************************************************/
 public class CreateDataDictAction implements IAction, Closeable
 {
-    protected Boolean isCreateDbDdc;
+    protected boolean isCreateDB = true;    // 是否生成表结构字典
+    protected boolean isCreateMD = true;    // 是否生成元数据字典
     
     protected JacksonHelper jacksonHelper = new JacksonHelper().exclude(ClassVO.class, "accessorClassname", "authen", "bizItfImpClassname", "bizObjectId",
             "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute", "mainClassId", "name", "refModelName", "returnType", "ts", "versionType")
@@ -59,9 +60,9 @@ public class CreateDataDictAction implements IAction, Closeable
                     "versionType", "refClassPathHref");
     
     protected Map<String, List<ClassVO>> mapClassVOByComponent = new HashMap<>();       // component id 和 component 内所有 class 链接的对应关系
+    
     protected Map<String, String> mapComponentIdPrimaryClassId = new HashMap<>();       // component id 和 主实体 id 的对应关系
     protected Map<String, String> mapEnumString = new HashMap<>();                      // enum id 和 enum name and value 的对应关系
-    protected Map<String, String> mapId = new HashMap<>();                              // 为了减小生成的文件体积，把元数据长id和新生成的短id做个对照关系
     
     protected Map<String, ? extends MetaVO> mapIdClassVO = new HashMap<>();             // class id 和 class 的对应关系
     protected Map<String, ? extends MetaVO> mapIdComponentVO = new HashMap<>();         // component id 和 component 的对应关系
@@ -70,6 +71,7 @@ public class CreateDataDictAction implements IAction, Closeable
     protected SQLExecutor sqlExecutor;
     
     protected String strClassListHrefTemplate = "<a href=\"javascript:void(0);\" onClick=loadDataDict(\"%s\"); class=\"%s\">%s</a>";    // 左上角实体列表链接
+    
     protected String strCreateTime = new SimpleDateFormat("yyyy-MM-dd HH:mm:ss").format(new Date());
     
     // 自定义项字段名前缀
@@ -92,7 +94,8 @@ public class CreateDataDictAction implements IAction, Closeable
     {
         this.strVersion = strVersion;
         
-        isCreateDbDdc = Boolean.parseBoolean(Context.getInstance().getSetting("createDbDdc", "true"));
+        isCreateMD = Boolean.parseBoolean(Context.getInstance().getSetting("createMD", "true"));
+        isCreateDB = Boolean.parseBoolean(Context.getInstance().getSetting("createDB", "true"));
         
         strOutputRootDir = Path.of(Context.getInstance().getSetting("WorkDir"), "datadict-" + strVersion).toString();
         strOutputDictDir = Path.of(strOutputRootDir, "dict").toString();
@@ -157,27 +160,6 @@ public class CreateDataDictAction implements IAction, Closeable
             
             mapClassVOByComponent.put(classVO.getComponentId(), listClassVO2);
         }
-        
-        // bip 还不知道怎么得到主实体，先处理成在没有主实体的情况下把第一个设置成主实体
-        /**
-         * if (isBIP)
-         * {
-         * for (Map.Entry<String, List<ClassVO>> listEntry : mapClassVOByComponent.entrySet())
-         * {
-         * List<ClassVO> listClassVO2 = listEntry.getValue();
-         * if (listClassVO2 == null || listClassVO2.isEmpty())
-         * {
-         * continue;
-         * }
-         * boolean blHasPrimaryClass = listClassVO2.stream().anyMatch(ClassVO::isPrimaryClass);
-         * if (!blHasPrimaryClass)
-         * {
-         * listClassVO2.get(0).setPrimaryClass(true);
-         * mapComponentIdPrimaryClassId.put(listClassVO2.get(0).getComponentId(), listClassVO2.get(0).getId());
-         * }
-         * }
-         * }
-         */
         
         Logger.getLogger().end("build ClassVO map by componentId");
     }
@@ -255,8 +237,6 @@ public class CreateDataDictAction implements IAction, Closeable
     @Override
     public void close()
     {
-        mapId.clear();
-        
         mapClassVOByComponent.clear();
         mapComponentIdPrimaryClassId.clear();
         mapEnumString.clear();
@@ -374,12 +354,13 @@ public class CreateDataDictAction implements IAction, Closeable
      ***************************************************************************/
     protected void createDataDictFiles(List<ClassVO> listClassVO)
     {
+        Logger.getLogger().begin("create data dict file: " + listClassVO.size());
+        
         if (listClassVO == null || listClassVO.isEmpty())
         {
+            Logger.getLogger().end("create data dict file: " + listClassVO.size());
             return;
         }
-        
-        Logger.getLogger().begin("create data dict file: " + listClassVO.size());
         
         int[] iCount = { 0, listClassVO.size() };
         
@@ -516,8 +497,9 @@ public class CreateDataDictAction implements IAction, Closeable
                 if (moduleVO == null)
                 {
                     Logger.getLogger()
-                            .debug("cannot find module: id=%s, name=%s, tablename=%s, componentid=%s, classtype=%s, modeltype=%s".formatted(classVO.getId(),
-                                    classVO.getName(), classVO.getTableName(), classVO.getComponentId(), classVO.getClassType(), classVO.getModelType()));
+                            .debug("cannot find module: class id=%s, name=%s, tablename=%s, componentid=%s, classtype=%s, modeltype=%s".formatted(
+                                    classVO.getId(), classVO.getName(), classVO.getTableName(), classVO.getComponentId(), classVO.getClassType(),
+                                    classVO.getModelType()));
                     // continue;
                 }
                 else
@@ -594,6 +576,12 @@ public class CreateDataDictAction implements IAction, Closeable
     {
         Logger.getLogger().begin("create data dictionary " + strVersion);
         
+        if (!isCreateDB && !isCreateMD)
+        {
+            Logger.getLogger().end("create data dictionary " + strVersion, "isCreateDB=%s, isCreateMD=%s, skip...".formatted(isCreateDB, isCreateMD));
+            return;
+        }
+        
         initTargetDir();
         
         String strVersionSQL = "ddc_version='" + strVersion + "'";
@@ -607,7 +595,9 @@ public class CreateDataDictAction implements IAction, Closeable
         
         List<ModuleVO> listModuleVO = (List<ModuleVO>) queryMetaVO(ModuleVO.class, strModuleSQL);
         List<ComponentVO> listComponentVO = (List<ComponentVO>) queryMetaVO(ComponentVO.class, strComponentSQL);
-        List<ClassVO> listClassVO = (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQLMd);
+        
+        List<ClassVO> listClassVO = isCreateMD ? (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQLMd) : new ArrayList<>();
+        List<ClassVO> listTableVO = isCreateDB ? (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQLDb) : new ArrayList<>();
         
         mapIdModuleVO = buildMap(listModuleVO);
         mapIdComponentVO = buildMap(listComponentVO);
@@ -616,19 +606,19 @@ public class CreateDataDictAction implements IAction, Closeable
         buildEnumMap();
         buildClassVOMapByComponentId(listClassVO);
         
-        List<ClassVO> listTableVO = isCreateDbDdc ? (List<ClassVO>) queryMetaVO(ClassVO.class, strClassSQLDb) : new ArrayList<>();
-        
         createDataDictTree(listModuleVO, listComponentVO, listClassVO, listTableVO);
         
         createDataDictFiles(listClassVO);
         createDataDictFiles(listTableVO);
         
-        Logger.getLogger().begin("save data dict json file to db: " + (listClassVO.size() + listTableVO.size()));
+        String strMsg = "save data dict json file to db: %s md + %s db = %s".formatted(listClassVO.size(), listTableVO.size(),
+                listClassVO.size() + listTableVO.size());
+        Logger.getLogger().begin(strMsg);
         
         saveToDictJson(listClassVO);
         saveToDictJson(listTableVO);
         
-        Logger.getLogger().end("save data dict json file to db: " + (listClassVO.size() + listTableVO.size()));
+        Logger.getLogger().end(strMsg);
         
         exportFullText();
         
@@ -637,8 +627,15 @@ public class CreateDataDictAction implements IAction, Closeable
         Logger.getLogger().end("create data dictionary " + strVersion);
     }
     
+    /***************************************************************************
+     * 生成全文检索文件
+     * @author Rocex Wang
+     * @since 2025-05-19 11:01:07
+     ***************************************************************************/
     protected void exportFullText()
     {
+        Logger.getLogger().begin("export full-text files");
+        
         String strSQL = "select class_id as id,group_concat(replace(name,'\"',''''),'|')||'|'||group_concat(replace(display_name,'\"',''''),'|') as name"
                 + " from md_property group by class_id order by class_id";
         
@@ -680,6 +677,8 @@ public class CreateDataDictAction implements IAction, Closeable
         }
         
         strFullTextFileIndex = String.join(",", listIndex);
+        
+        Logger.getLogger().end("export full-text files");
     }
     
     /***************************************************************************
@@ -786,73 +785,6 @@ public class CreateDataDictAction implements IAction, Closeable
     
     /***************************************************************************
      * @param classVO
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:47:11
-     ***************************************************************************/
-    protected synchronized String getMappedClassId(ClassVO classVO)
-    {
-        return getMappedId("class", classVO.getId());
-    }
-    
-    protected synchronized String getMappedClassId(PropertyVO propertyVO)
-    {
-        return getMappedId("class", propertyVO.getClassId());
-    }
-    
-    protected synchronized String getMappedComponentId(ClassVO classVO)
-    {
-        return getMappedId("component", classVO.getComponentId());
-    }
-    
-    protected synchronized String getMappedComponentId(ComponentVO componentVO)
-    {
-        return getMappedId("component", componentVO.getId());
-    }
-    
-    /***************************************************************************
-     * @param strType
-     * @param strId
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:47:06
-     ***************************************************************************/
-    protected synchronized String getMappedId(String strType, String strId)
-    {
-        if (strId != null && strId.length() < 24)
-        {
-            return strId;
-        }
-        
-        String strKey = strType + "_" + strId;
-        
-        String strValue = mapId.get(strKey);
-        
-        if (strValue != null)
-        {
-            return strValue;
-        }
-        
-        String strMapId = StringHelper.getId();
-        
-        mapId.put(strKey, strMapId);
-        
-        return strMapId;
-    }
-    
-    /***************************************************************************
-     * @param moduleVO
-     * @return mappedId
-     * @author Rocex Wang
-     * @since 2020-4-30 13:46:54
-     ***************************************************************************/
-    protected synchronized String getMappedModuleId(ModuleVO moduleVO)
-    {
-        return getMappedId("module", moduleVO.getId());
-    }
-    
-    /***************************************************************************
-     * @param classVO
      * @return ModuleVO
      * @author Rocex Wang
      * @since 2020-4-29 11:46:50
@@ -861,7 +793,7 @@ public class CreateDataDictAction implements IAction, Closeable
     {
         ComponentVO componentVO = (ComponentVO) mapIdComponentVO.get(classVO.getComponentId());
         
-        // TODO
+        // xxx
         // if (componentVO == null)
         // {
         // return null;

@@ -6,9 +6,9 @@ import java.nio.file.Path;
 import org.rocex.datadict.action.CreateDBDiffAction;
 import org.rocex.datadict.action.CreateDataDictAction;
 import org.rocex.datadict.action.MergeDBAction;
-import org.rocex.datadict.action.SyncDBSchemaAction;
-import org.rocex.datadict.action.SyncDBSchemaBipAction;
-import org.rocex.datadict.action.SyncDBSchemaNccAction;
+import org.rocex.datadict.action.SyncDBMDAction;
+import org.rocex.datadict.action.SyncDBMDBipAction;
+import org.rocex.datadict.action.SyncDBMDNccAction;
 import org.rocex.datadict.vo.Context;
 import org.rocex.utils.FileHelper;
 import org.rocex.utils.Logger;
@@ -67,10 +67,10 @@ public class DataDictCreator
             
             boolean isBIP = Boolean.parseBoolean(Context.getInstance().getSetting("isBIP", "true"));
             
-            try (SyncDBSchemaAction syncDBSchemaAction = isBIP ? new SyncDBSchemaBipAction(strVersion) : new SyncDBSchemaNccAction(strVersion);
+            try (SyncDBMDAction syncDBMDAction = isBIP ? new SyncDBMDBipAction(strVersion) : new SyncDBMDNccAction(strVersion);
                     CreateDataDictAction createDataDictAction = new CreateDataDictAction(strVersion))
             {
-                syncDBSchemaAction.doAction(null);
+                syncDBMDAction.doAction(null);
                 
                 System.gc();
                 
