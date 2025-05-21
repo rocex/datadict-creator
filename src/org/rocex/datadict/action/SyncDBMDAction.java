@@ -119,6 +119,8 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
     @Override
     public void beforeSyncMetaData()
     {
+        Logger.getLogger().begin("before sync metadata");
+        
         List<String> listSQL = new ArrayList<>();
         
         if (isDropTables)
@@ -174,6 +176,8 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
             sqlExecutorTarget.initDBSchema(ModuleVO.class, ComponentVO.class, ClassVO.class, PropertyVO.class, EnumValueVO.class, IndexVO.class,
                     DictJsonVO.class);
         }
+        
+        Logger.getLogger().end("before sync metadata");
     }
     
     @Override
@@ -197,11 +201,11 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
     @Override
     public void doAction(EventObject evt)
     {
-        Logger.getLogger().begin("sync db schema and meta data");
+        Logger.getLogger().begin("sync db schema and metadata");
         
-        if (!isSyncDB && !isSyncMD || !isNeedSyncData())
+        if (!isDropTables && !isSyncDB && !isSyncMD)
         {
-            Logger.getLogger().end("sync db schema and meta data", "isSyncDB=%s, isSyncMD=%s, skip...".formatted(isSyncDB, isSyncMD));
+            Logger.getLogger().end("sync db schema and metadata", "isSyncDB=%s, isSyncMD=%s, skip...", isSyncDB, isSyncMD);
             return;
         }
         
@@ -213,7 +217,7 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
         
         afterSyncMetaData();
         
-        Logger.getLogger().end("sync db schema and meta data");
+        Logger.getLogger().end("sync db schema and metadata");
     }
     
     /***************************************************************************
@@ -290,7 +294,7 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
         {
             Logger.getLogger().begin("oracle query all temporary tables");
             
-            String strSQL = "select lower(table_name) from user_tables where temporary='Y' order by table_name";
+            String strSQL = "select lower(table_name),table_name from user_tables where temporary='Y' order by table_name";
             
             final List<String> listTempTableName = new ArrayList<>();
             
@@ -303,36 +307,6 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
             
             Logger.getLogger().end("oracle query all temporary tables");
         }
-    }
-    
-    /***************************************************************************
-     * @return boolean
-     * @author Rocex Wang
-     * @since 2021-11-11 16:26:03
-     ***************************************************************************/
-    public boolean isNeedSyncData()
-    {
-        if (!sqlExecutorTarget.isTableExist("md_module"))
-        {
-            return true;
-        }
-        
-        String strSQL = "select 'modules' as modules,count(1) as count from md_module where ddc_version='" + strVersion + "'";
-        
-        try
-        {
-            Map<String, Integer> mapCount = (Map<String, Integer>) sqlExecutorTarget.executeQuery(strSQL, new MapProcessor<>());
-            
-            int iRecordCount = mapCount.get("modules");
-            
-            return iRecordCount == 0;
-        }
-        catch (SQLException ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
-        
-        return true;
     }
     
     /***************************************************************************
@@ -584,11 +558,11 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
     @Override
     public void syncDBMetaData()
     {
-        Logger.getLogger().begin("sync database meta");
+        Logger.getLogger().begin("sync db metadata");
         
         if (!isSyncDB)
         {
-            Logger.getLogger().end("sync database meta", "isSyncDB=" + isSyncDB);
+            Logger.getLogger().end("sync db metadata", "isSyncDB=%s, skip...", isSyncDB);
             return;
         }
         
@@ -620,7 +594,7 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
             }
         }
         
-        Logger.getLogger().end("sync database meta");
+        Logger.getLogger().end("sync db metadata");
     }
     
     /***************************************************************************
@@ -761,11 +735,11 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
     protected void syncMetaData(SQLExecutor sqlExecutorSource, String strModuleSQL, String strComponentSQL, String strBizObjAsComponentSQL, String strClassSQL,
             String strPropertySQL, String strEnumAsClass, String strEnumValueSQL)
     {
-        Logger.getLogger().begin("sync bip metadata");
+        Logger.getLogger().begin("sync md metadata");
         
         if (!isSyncMD)
         {
-            Logger.getLogger().end("sync bip metadata", "isSyncMD=" + isSyncMD);
+            Logger.getLogger().end("sync md metadata", "isSyncMD=%s, skip...", isSyncMD);
             return;
         }
         
@@ -844,6 +818,6 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
         
         queryMetaVO(sqlExecutorSource, EnumValueVO.class, strEnumValueSQL, null, pagingAction);
         
-        Logger.getLogger().end("sync bip metadata");
+        Logger.getLogger().end("sync md metadata");
     }
 }

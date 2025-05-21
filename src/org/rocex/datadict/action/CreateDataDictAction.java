@@ -173,6 +173,12 @@ public class CreateDataDictAction implements IAction, Closeable
     {
         Logger.getLogger().begin("query and build enum map");
         
+        if (!isCreateMD)
+        {
+            Logger.getLogger().end("query and build enum map", "isCreateMD=%s, skip...", isCreateMD);
+            return;
+        }
+        
         String strEnumValueSQL = "select class_id as id,name,enum_value,ddc_version from md_enumvalue where ddc_version=? order by class_id,enum_sequence";
         
         List<EnumValueVO> listEnumValueVO = null;
@@ -578,7 +584,7 @@ public class CreateDataDictAction implements IAction, Closeable
         
         if (!isCreateDB && !isCreateMD)
         {
-            Logger.getLogger().end("create data dictionary " + strVersion, "isCreateDB=%s, isCreateMD=%s, skip...".formatted(isCreateDB, isCreateMD));
+            Logger.getLogger().end("create data dictionary " + strVersion, "isCreateDB=%s, isCreateMD=%s, skip...", isCreateDB, isCreateMD);
             return;
         }
         
@@ -608,8 +614,8 @@ public class CreateDataDictAction implements IAction, Closeable
         
         createDataDictTree(listModuleVO, listComponentVO, listClassVO, listTableVO);
         
-        createDataDictFiles(listClassVO);
-        createDataDictFiles(listTableVO);
+        // createDataDictFiles(listClassVO);
+        // createDataDictFiles(listTableVO);
         
         String strMsg = "save data dict json file to db: %s md + %s db = %s".formatted(listClassVO.size(), listTableVO.size(),
                 listClassVO.size() + listTableVO.size());
@@ -636,10 +642,7 @@ public class CreateDataDictAction implements IAction, Closeable
     {
         Logger.getLogger().begin("export full-text files");
         
-        String strSQL = "select class_id as id,group_concat(replace(name,'\"',''''),'|')||'|'||group_concat(replace(display_name,'\"',''''),'|') as name"
-                + " from md_property group by class_id order by class_id";
-        
-        strSQL = """
+        String strSQL = """
                 select class_id as id,group_concat(replace(name,'"',''''),'|')||'|'||group_concat(replace(display_name,'"',''''),'|') as name
                 from md_property group by class_id order by class_id""";
         

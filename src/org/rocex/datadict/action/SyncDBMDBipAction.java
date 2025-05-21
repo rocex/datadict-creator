@@ -32,7 +32,7 @@ public class SyncDBMDBipAction extends SyncDBMDAction
     @Override
     public void afterSyncMetaData()
     {
-        Logger.getLogger().begin("after sync data");
+        Logger.getLogger().begin("after sync metadata in bip");
         
         String[] strSQLs = {
                 // "update md_class set table_name='' where (table_name is null or table_name in ('null','NULL'))",
@@ -124,13 +124,13 @@ public class SyncDBMDBipAction extends SyncDBMDAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
         
-        Logger.getLogger().end("after sync data");
+        Logger.getLogger().end("after sync metadata in bip");
     }
     
     @Override
     public void beforeSyncMetaData()
     {
-        Logger.getLogger().begin("before sync data");
+        Logger.getLogger().begin("before sync metadata in bip");
         
         super.beforeSyncMetaData();
         
@@ -588,7 +588,7 @@ public class SyncDBMDBipAction extends SyncDBMDAction
             throw new RuntimeException(ex);
         }
         
-        Logger.getLogger().end("before sync data");
+        Logger.getLogger().end("before sync metadata in bip");
     }
     
     @Override
@@ -670,9 +670,11 @@ public class SyncDBMDBipAction extends SyncDBMDAction
     @Override
     public void syncMDMetaData()
     {
+        Logger.getLogger().begin("sync md metadata in bip");
+        
         if (!isSyncMD)
         {
-            Logger.getLogger().debug("isSyncMD=%s, skip...", isSyncMD);
+            Logger.getLogger().end("sync md metadata in bip", "isSyncMD=%s, skip...", isSyncMD);
             return;
         }
         
@@ -734,5 +736,7 @@ public class SyncDBMDBipAction extends SyncDBMDAction
             syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strBizObjAsComponentSQL, strClassSQL, strPropertySQL, strEnumAsClass,
                     strEnumValueSQL);
         }
+        
+        Logger.getLogger().end("sync md metadata in bip");
     }
 }

@@ -27,25 +27,6 @@ public class DataDictCreator
      ***************************************************************************/
     public static void main(String[] args)
     {
-        boolean blDiffEnable = Boolean.parseBoolean(Context.getInstance().getSetting("diff.enable", "false"));
-        boolean blMergeEnable = false;
-        boolean blSkipEnable = false;
-        
-        if (blDiffEnable)
-        {
-            new CreateDBDiffAction().doAction(null);
-        }
-        
-        if (blMergeEnable)
-        {
-            new MergeDBAction().doAction(null);
-        }
-        
-        if (blSkipEnable)
-        {
-            return;
-        }
-        
         Logger.getLogger().begin("create all data dictionary");
         
         String strDataDictVersionList = Context.getInstance().getSetting("DataDictVersionList");
@@ -89,5 +70,18 @@ public class DataDictCreator
         }
         
         Logger.getLogger().end("create all data dictionary");
+        
+        boolean blDiffEnable = Boolean.parseBoolean(Context.getInstance().getSetting("diff.enable", "false"));
+        boolean blMergeEnable = Boolean.parseBoolean(Context.getInstance().getSetting("merge.enable", "false"));
+        
+        if (blDiffEnable)
+        {
+            new CreateDBDiffAction().doAction(null);
+        }
+        
+        if (blMergeEnable)
+        {
+            new MergeDBAction().doAction(null);
+        }
     }
 }

@@ -2,12 +2,10 @@ package org.rocex.datadict.action;
 
 import java.sql.Connection;
 import java.sql.SQLException;
-import java.util.ArrayList;
 import java.util.List;
 import java.util.Map;
 
 import org.rocex.datadict.vo.ComponentVO;
-import org.rocex.datadict.vo.MetaVO;
 import org.rocex.datadict.vo.ModuleVO;
 import org.rocex.db.SQLExecutor;
 import org.rocex.db.processor.BeanListProcessor;
@@ -34,7 +32,7 @@ public class SyncDBMDNccAction extends SyncDBMDAction
     @Override
     public void afterSyncMetaData()
     {
-        Logger.getLogger().begin("after sync meta data");
+        Logger.getLogger().begin("after sync metadata in ncc");
         
         // @formatter:off
         String[] strSQLs = {
@@ -48,14 +46,7 @@ public class SyncDBMDNccAction extends SyncDBMDAction
                 "update md_module set parent_module_id='md_clazz' where model_type='md' and parent_module_id is null",
                 "update md_module set parent_module_id='md__'||parent_module_id where model_type='md' and parent_module_id not in('md_clazz','db_table')",
 
-                "update md_component set own_module='hrp' where own_module='hr_hrp'",
                 "update md_component set own_module='uapbd' where own_module='UAP_BD'",
-                // "update md_component set own_module='fbm' where own_module='FBM'",
-                // "update md_component set own_module='mmpac' where own_module='NC_MM_PAC6.31'",
-                // "update md_component set own_module='hryf' where own_module='HRYF'",
-                // "update md_component set own_module='ufob' where own_module='UFOB'",
-                // "update md_component set own_module='uap' where own_module='ncwebpub'",
-                // "update md_component set own_module='nresa' where own_module='resa'",
                 
                 "update md_class set name='Memo' where id='BS000010000100001030' and name='MEMO'",
                 "update md_class set name='MultiLangText' where id='BS000010000100001058' and name='MULTILANGTEXT'",
@@ -74,37 +65,39 @@ public class SyncDBMDNccAction extends SyncDBMDAction
             Logger.getLogger().error(ex.getMessage(), ex);
         }
         
-        Logger.getLogger().end("after sync meta data");
+        Logger.getLogger().end("after sync metadata in ncc");
     }
     
     @Override
     public void beforeSyncMetaData()
     {
+        Logger.getLogger().begin("before sync metadata in ncc");
+        
         super.beforeSyncMetaData();
         
         //@formatter:off
         String[] strModuleSQLs = {
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ae','${version}','md',0,'数据处理','ae','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__am','${version}','md',0,'资产管理','am','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__basedoc','${version}','md',0,'基础档案','basedoc','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__bq','${version}','md',0,'商业分析','bq','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__co','${version}','md',0,'管理会计','co','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__epm','${version}','md',0,'企业绩效','epm','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__fi','${version}','md',0,'财务管理','fi','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__hr','${version}','md',0,'人力资源','hr','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ipm','${version}','md',0,'投资管理','ipm','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__lightapp','${version}','md',0,'轻量化平台','lightapp','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__mm','${version}','md',0,'生产制造','mm','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__pm','${version}','md',0,'项目管理','pm','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ria','${version}','md',0,'应用平台','ria','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__scap','${version}','md',0,'国资服务','scap','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__scct','${version}','md',0,'供应链控制塔','scct','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__scm','${version}','md',0,'供应链','scm','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ssc','${version}','md',0,'共享服务','ssc','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__tm','${version}','md',0,'财资管理','tm','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__uap','${version}','md',0,'UAP Server','uap','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__uapbd','${version}','md',0,'基础数据','uapbd','md_clazz')",
-            //"insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ufofr','${version}','md',0,'自由报表','ufofr','md_clazz')"
+            "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ae','${version}','md',0,'数据处理','ae','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__am','${version}','md',0,'资产管理','am','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__basedoc','${version}','md',0,'基础档案','basedoc','md_clazz')",
+            "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__bq','${version}','md',0,'商业分析','bq','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__co','${version}','md',0,'管理会计','co','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__epm','${version}','md',0,'企业绩效','epm','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__fi','${version}','md',0,'财务管理','fi','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__hr','${version}','md',0,'人力资源','hr','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ipm','${version}','md',0,'投资管理','ipm','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__lightapp','${version}','md',0,'轻量化平台','lightapp','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__mm','${version}','md',0,'生产制造','mm','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__pm','${version}','md',0,'项目管理','pm','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ria','${version}','md',0,'应用平台','ria','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__scap','${version}','md',0,'国资服务','scap','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__scct','${version}','md',0,'供应链控制塔','scct','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__scm','${version}','md',0,'供应链','scm','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ssc','${version}','md',0,'共享服务','ssc','md_clazz')",
+            // "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__tm','${version}','md',0,'财资管理','tm','md_clazz')",
+            "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__uap','${version}','md',0,'UAP Server','uap','md_clazz')",
+            "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__uapbd','${version}','md',0,'基础数据','uapbd','md_clazz')",
+            "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('md__ufofr','${version}','md',0,'自由报表','ufofr','md_clazz')"
         };
         //@formatter:on
         
@@ -119,58 +112,18 @@ public class SyncDBMDNccAction extends SyncDBMDAction
         {
             throw new RuntimeException(ex);
         }
-    }
-    
-    @Override
-    public boolean isNeedSyncData()
-    {
-        if (!isSyncDB && !isSyncMD)
-        {
-            return false;
-        }
         
-        //@formatter:off
-        String strSQLs[] = {
-                "delete from md_module where model_type='${model_type}'",
-                "delete from md_component where model_type='${model_type}'",
-                "delete from md_property where class_id in(select id from md_class where model_type='${model_type}')",
-                "delete from md_class where model_type='${model_type}'",
-                "delete from md_enumvalue",
-                "delete from ddc_dict_json" };
-        //@formatter:on
-        
-        List<String> listSQL = new ArrayList<>();
-        if (isSyncMD)
-        {
-            listSQL.addAll(replace2("${model_type}", MetaVO.ModelType.md.name(), strSQLs));
-        }
-        
-        if (isSyncDB)
-        {
-            listSQL.add("delete from md_index");
-            listSQL.addAll(replace2("${model_type}", MetaVO.ModelType.db.name(), strSQLs));
-        }
-        
-        try
-        {
-            sqlExecutorTarget.executeUpdate(listSQL.toArray(new String[0]));
-        }
-        catch (SQLException ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
-        
-        return super.isNeedSyncData();
+        Logger.getLogger().end("before sync metadata in ncc");
     }
     
     @Override
     public void syncDBMetaData()
     {
-        Logger.getLogger().begin("sync database meta");
+        Logger.getLogger().begin("sync db metadata in ncc");
         
         if (!isSyncDB)
         {
-            Logger.getLogger().debug("isSyncDB=%s, skip...", isSyncDB);
+            Logger.getLogger().end("sync db metadata in ncc", "isSyncDB=%s, skip...", isSyncDB);
             return;
         }
         
@@ -178,47 +131,33 @@ public class SyncDBMDNccAction extends SyncDBMDAction
         {
             initTableNameFilters(sqlExecutorSource);
             
-            if (isSyncMD)
-            {
-                String strModuleMDSQL = "select 'md__'||id as id,'" + strVersion
-                        + "' as ddc_version,0 as version_type,displayname as display_name,'db' as model_type,name"
-                        + ",'md_class' as parent_module_id from md_module where parentmoduleid is null order by id";
-                
-                List<ModuleVO> listMDModule = (List<ModuleVO>) sqlExecutorSource.executeQuery(strModuleMDSQL, new BeanListProcessor<>(ModuleVO.class));
-                sqlExecutorTarget.insertVO(listMDModule.toArray(new ModuleVO[0]));
-            }
+            String strTableInModuleSQL = "select lower(a.defaulttablename),c.id from md_class a left join md_component b on a.componentid=b.id"
+                    + " left join md_module c on b.ownmodule=c.id where a.classtype=201 order by defaulttablename";
             
-            if (isSyncDB)
-            {
-                String strTableInModuleSQL = "select lower(a.defaulttablename),c.id from md_class a left join md_component b on a.componentid=b.id"
-                        + " left join md_module c on b.ownmodule=c.id where a.classtype=201 order by defaulttablename";
-                
-                String strModuleDBSQL = "select 'db__'||id as id,'" + strVersion
-                        + "' as ddc_version,0 as version_type,displayname as display_name,'db' as model_type,name"
-                        + ",'db_table' as parent_module_id from md_module where parentmoduleid is null order by id";
-                
-                String strComponentDBSQL = "select 'db__'||id as id,'" + strVersion
-                        + "' as ddc_version,0 as version_type,displayname as display_name,'db' as model_type,name"
-                        + ",'db__'||parentmoduleid as own_module from md_module where parentmoduleid is not null order by id";
-                
-                mapTableInModule = (Map<String, String>) sqlExecutorSource.executeQuery(strTableInModuleSQL, new MapProcessor<>());
-                
-                List<ModuleVO> listModule = (List<ModuleVO>) sqlExecutorSource.executeQuery(strModuleDBSQL, new BeanListProcessor<>(ModuleVO.class));
-                sqlExecutorTarget.insertVO(listModule.toArray(new ModuleVO[0]));
-                
-                List<ComponentVO> listComponent = (List<ComponentVO>) sqlExecutorSource.executeQuery(strComponentDBSQL,
-                        new BeanListProcessor<>(ComponentVO.class));
-                sqlExecutorTarget.insertVO(listComponent.toArray(new ComponentVO[0]));
-                
-                syncDBTable(sqlExecutorSource, connSource.getCatalog(), connSource.getSchema(), null);
-            }
+            String strModuleDBSQL = "select 'db__'||id as id,'" + strVersion
+                    + "' as ddc_version,0 as version_type,displayname as display_name,'db' as model_type,name"
+                    + ",'db_table' as parent_module_id from md_module where parentmoduleid is null order by id";
+            
+            String strComponentDBSQL = "select 'db__'||id as id,'" + strVersion
+                    + "' as ddc_version,0 as version_type,displayname as display_name,'db' as model_type,name"
+                    + ",'db__'||parentmoduleid as own_module from md_module where parentmoduleid is not null order by id";
+            
+            mapTableInModule = (Map<String, String>) sqlExecutorSource.executeQuery(strTableInModuleSQL, new MapProcessor<>());
+            
+            List<ModuleVO> listModule = (List<ModuleVO>) sqlExecutorSource.executeQuery(strModuleDBSQL, new BeanListProcessor<>(ModuleVO.class));
+            sqlExecutorTarget.insertVO(listModule.toArray(new ModuleVO[0]));
+            
+            List<ComponentVO> listComponent = (List<ComponentVO>) sqlExecutorSource.executeQuery(strComponentDBSQL, new BeanListProcessor<>(ComponentVO.class));
+            sqlExecutorTarget.insertVO(listComponent.toArray(new ComponentVO[0]));
+            
+            syncDBTable(sqlExecutorSource, connSource.getCatalog(), connSource.getSchema(), null);
         }
         catch (SQLException ex)
         {
             Logger.getLogger().error(ex.getMessage(), ex);
         }
         
-        Logger.getLogger().end("sync database meta");
+        Logger.getLogger().end("sync db metadata in ncc");
     }
     
     /***************************************************************************
@@ -228,9 +167,11 @@ public class SyncDBMDNccAction extends SyncDBMDAction
     @Override
     public void syncMDMetaData()
     {
+        Logger.getLogger().begin("sync md metadata in ncc");
+        
         if (!isSyncMD)
         {
-            Logger.getLogger().debug("isSyncMD=%s, skip...", isSyncMD);
+            Logger.getLogger().end("sync md metadata in ncc", "isSyncMD=%s, skip...", isSyncMD);
             return;
         }
         
@@ -259,9 +200,24 @@ public class SyncDBMDNccAction extends SyncDBMDAction
         String strEnumValueSQL = "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherField
                 + " from md_enumvalue order by id,enumsequence";
         
+        String strDomainSQL = "select 'md__'||id as id,0 as version_type,displayname as display_name,'md' as model_type,name"
+                + ",'md_clazz' as parent_module_id," + strOtherField + " from md_module where parentmoduleid is null order by name";
+        
         try (SQLExecutor sqlExecutorSource = new SQLExecutor(propDBSource))
         {
+            try
+            {
+                List<ModuleVO> listMDModule = (List<ModuleVO>) sqlExecutorSource.executeQuery(strDomainSQL, new BeanListProcessor<>(ModuleVO.class));
+                sqlExecutorTarget.insertVO(listMDModule.toArray(new ModuleVO[0]));
+            }
+            catch (SQLException ex)
+            {
+                Logger.getLogger().error(ex.getMessage(), ex);
+            }
+            
             syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, null, strClassSQL, strPropertySQL, null, strEnumValueSQL);
         }
+        
+        Logger.getLogger().end("sync md metadata in ncc");
     }
 }
