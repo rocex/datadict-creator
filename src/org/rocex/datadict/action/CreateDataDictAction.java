@@ -614,8 +614,8 @@ public class CreateDataDictAction implements IAction, Closeable
         
         createDataDictTree(listModuleVO, listComponentVO, listClassVO, listTableVO);
         
-        // createDataDictFiles(listClassVO);
-        // createDataDictFiles(listTableVO);
+        createDataDictFiles(listClassVO);
+        createDataDictFiles(listTableVO);
         
         String strMsg = "save data dict json file to db: %s md + %s db = %s".formatted(listClassVO.size(), listTableVO.size(),
                 listClassVO.size() + listTableVO.size());
