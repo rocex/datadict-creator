@@ -34,7 +34,201 @@ public class SyncDBMDBipAction extends SyncDBMDAction
     {
         Logger.getLogger().begin("after sync metadata in bip");
         
-        String[] strSQLs = {
+        String[] strAfterSyncMetaDataSQLs = replace("${version}", strVersion, BipSQLConst.strAfterSyncMetaDataSQLs);
+        
+        try
+        {
+            sqlExecutorTarget.executeUpdate(strAfterSyncMetaDataSQLs);
+        }
+        catch (Exception ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        
+        Logger.getLogger().end("after sync metadata in bip");
+    }
+    
+    @Override
+    public void beforeSyncMetaData()
+    {
+        Logger.getLogger().begin("before sync metadata in bip");
+        
+        super.beforeSyncMetaData();
+        
+        // 把以上的ddc_version替换成正确的值
+        String[] strDBModuleSQLs = replace("${version}", strVersion, BipSQLConst.strDBModuleSQLs);
+        String[] strDBComponentSQLs = replace("${version}", strVersion, BipSQLConst.strDBComponentSQLs);
+        String[] strMDComponentSQLs = replace("${version}", strVersion, BipSQLConst.strMDComponentSQLs);
+        String[] strMDClassSQLs = replace("${version}", strVersion, BipSQLConst.strMDClassSQLs);
+        
+        try
+        {
+            sqlExecutorTarget.executeUpdate(strDBModuleSQLs);
+            sqlExecutorTarget.executeUpdate(strDBComponentSQLs);
+            
+            sqlExecutorTarget.executeUpdate(strMDComponentSQLs);
+            sqlExecutorTarget.executeUpdate(strMDClassSQLs);
+        }
+        catch (SQLException ex)
+        {
+            throw new RuntimeException(ex);
+        }
+        
+        Logger.getLogger().end("before sync metadata in bip");
+    }
+    
+    @Override
+    protected String getDataTypeSql(PropertyVO propertyVO)
+    {
+        // 旗舰版的元数据中没有数据库字段类型，需要跟数据库对比找下类型
+        if (ModelType.md.name().equalsIgnoreCase(propertyVO.getModelType()))
+        {
+            PropertyVO tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + propertyVO.getName());
+            if (tableNamePropertyVO == null)
+            {
+                tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.camelToUnderline(propertyVO.getName()));
+                if (tableNamePropertyVO == null)
+                {
+                    tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.underlineToCamel(propertyVO.getName()));
+                }
+            }
+            
+            if (tableNamePropertyVO != null)
+            {
+                String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
+                
+                propertyVO.setColumnCode(tableNamePropertyVO.getName());
+                
+                if (StringHelper.isNotBlank(strDataTypeSql))
+                {
+                    propertyVO.setDataTypeSql(strDataTypeSql);
+                    
+                    return strDataTypeSql;
+                }
+            }
+            
+            String strDataType = propertyVO.getDataType() == null ? "varchar" : propertyVO.getDataType();
+            propertyVO.setDataTypeSql(strDataType.contains("text") ? "text" : strDataType);
+            
+            // 参照-305,枚举-203
+            if (strDataType.length() == 19
+                    && (propertyVO.getDataTypeStyle() == 305 && propertyVO.getRefModelName() != null || propertyVO.getDataTypeStyle() == 203))
+            {
+                propertyVO.setDataTypeSql("varchar");
+                
+                if (propertyVO.getAttrLength() == null)
+                {
+                    propertyVO.setAttrLength(22);
+                }
+            }
+        }
+        
+        return super.getDataTypeSql(propertyVO);
+    }
+    
+    @Override
+    protected void initTableNameFilters(SQLExecutor sqlExecutorSource2)
+    {
+        String strSourceUrl = Context.getInstance().getSetting("jdbc.url");
+        Properties dbPropSource2 = (Properties) propDBSource.clone();
+        dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", "iuap_uuas_usercenter"));
+        
+        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2))
+        {
+            // 所有表名中包含租户id的都不要
+            String strSQL = "select tenant_id,tenant_id from iuap_uuas_usercenter.pub_tenant where tenant_id not in('super','default')";
+            
+            List<String> listTenantId = new ArrayList<>();
+            
+            Map<String, String> mapTable = (Map<String, String>) sqlExecutorSource.executeQuery(strSQL, new MapProcessor<>());
+            
+            listTenantId.addAll(mapTable.keySet());
+            listTenantId.addAll(Arrays.asList(strTableIncludeFilters));
+            
+            strTableIncludeFilters = listTenantId.toArray(new String[0]);
+        }
+        catch (SQLException ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+    }
+    
+    @Override
+    public void syncMDMetaData()
+    {
+        Logger.getLogger().begin("sync md metadata in bip");
+        
+        if (!isSyncMD)
+        {
+            Logger.getLogger().end("sync md metadata in bip", "isSyncMD=%s, skip...", isSyncMD);
+            return;
+        }
+        
+        String strOtherSQL1 = ",'" + strVersion + "' as ddc_version,'" + strTs + "' as ts";
+        String strOtherSQL2 = ",'" + MetaVO.ModelType.md.name() + "' as model_type" + strOtherSQL1;
+        
+        String strModuleSQL = "select distinct lower(own_module) as id,own_module as display_name,null as help,own_module as name,'md__other' as parent_module_id,null as version_type"
+                + strOtherSQL2
+                + " from md_meta_component where ytenant_id='0' and own_module is not null and own_module not in('','null','NULL') order by own_module";
+        
+        String strComponentSQL = "select id,null as biz_model,display_name,null as help,name,null as namespace,lower(own_module) as own_module,null as version,null as version_type"
+                + strOtherSQL2
+                + " from md_meta_component where ytenant_id='0' and own_module is not null and own_module not in('','null','NULL') order by own_module";
+        
+        String strBizObjAsComponentSQL = "select a.id,null as biz_model,a.display_name,null as help,a.name,null as namespace,lower(b.own_module) as own_module,null as version,null as version_type"
+                + strOtherSQL2 + " from md_biz_obj a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri"
+                + " where a.ytenant_id='0' and b.own_module is not null and a.code in(select biz_object_code from md_meta_class where ytenant_id='0')";
+        
+        String strClassSQL = "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.clazz.value()
+                + " as class_type,b.id as component_id"
+                + ",a.table_name as table_name,a.display_name,'' as full_classname,null as help,null as key_attribute,a.name,null as own_module,null as primary_class"
+                + ",null as ref_model_name,null as return_type,null as version_type,c.id as biz_object_id,c.main_entity,d.id as main_class_id" + strOtherSQL2
+                + " from md_meta_class a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri"
+                + " left join md_biz_obj c on c.ytenant_id='0' and a.biz_object_code=c.code left join md_meta_class d on d.ytenant_id='0' and c.main_entity=d.uri"
+                + " where a.ytenant_id='0' and a.meta_component_uri is not null"
+                + " and b.own_module is not null and b.own_module not in('','null','NULL') order by a.meta_component_uri";
+        
+        String strEnumAsClass = "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.enumeration.value()
+                + " as class_type,b.id as component_id,null as table_name"
+                + ",a.display_name,null as full_classname,null as help,null as key_attribute,null as model_type,a.name,null as own_module,null as primary_class"
+                + ",null as ref_model_name,null as return_type,null as version_type" + strOtherSQL2
+                + " from md_enumeration a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri"
+                + " where a.ytenant_id='0' and a.uri in (select enumeration_uri from md_enumeration_literal where ytenant_id='0')";
+        
+        String strPropertySQL = "select a.id,null as accessor_classname,0 as access_power,0 as access_power_group,length as attr_length,max_value as attr_max_value,min_value as attr_min_value"
+                + ",0 as attr_sequence,0 as calculation,b.id as class_id,0 as custom_attr"
+                + ",(case when ref_meta_class_uri is not null then (select id from md_meta_class where ytenant_id='0' and ref_meta_class_uri=uri)"
+                + " when ref_enum_uri is not null then (select id from md_enumeration where ytenant_id='0' and ref_enum_uri=uri) else biz_type end) as data_type"
+                + ",'' as data_type_sql,(case when ref_meta_class_uri is not null then 305 when ref_enum_uri is not null then 203 else 300 end) as data_type_style"
+                + ",default_value,a.display_name,0 as dynamic_attr,null as dynamic_table,0 as fixed_length,null as help,0 as hidden,0 as key_prop,a.name,0 as not_serialize"
+                + ",(case when a.is_nullable is null then '1' else a.is_nullable end) as nullable,precise,0 as read_only,ref_meta_class_uri as ref_model_name,null as version_type"
+                + ",b.table_name as table_name" + strOtherSQL1 + " from md_attribute a left join md_meta_class b on a.object_uri=b.uri and b.ytenant_id='0'"
+                + " where a.ytenant_id='0' and a.biz_type is not null and object_uri in(select uri from md_meta_class where ytenant_id='0')";
+        
+        String strEnumValueSQL = "select a.id,b.id as class_id,0 as enum_sequence,code as enum_value,a.name as name,0 as version_type" + strOtherSQL1
+                + " from md_enumeration_literal a left join md_enumeration b on a.enumeration_uri=b.uri and b.ytenant_id='0'"
+                + " where a.ytenant_id='0' order by enumeration_uri,code";
+        
+        Properties dbPropSourceMd = new Properties();
+        
+        String strUrl = Context.getInstance().getSetting("md.jdbc.url", Context.getInstance().getSetting("jdbc.url"));
+        dbPropSourceMd.setProperty("jdbc.url", strUrl.replace("${schema}", "iuap_metadata_base"));
+        dbPropSourceMd.setProperty("jdbc.user", Context.getInstance().getSetting("md.jdbc.user", Context.getInstance().getSetting("jdbc.user")));
+        dbPropSourceMd.setProperty("jdbc.driver", Context.getInstance().getSetting("md.jdbc.driver", Context.getInstance().getSetting("jdbc.driver")));
+        dbPropSourceMd.setProperty("jdbc.password", Context.getInstance().getSetting("md.jdbc.password", Context.getInstance().getSetting("jdbc.password")));
+        
+        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSourceMd))
+        {
+            syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strBizObjAsComponentSQL, strClassSQL, strPropertySQL, strEnumAsClass,
+                    strEnumValueSQL);
+        }
+        
+        Logger.getLogger().end("sync md metadata in bip");
+    }
+    
+    interface BipSQLConst
+    {
+        String[] strAfterSyncMetaDataSQLs = {
                 // "update md_class set table_name='' where (table_name is null or table_name in ('null','NULL'))",
                 "update md_module set parent_module_id='md__am' where model_type='md' and id in('adc','aim','ambd','ampub','ams','aom','apm','asp','aum','eiot','iass','lim','lom','mim','omm','pam','pvm','rmm','saa','sem','sim','som','spp');",
                 "update md_module set parent_module_id='md__bztrc' where model_type='md' and id in('btis','commom','common','tenant');",
@@ -112,100 +306,6 @@ public class SyncDBMDBipAction extends SyncDBMDAction
                 "update md_property set default_value=null where default_value in('null','NULL');",
                 "update md_property set attr_min_value=null where attr_min_value in('','null','NULL');",
                 "update md_property set attr_max_value=null where attr_max_value in('','null','NULL');" };
-        
-        strSQLs = replace("${version}", strVersion, strSQLs);
-        
-        try
-        {
-            sqlExecutorTarget.executeUpdate(strSQLs);
-        }
-        catch (Exception ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
-        
-        Logger.getLogger().end("after sync metadata in bip");
-    }
-    
-    @Override
-    public void beforeSyncMetaData()
-    {
-        Logger.getLogger().begin("before sync metadata in bip");
-        
-        super.beforeSyncMetaData();
-        
-        String[] strDBModuleSQLs = {
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__iuap', '${version}', '技术应用平台', 'md', 'iuap', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__fi', '${version}', '智能会计', 'md', 'fi', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__scm', '${version}', '供应链云', 'md', 'scm', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__hr', '${version}', '人力云', 'md', 'hr', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__mkt', '${version}', '营销云', 'md', 'mkt', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__am', '${version}', '资产云', 'md', 'am', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__cgy', '${version}', '采购云', 'md', 'cgy', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__tax', '${version}', '税务云', 'md', 'tax', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__mm', '${version}', '制造云', 'md', 'mm', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__epm', '${version}', '企业绩效', 'md', 'epm', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__pm', '${version}', '项目云', 'md', 'pm', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__trst', '${version}', '云可信', 'md', 'trst', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__bztrc', '${version}', '商旅云', 'md', 'bztrc', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__ctrm', '${version}', '贸易云', 'md', 'ctrm', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__base', '${version}', '领域基础', 'md', 'base', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__ec', '${version}', '协同云', 'md', 'ec', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__szyx', '${version}', '数字营销', 'md', 'szyx', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__fkgxcz', '${version}', '费控共享财资云', 'md', 'fkgxcz', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__ndi', '${version}', '国防工业云', 'md', 'ndi', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__other', '${version}', '其它', 'md', 'other', 'md_clazz');",
-                
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__iuap', '${version}', '技术应用平台', 'db', 'iuap', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fi', '${version}', '智能会计', 'db', 'fi', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__scm', '${version}', '供应链云', 'db', 'scm', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__hr', '${version}', '人力云', 'db', 'hr', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__mkt', '${version}', '营销云', 'db', 'mkt', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__am', '${version}', '资产云', 'db', 'am', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__cgy', '${version}', '采购云', 'db', 'cgy', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__tax', '${version}', '税务云', 'db', 'tax', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__mm', '${version}', '制造云', 'db', 'mm', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__epm', '${version}', '企业绩效', 'db', 'epm', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__pm', '${version}', '项目云', 'db', 'pm', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__trst', '${version}', '云可信', 'db', 'trst', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__bztrc', '${version}', '商旅云', 'db', 'bztrc', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ctrm', '${version}', '贸易云', 'db', 'ctrm', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__base', '${version}', '领域基础', 'db', 'base', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ec', '${version}', '协同云', 'db', 'ec', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__szyx', '${version}', '数字营销', 'db', 'szyx', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fkgxcz', '${version}', '费控共享财资云', 'db', 'fkgxcz', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ndi', '${version}', '国防工业云', 'db', 'ndi', 'db_table');",
-                
-                // 政务
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ams', '${version}', 'YonDiF-应用平台扩展', 'md', 'yondif_ams', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_bi', '${version}', 'YonDiF-基础信息', 'md', 'yondif_bi', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ur', '${version}', 'YonDiF-报表云', 'md', 'yondif_ur', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ai', '${version}', 'YonDiF-智能平台扩展', 'md', 'yondif_ai', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_bm', '${version}', 'YonDiF-预算管理', 'md', 'yondif_bm', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_be', '${version}', 'YonDiF-预算执行', 'md', 'yondif_be', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ar', '${version}', 'YonDiF-报销管理', 'md', 'yondif_ar', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_glf', '${version}', 'YonDiF-财政总会计核算', 'md', 'yondif_glf', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_glb', '${version}', 'YonDiF-预算指标核算', 'md', 'yondif_glb', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_gla', '${version}', 'YonDiF-单位会计核算', 'md', 'yondif_gla', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_agcfs', '${version}', 'YonDiF-政府财务报告', 'md', 'yondif_agcfs', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_agfa', '${version}', 'YonDiF-财政总决算', 'md', 'yondif_agfa', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_fas', '${version}', 'YonDiF-财会监督', 'md', 'yondif_fas', 'md_clazz');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_fa', '${version}', 'YonDiF-资产管理', 'md', 'yondif_fa', 'md_clazz');",
-                
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ams', '${version}', 'YonDiF-应用平台扩展', 'db', 'yondif_ams', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_bi', '${version}', 'YonDiF-基础信息', 'db', 'yondif_bi', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ur', '${version}', 'YonDiF-报表云', 'db', 'yondif_ur', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ai', '${version}', 'YonDiF-智能平台扩展', 'db', 'yondif_ai', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_bm', '${version}', 'YonDiF-预算管理', 'db', 'yondif_bm', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_be', '${version}', 'YonDiF-预算执行', 'db', 'yondif_be', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ar', '${version}', 'YonDiF-报销管理', 'db', 'yondif_ar', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_glf', '${version}', 'YonDiF-财政总会计核算', 'db', 'yondif_glf', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_glb', '${version}', 'YonDiF-预算指标核算', 'db', 'yondif_glb', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_gla', '${version}', 'YonDiF-单位会计核算', 'db', 'yondif_gla', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_agcfs', '${version}', 'YonDiF-政府财务报告', 'db', 'yondif_agcfs', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_agfa', '${version}', 'YonDiF-财政总决算', 'db', 'yondif_agfa', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_fas', '${version}', 'YonDiF-财会监督', 'db', 'yondif_fas', 'db_table');",
-                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_fa', '${version}', 'YonDiF-资产管理', 'db', 'yondif_fa', 'db_table');" };
         
         String[] strDBComponentSQLs = {
                 "insert into md_component (id, ddc_version, model_type, name, own_module) values ('db__amc_aim', '${version}', 'db', 'amc_aim', 'db__am');",
@@ -524,8 +624,78 @@ public class SyncDBMDBipAction extends SyncDBMDAction
                 "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_fas_fasi_online', '${version}', 'db', 'yondif_fas_fasi_online', 'db__yondif_fas', '监督检查');",
                 "insert into md_component (id, ddc_version, model_type, name, own_module, display_name) values ('db__yondif_fas_psrc_online', '${version}', 'db', 'yondif_fas_psrc_online', 'db__yondif_fas', '监督规则中心');" };
         
-        String[] strMDComponentSQLs = {
-                "insert into md_component (id, biz_model, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391905', '0', '${version}', 'BIP基础数据类型', 'md', 'BipBasicDataType', 'iuap');" };
+        String[] strDBModuleSQLs = {
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__iuap', '${version}', '技术应用平台', 'md', 'iuap', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__fi', '${version}', '智能会计', 'md', 'fi', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__scm', '${version}', '供应链云', 'md', 'scm', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__hr', '${version}', '人力云', 'md', 'hr', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__mkt', '${version}', '营销云', 'md', 'mkt', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__am', '${version}', '资产云', 'md', 'am', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__cgy', '${version}', '采购云', 'md', 'cgy', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__tax', '${version}', '税务云', 'md', 'tax', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__mm', '${version}', '制造云', 'md', 'mm', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__epm', '${version}', '企业绩效', 'md', 'epm', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__pm', '${version}', '项目云', 'md', 'pm', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__trst', '${version}', '云可信', 'md', 'trst', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__bztrc', '${version}', '商旅云', 'md', 'bztrc', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__ctrm', '${version}', '贸易云', 'md', 'ctrm', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__base', '${version}', '领域基础', 'md', 'base', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__ec', '${version}', '协同云', 'md', 'ec', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__szyx', '${version}', '数字营销', 'md', 'szyx', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__fkgxcz', '${version}', '费控共享财资云', 'md', 'fkgxcz', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__ndi', '${version}', '国防工业云', 'md', 'ndi', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__other', '${version}', '其它', 'md', 'other', 'md_clazz');",
+                
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__iuap', '${version}', '技术应用平台', 'db', 'iuap', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fi', '${version}', '智能会计', 'db', 'fi', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__scm', '${version}', '供应链云', 'db', 'scm', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__hr', '${version}', '人力云', 'db', 'hr', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__mkt', '${version}', '营销云', 'db', 'mkt', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__am', '${version}', '资产云', 'db', 'am', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__cgy', '${version}', '采购云', 'db', 'cgy', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__tax', '${version}', '税务云', 'db', 'tax', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__mm', '${version}', '制造云', 'db', 'mm', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__epm', '${version}', '企业绩效', 'db', 'epm', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__pm', '${version}', '项目云', 'db', 'pm', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__trst', '${version}', '云可信', 'db', 'trst', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__bztrc', '${version}', '商旅云', 'db', 'bztrc', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ctrm', '${version}', '贸易云', 'db', 'ctrm', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__base', '${version}', '领域基础', 'db', 'base', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ec', '${version}', '协同云', 'db', 'ec', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__szyx', '${version}', '数字营销', 'db', 'szyx', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__fkgxcz', '${version}', '费控共享财资云', 'db', 'fkgxcz', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__ndi', '${version}', '国防工业云', 'db', 'ndi', 'db_table');",
+                
+                // 政务
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ams', '${version}', 'YonDiF-应用平台扩展', 'md', 'yondif_ams', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_bi', '${version}', 'YonDiF-基础信息', 'md', 'yondif_bi', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ur', '${version}', 'YonDiF-报表云', 'md', 'yondif_ur', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ai', '${version}', 'YonDiF-智能平台扩展', 'md', 'yondif_ai', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_bm', '${version}', 'YonDiF-预算管理', 'md', 'yondif_bm', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_be', '${version}', 'YonDiF-预算执行', 'md', 'yondif_be', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_ar', '${version}', 'YonDiF-报销管理', 'md', 'yondif_ar', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_glf', '${version}', 'YonDiF-财政总会计核算', 'md', 'yondif_glf', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_glb', '${version}', 'YonDiF-预算指标核算', 'md', 'yondif_glb', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_gla', '${version}', 'YonDiF-单位会计核算', 'md', 'yondif_gla', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_agcfs', '${version}', 'YonDiF-政府财务报告', 'md', 'yondif_agcfs', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_agfa', '${version}', 'YonDiF-财政总决算', 'md', 'yondif_agfa', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_fas', '${version}', 'YonDiF-财会监督', 'md', 'yondif_fas', 'md_clazz');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('md__yondif_fa', '${version}', 'YonDiF-资产管理', 'md', 'yondif_fa', 'md_clazz');",
+                
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ams', '${version}', 'YonDiF-应用平台扩展', 'db', 'yondif_ams', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_bi', '${version}', 'YonDiF-基础信息', 'db', 'yondif_bi', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ur', '${version}', 'YonDiF-报表云', 'db', 'yondif_ur', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ai', '${version}', 'YonDiF-智能平台扩展', 'db', 'yondif_ai', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_bm', '${version}', 'YonDiF-预算管理', 'db', 'yondif_bm', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_be', '${version}', 'YonDiF-预算执行', 'db', 'yondif_be', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_ar', '${version}', 'YonDiF-报销管理', 'db', 'yondif_ar', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_glf', '${version}', 'YonDiF-财政总会计核算', 'db', 'yondif_glf', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_glb', '${version}', 'YonDiF-预算指标核算', 'db', 'yondif_glb', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_gla', '${version}', 'YonDiF-单位会计核算', 'db', 'yondif_gla', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_agcfs', '${version}', 'YonDiF-政府财务报告', 'db', 'yondif_agcfs', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_agfa', '${version}', 'YonDiF-财政总决算', 'db', 'yondif_agfa', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_fas', '${version}', 'YonDiF-财会监督', 'db', 'yondif_fas', 'db_table');",
+                "insert into md_module (id, ddc_version, display_name, model_type, name, parent_module_id) values ('db__yondif_fa', '${version}', 'YonDiF-资产管理', 'db', 'yondif_fa', 'db_table');" };
         
         String[] strMDClassSQLs = {
                 "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391910', 1, '1976686225086391905', '${version}', '附件', 'md', 'Attachment', null);",
@@ -569,174 +739,7 @@ public class SyncDBMDBipAction extends SyncDBMDAction
                 "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391948', 1, '1976686225086391905', '${version}', '时间戳', 'md', 'Timestamp', null);",
                 "insert into md_class (id, class_type, component_id, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391949', 1, '1976686225086391905', '${version}', '用户定义', 'md', 'UserDefine', null);" };
         
-        // 把以上的ddc_version替换成正确的值
-        strDBModuleSQLs = replace("${version}", strVersion, strDBModuleSQLs);
-        strDBComponentSQLs = replace("${version}", strVersion, strDBComponentSQLs);
-        strMDComponentSQLs = replace("${version}", strVersion, strMDComponentSQLs);
-        strMDClassSQLs = replace("${version}", strVersion, strMDClassSQLs);
-        
-        try
-        {
-            sqlExecutorTarget.executeUpdate(strDBModuleSQLs);
-            sqlExecutorTarget.executeUpdate(strDBComponentSQLs);
-            
-            sqlExecutorTarget.executeUpdate(strMDComponentSQLs);
-            sqlExecutorTarget.executeUpdate(strMDClassSQLs);
-        }
-        catch (SQLException ex)
-        {
-            throw new RuntimeException(ex);
-        }
-        
-        Logger.getLogger().end("before sync metadata in bip");
-    }
-    
-    @Override
-    protected String getDataTypeSql(PropertyVO propertyVO)
-    {
-        // 旗舰版的元数据中没有数据库字段类型，需要跟数据库对比找下类型
-        if (ModelType.md.name().equalsIgnoreCase(propertyVO.getModelType()))
-        {
-            PropertyVO tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + propertyVO.getName());
-            if (tableNamePropertyVO == null)
-            {
-                tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.camelToUnderline(propertyVO.getName()));
-                if (tableNamePropertyVO == null)
-                {
-                    tableNamePropertyVO = mapPropertyVOByTableName.get(propertyVO.getTableName() + "." + StringHelper.underlineToCamel(propertyVO.getName()));
-                }
-            }
-            
-            if (tableNamePropertyVO != null)
-            {
-                String strDataTypeSql = tableNamePropertyVO.getDataTypeSql();
-                
-                propertyVO.setColumnCode(tableNamePropertyVO.getName());
-                
-                if (StringHelper.isNotBlank(strDataTypeSql))
-                {
-                    propertyVO.setDataTypeSql(strDataTypeSql);
-                    
-                    return strDataTypeSql;
-                }
-            }
-            
-            String strDataType = propertyVO.getDataType() == null ? "varchar" : propertyVO.getDataType();
-            propertyVO.setDataTypeSql(strDataType.contains("text") ? "text" : strDataType);
-            
-            // 参照-305,枚举-203
-            if (strDataType.length() == 19
-                    && (propertyVO.getDataTypeStyle() == 305 && propertyVO.getRefModelName() != null || propertyVO.getDataTypeStyle() == 203))
-            {
-                propertyVO.setDataTypeSql("varchar");
-                
-                if (propertyVO.getAttrLength() == null)
-                {
-                    propertyVO.setAttrLength(22);
-                }
-            }
-        }
-        
-        return super.getDataTypeSql(propertyVO);
-    }
-    
-    @Override
-    protected void initTableNameFilters(SQLExecutor sqlExecutorSource2)
-    {
-        String strSourceUrl = Context.getInstance().getSetting("jdbc.url");
-        Properties dbPropSource2 = (Properties) propDBSource.clone();
-        dbPropSource2.setProperty("jdbc.url", strSourceUrl.replace("${schema}", "iuap_uuas_usercenter"));
-        
-        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSource2))
-        {
-            // 所有表名中包含租户id的都不要
-            String strSQL = "select tenant_id,tenant_id from iuap_uuas_usercenter.pub_tenant where tenant_id not in('super','default')";
-            
-            List<String> listTenantId = new ArrayList<>();
-            
-            Map<String, String> mapTable = (Map<String, String>) sqlExecutorSource.executeQuery(strSQL, new MapProcessor<>());
-            
-            listTenantId.addAll(mapTable.keySet());
-            listTenantId.addAll(Arrays.asList(strTableIncludeFilters));
-            
-            strTableIncludeFilters = listTenantId.toArray(new String[0]);
-        }
-        catch (SQLException ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
-    }
-    
-    @Override
-    public void syncMDMetaData()
-    {
-        Logger.getLogger().begin("sync md metadata in bip");
-        
-        if (!isSyncMD)
-        {
-            Logger.getLogger().end("sync md metadata in bip", "isSyncMD=%s, skip...", isSyncMD);
-            return;
-        }
-        
-        String strOtherSQL1 = ",'" + strVersion + "' as ddc_version,'" + strTs + "' as ts";
-        String strOtherSQL2 = ",'" + MetaVO.ModelType.md.name() + "' as model_type" + strOtherSQL1;
-        
-        String strModuleSQL = "select distinct lower(own_module) as id,own_module as display_name,null as help,own_module as name,'md__other' as parent_module_id,null as version_type"
-                + strOtherSQL2
-                + " from md_meta_component where ytenant_id='0' and own_module is not null and own_module not in('','null','NULL') order by own_module";
-        
-        String strComponentSQL = "select id,null as biz_model,display_name,null as help,name,null as namespace,lower(own_module) as own_module,null as version,null as version_type"
-                + strOtherSQL2
-                + " from md_meta_component where ytenant_id='0' and own_module is not null and own_module not in('','null','NULL') order by own_module";
-        
-        String strBizObjAsComponentSQL = "select a.id,null as biz_model,a.display_name,null as help,a.name,null as namespace,lower(b.own_module) as own_module,null as version,null as version_type"
-                + strOtherSQL2 + " from md_biz_obj a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri"
-                + " where a.ytenant_id='0' and b.own_module is not null and a.code in(select biz_object_code from md_meta_class where ytenant_id='0')";
-        
-        String strClassSQL = "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.clazz.value()
-                + " as class_type,b.id as component_id"
-                + ",a.table_name as table_name,a.display_name,'' as full_classname,null as help,null as key_attribute,a.name,null as own_module,null as primary_class"
-                + ",null as ref_model_name,null as return_type,null as version_type,c.id as biz_object_id,c.main_entity,d.id as main_class_id" + strOtherSQL2
-                + " from md_meta_class a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri"
-                + " left join md_biz_obj c on c.ytenant_id='0' and a.biz_object_code=c.code left join md_meta_class d on d.ytenant_id='0' and c.main_entity=d.uri"
-                + " where a.ytenant_id='0' and a.meta_component_uri is not null"
-                + " and b.own_module is not null and b.own_module not in('','null','NULL') order by a.meta_component_uri";
-        
-        String strEnumAsClass = "select a.id,null as accessor_classname,null as authen,null as biz_itf_imp_classname," + ClassVO.ClassType.enumeration.value()
-                + " as class_type,b.id as component_id,null as table_name"
-                + ",a.display_name,null as full_classname,null as help,null as key_attribute,null as model_type,a.name,null as own_module,null as primary_class"
-                + ",null as ref_model_name,null as return_type,null as version_type" + strOtherSQL2
-                + " from md_enumeration a left join md_meta_component b on b.ytenant_id='0' and a.meta_component_uri=b.uri"
-                + " where a.ytenant_id='0' and a.uri in (select enumeration_uri from md_enumeration_literal where ytenant_id='0')";
-        
-        String strPropertySQL = "select a.id,null as accessor_classname,0 as access_power,0 as access_power_group,length as attr_length,max_value as attr_max_value,min_value as attr_min_value"
-                + ",0 as attr_sequence,0 as calculation,b.id as class_id,0 as custom_attr"
-                + ",(case when ref_meta_class_uri is not null then (select id from md_meta_class where ytenant_id='0' and ref_meta_class_uri=uri)"
-                + " when ref_enum_uri is not null then (select id from md_enumeration where ytenant_id='0' and ref_enum_uri=uri) else biz_type end) as data_type"
-                + ",'' as data_type_sql,(case when ref_meta_class_uri is not null then 305 when ref_enum_uri is not null then 203 else 300 end) as data_type_style"
-                + ",default_value,a.display_name,0 as dynamic_attr,null as dynamic_table,0 as fixed_length,null as help,0 as hidden,0 as key_prop,a.name,0 as not_serialize"
-                + ",(case when a.is_nullable is null then '1' else a.is_nullable end) as nullable,precise,0 as read_only,ref_meta_class_uri as ref_model_name,null as version_type"
-                + ",b.table_name as table_name" + strOtherSQL1 + " from md_attribute a left join md_meta_class b on a.object_uri=b.uri and b.ytenant_id='0'"
-                + " where a.ytenant_id='0' and a.biz_type is not null and object_uri in(select uri from md_meta_class where ytenant_id='0')";
-        
-        String strEnumValueSQL = "select a.id,b.id as class_id,0 as enum_sequence,code as enum_value,a.name as name,0 as version_type" + strOtherSQL1
-                + " from md_enumeration_literal a left join md_enumeration b on a.enumeration_uri=b.uri and b.ytenant_id='0'"
-                + " where a.ytenant_id='0' order by enumeration_uri,code";
-        
-        Properties dbPropSourceMd = new Properties();
-        
-        String strUrl = Context.getInstance().getSetting("md.jdbc.url", Context.getInstance().getSetting("jdbc.url"));
-        dbPropSourceMd.setProperty("jdbc.url", strUrl.replace("${schema}", "iuap_metadata_base"));
-        dbPropSourceMd.setProperty("jdbc.user", Context.getInstance().getSetting("md.jdbc.user", Context.getInstance().getSetting("jdbc.user")));
-        dbPropSourceMd.setProperty("jdbc.driver", Context.getInstance().getSetting("md.jdbc.driver", Context.getInstance().getSetting("jdbc.driver")));
-        dbPropSourceMd.setProperty("jdbc.password", Context.getInstance().getSetting("md.jdbc.password", Context.getInstance().getSetting("jdbc.password")));
-        
-        try (SQLExecutor sqlExecutorSource = new SQLExecutor(dbPropSourceMd))
-        {
-            syncMetaData(sqlExecutorSource, strModuleSQL, strComponentSQL, strBizObjAsComponentSQL, strClassSQL, strPropertySQL, strEnumAsClass,
-                    strEnumValueSQL);
-        }
-        
-        Logger.getLogger().end("sync md metadata in bip");
+        String[] strMDComponentSQLs = {
+                "insert into md_component (id, biz_model, ddc_version, display_name, model_type, name, own_module) values ('1976686225086391905', '0', '${version}', 'BIP基础数据类型', 'md', 'BipBasicDataType', 'iuap');" };
     }
 }

@@ -203,6 +203,8 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
     {
         Logger.getLogger().begin("sync db schema and metadata");
         
+        Logger.getLogger().debug("version=%s, dropTables=%s, syncDB=%s, syncMD=%s", strVersion, isDropTables, isSyncDB, isSyncMD);
+        
         if (!isDropTables && !isSyncDB && !isSyncMD)
         {
             Logger.getLogger().end("sync db schema and metadata", "isSyncDB=%s, isSyncMD=%s, skip...", isSyncDB, isSyncMD);
@@ -688,7 +690,7 @@ public abstract class SyncDBMDAction implements IAction, Closeable, ISyncDBMDAct
                     StringHelper.isEmpty(classVO.getRemarks()) ? strTableName : StringHelper.removeCRLF(classVO.getRemarks())));
             
             String strModule = mapTableInModule.get(strTableName);
-            classVO.setComponentId(strComponentId == null ? "db__" + Objects.toString(strModule, "other") : strComponentId);
+            classVO.setComponentId(strComponentId == null ? "db__" + Objects.toString(strModule, "zother") : strComponentId);
             
             try
             {

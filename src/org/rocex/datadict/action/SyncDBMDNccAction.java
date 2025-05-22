@@ -40,7 +40,7 @@ public class SyncDBMDNccAction extends SyncDBMDAction
                 
                 "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('db__ae','${version}','db',0,'数据处理','ae','db_table')",
                 "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('db__bq','${version}','db',0,'商业分析','bq','db_table')",
-                "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('db__other','${version}','db',0,'未归类','other','db_table')",
+                "insert into md_module (id,ddc_version,model_type,version_type,display_name,name,parent_module_id) values ('db__zother','${version}','db',0,'未归类','other','db_table')",
                 
                 "update md_module set display_name='财务' where id='gl'",
                 "update md_module set parent_module_id='md_clazz' where model_type='md' and parent_module_id is null",
@@ -184,19 +184,16 @@ public class SyncDBMDNccAction extends SyncDBMDAction
         
         String strClassSQL = "select id,name,displayname,defaulttablename as table_name,fullclassname,keyattribute,componentid,classtype"
                 + ",isprimary as primary_class,help,accessorclassname,bizitfimpclassname,refmodelname,returntype,isauthen,versiontype," + strOtherField
-                + " from md_class"
-                // + " where id like '%aaa%'"
-                + " order by defaulttablename";
-                
+                + " from md_class order by defaulttablename";
+        
         String strPropertySQL = "select a.id id,a.name as name,a.displayname as displayname,attrlength,attrminvalue"
                 + ",attrmaxvalue,attrsequence,customattr,datatype,datatypestyle,a.defaultvalue as defaultvalue"
                 + ",a.nullable as nullable,a.precise as precise,a.refmodelname,classid,accesspowergroup,a.accessorclassname,dynamictable"
                 + ",a.help,accesspower,calculation,dynamicattr,a.fixedlength,a.hided as hidden,a.notserialize,a.readonly,c.sqldatetype data_type_sql"
                 + ",c.pkey key_prop,a.versiontype," + strOtherField
                 + " from md_property a left join md_class b on a.classid=b.id left join md_column c on a.name=c.name and c.tableid=b.defaulttablename"
-                // + " where a.classid like '%aaa%'"
                 + " order by a.classid,c.pkey desc,a.attrsequence";
-                
+        
         String strEnumValueSQL = "select id as class_id,enumsequence as enum_sequence,name,value enum_value,versiontype," + strOtherField
                 + " from md_enumvalue order by id,enumsequence";
         

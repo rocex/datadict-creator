@@ -50,8 +50,9 @@ import org.rocex.vo.IAction;
  ***************************************************************************/
 public class CreateDataDictAction implements IAction, Closeable
 {
-    protected boolean isCreateDB = true;    // 是否生成表结构字典
-    protected boolean isCreateMD = true;    // 是否生成元数据字典
+    protected boolean isCreateDB = true;        // 是否生成表结构字典
+    protected boolean isCreateMD = true;        // 是否生成元数据字典
+    protected boolean isSaveJsonToDB = false;   // 是否在数据库里保存生成的json文件
     
     protected JacksonHelper jacksonHelper = new JacksonHelper().exclude(ClassVO.class, "accessorClassname", "authen", "bizItfImpClassname", "bizObjectId",
             "classType", "componentId", "ddcVersion", "help", "id", "keyAttribute", "mainClassId", "name", "refModelName", "returnType", "ts", "versionType")
@@ -79,7 +80,6 @@ public class CreateDataDictAction implements IAction, Closeable
             "hvdef", "vbodyuserdef", "vhdef", "vgdef", "hdef", "vstbdef", "vpdef", "vbprodbatdef", "vheaduserdef", "bc_vdef", "vsdef", "vhodef", "vstdef",
             "vbatchdef", "bdef", "freevalue", "h_def", "vrcdef", "des_freedef", "src_freedef", "vprodbatdef", "factor", "free", "nfactor", "glbdef",
             "jobglbdef", "vcostfree" };
-    
     protected String strFullTextFileIndex;  // 全文检索文件名序号，英文逗号分割
     protected String strOutputDictDir;      // 输出数据字典文件目录
     protected String strOutputRootDir;      // 输出文件根目录
@@ -94,8 +94,9 @@ public class CreateDataDictAction implements IAction, Closeable
     {
         this.strVersion = strVersion;
         
-        isCreateMD = Boolean.parseBoolean(Context.getInstance().getSetting("createMD", "true"));
-        isCreateDB = Boolean.parseBoolean(Context.getInstance().getSetting("createDB", "true"));
+        isCreateMD = StringHelper.getBoolean(Context.getInstance().getSetting("createMD"), true);
+        isCreateDB = StringHelper.getBoolean(Context.getInstance().getSetting("createDB"), true);
+        isSaveJsonToDB = StringHelper.getBoolean(Context.getInstance().getSetting("saveJsonToDB"), false);
         
         strOutputRootDir = Path.of(Context.getInstance().getSetting("WorkDir"), "datadict-" + strVersion).toString();
         strOutputDictDir = Path.of(strOutputRootDir, "dict").toString();
@@ -254,26 +255,12 @@ public class CreateDataDictAction implements IAction, Closeable
     }
     
     /***************************************************************************
-     * 拷贝静态文件、css、js 等
      * @author Rocex Wang
-     * @since 2020-4-29 10:33:18
+     * @since 2025-05-22 09:51:22
      ***************************************************************************/
-    protected void copyStaticHtmlFiles()
+    protected void copyDynamicFiles()
     {
-        Logger.getLogger().begin("copy static files");
-        
-        try
-        {
-            FileHelper.copyFolderThread(Path.of("data", "template", "static"), Path.of(strOutputRootDir), StandardCopyOption.REPLACE_EXISTING);
-        }
-        catch (IOException ex)
-        {
-            Logger.getLogger().error(ex.getMessage(), ex);
-        }
-        
-        Logger.getLogger().end("copy static files");
-        
-        Logger.getLogger().begin("create ddc info file");
+        Logger.getLogger().begin("copy dynamic files");
         
         try
         {
@@ -288,7 +275,28 @@ public class CreateDataDictAction implements IAction, Closeable
             Logger.getLogger().error(ex.getMessage(), ex);
         }
         
-        Logger.getLogger().end("create ddc info file");
+        Logger.getLogger().end("copy dynamic files");
+    }
+    
+    /***************************************************************************
+     * 拷贝静态文件、css、js 等
+     * @author Rocex Wang
+     * @since 2020-4-29 10:33:18
+     ***************************************************************************/
+    protected void copyStaticFiles()
+    {
+        Logger.getLogger().begin("copy static files");
+        
+        try
+        {
+            FileHelper.copyFolderThread(Path.of("data", "template", "static"), Path.of(strOutputRootDir), StandardCopyOption.REPLACE_EXISTING);
+        }
+        catch (IOException ex)
+        {
+            Logger.getLogger().error(ex.getMessage(), ex);
+        }
+        
+        Logger.getLogger().end("copy static files");
     }
     
     /***************************************************************************
@@ -360,11 +368,11 @@ public class CreateDataDictAction implements IAction, Closeable
      ***************************************************************************/
     protected void createDataDictFiles(List<ClassVO> listClassVO)
     {
-        Logger.getLogger().begin("create data dict file: " + listClassVO.size());
+        Logger.getLogger().begin("create data dict file:");
         
         if (listClassVO == null || listClassVO.isEmpty())
         {
-            Logger.getLogger().end("create data dict file: " + listClassVO.size());
+            Logger.getLogger().end("create data dict file:", "listClassVO is empty, skip...");
             return;
         }
         
@@ -388,7 +396,7 @@ public class CreateDataDictAction implements IAction, Closeable
         
         Logger.getLogger().log2(Logger.iLoggerLevelDebug, iCount[0] + "/" + iCount[1] + "  done!\n");
         
-        Logger.getLogger().end("create data dict file: " + listClassVO.size());
+        Logger.getLogger().end("create data dict file:");
     }
     
     /***************************************************************************
@@ -582,6 +590,8 @@ public class CreateDataDictAction implements IAction, Closeable
     {
         Logger.getLogger().begin("create data dictionary " + strVersion);
         
+        Logger.getLogger().debug("version=%s, createDB=%s, createMD=%s, saveJsonToDB=%s", strVersion, isCreateDB, isCreateMD, isSaveJsonToDB);
+        
         if (!isCreateDB && !isCreateMD)
         {
             Logger.getLogger().end("create data dictionary " + strVersion, "isCreateDB=%s, isCreateMD=%s, skip...", isCreateDB, isCreateMD);
@@ -590,9 +600,11 @@ public class CreateDataDictAction implements IAction, Closeable
         
         initTargetDir();
         
+        copyStaticFiles();
+        
         String strVersionSQL = "ddc_version='" + strVersion + "'";
         
-        String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " order by model_type";
+        String strModuleSQL = sqlExecutor.getSQLSelect(ModuleVO.class) + " where " + strVersionSQL + " order by model_type,id";
         String strComponentSQL = sqlExecutor.getSQLSelect(ComponentVO.class) + " where " + strVersionSQL + " order by model_type,own_module,name";
         String strClassSQLMd = sqlExecutor.getSQLSelect(ClassVO.class) + " where " + strVersionSQL + " and component_id is not null and model_type='"
                 + MetaVO.ModelType.md.name() + "' order by primary_class desc,table_name";
@@ -628,7 +640,7 @@ public class CreateDataDictAction implements IAction, Closeable
         
         exportFullText();
         
-        copyStaticHtmlFiles();
+        copyDynamicFiles();
         
         Logger.getLogger().end("create data dictionary " + strVersion);
     }
@@ -892,7 +904,7 @@ public class CreateDataDictAction implements IAction, Closeable
      ***************************************************************************/
     protected void saveToDictJson(List<ClassVO> listClassVO)
     {
-        if (listClassVO == null || listClassVO.isEmpty())
+        if (!isSaveJsonToDB || listClassVO == null || listClassVO.isEmpty())
         {
             return;
         }
