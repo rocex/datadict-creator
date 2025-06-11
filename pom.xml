@@ -17,7 +17,7 @@
         <version_slf4j_nop>2.0.16</version_slf4j_nop>
         <version_jdbc_mysql>9.1.0</version_jdbc_mysql>
         <version_jdbc_ojdbc11>23.5.0.24.07</version_jdbc_ojdbc11>
-        <version_jdbc_postgre>42.7.5</version_jdbc_postgre>
+        <version_jdbc_postgre>42.7.7</version_jdbc_postgre>
         <version_jdbc_sqlite>3.46.0.1</version_jdbc_sqlite>
         <version_jdbc_dameng>8.1.3.140</version_jdbc_dameng>
     </properties>
